@@ -10,5 +10,9 @@ Chrome or Firefox, and WebCam is required. (In my test, Windows+Firefox may caus
 ## Block Diagram
 ![Block Diagram](http://g200kg.github.com/LiveBeats/images/block.png)
 
-## DEMO page and instructions are available
-[LiveBeats](http://g200kg.github.com/LiveBeats/)
+## DEMO and Instructions
+#### [LiveBeats Demo Page](http://g200kg.github.com/LiveBeats/)
+
+## License
+IR files(IMreverbs1) : http://g200kg.github.io/LiveBeats/samples/IMreverbs1/license.txt  
+Others : [MIT License](http://g200kg.github.io/LiveBeats/LICENSE)
