@@ -1,0 +1,422 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style type="text/css">
+body {
+	font-family: courier;
+}
+#header {
+	font-family:courier;
+	font-size:42px;
+	font-weight:bold;
+	background:#78e;
+	margin:0px;
+	padding:5px;
+	color:#336;
+}
+#link {
+	padding:10px;
+	background:#7fd;
+	display:inline-block;
+	border:1px solid #4ca;
+	border-radius: 5px;
+}
+table {
+	background:#ccd;
+	border:1px solid #668;
+}
+table td {
+	border:1px solid #668;
+	padding:3px 10px;
+}
+</style>
+<title>Live Beats | g200kg Music &amp; Software</title>
+</head>
+<body>
+<div id="header"><a href="http://www.g200kg.com/"><img src="images/g200kg160x80.png" style="margin:10px;vertical-align:middle"></a><div style="display:inline-block;margin:10px;vertical-align:middle">LiveBeats<div style="font-size:16px"> sound/visual live performance tool.</div></div></div>
+<br/>
+<button onclick="ShowDoc('ja')">Japanese</button> | <button onclick="ShowDoc('en')">English</button><br/>
+<div class="doc_en"><p><b>LiveBeats</b> is a command-line based sound/visual live performance tool for browser.
+<b>LiveBeats</b> can generate various sounds and visual effects by commmands from keyboard.
+Chrome or Firefox, and WebCam is required. (In my test, Windows+Firefox may cause some trouble with WebCam Image, please try with Chrome when you have trouble.</p>
+</div>
+<div class="doc_ja"><p><b>LiveBeats</b> はブラウザ上で動作するコマンドラインベースの音響/映像ライブパフォーマンス用のツールです。キーボードからコマンドを入力して行く事で様々な音と映像効果をリアルタイムに生成する事が可能です。
+Chrome または Firefox とWebカメラが必要です (私の環境ではWin+Firefoxの場合、Webカメラによって正常に動作しない場合がありました、Firefoxで正常動作しない場合はChromeで試してみてください)。
+
+</p>
+</div>
+<div id="link"><b><a href="livebeats.html" style="font-weight:bold;font-size:20px">Start LiveBeats</a></b></div>
+<div>
+<br/>
+<iframe width="560" height="315" src="//www.youtube.com/embed/ku8IqybeRcs?rel=0" frameborder="0" allowfullscreen></iframe>
+</div>
+<br/>
+<div class="doc_en">
+<h2>Simple Tutrial:</h2>
+<p>
+<table>
+<tr><th>Type</th><th>Description</th></tr>
+<tr><td>cam.a=1</td><td>Set 'cam' object to visible</td></tr>
+<tr><td>cam.v=.5</td><td>Sound from 'cam' object is enabled. You can hear the sound from 'cam' by making motion in front of WebCam.</td></tr>
+<tr><td>bdo.s=crrr</td><td>Set bass drum pattern to 'crrr'. </td></tr>
+<tr><td>sdo.s=rrrrcrrr</td><td>Set snare drum pattern to 'rrrrcrrr'.</td></tr>
+<tr><td>hho.s=cr</td><td>Set Hi-hat pattern to 'cr'.</td></tr>
+<tr><td>o1.s=aarrrrrr</td><td>Set bass pattern.</td></tr>
+<tr><td>o2.s=s20</td><td>Set arpeggio pattern from preset</td></tr> 
+<tr><td>wav.col=hue(lfo(16))</td><td>wav display color change</td></tr>
+<tr><td>wav.rot=tick</td><td>wav display rotation</td></tr>
+</table>
+</p>
+</div>
+<div class="doc_ja">
+<h2>Simple Tutrial:</h2>
+<p>
+<table>
+<tr><th>コマンド</th><th>説明</th></tr>
+<tr><td>cam.a=1</td><td>'cam'オブジェクトを表示します。</td></tr>
+<tr><td>cam.v=.5</td><td>'cam'オブジェクトの音を出力します。カメラの前で動作をすると音が出ます。</td></tr>
+<tr><td>bdo.s=crrr</td><td>バスドラムのパターンを'crrr'に設定します。 </td></tr>
+<tr><td>sdo.s=rrrrcrrr</td><td>スネアドラムのパターンを'rrrrcrrr'に設定します。</td></tr>
+<tr><td>hho.s=cr</td><td>ハイハットのパターンを'cr'に設定します。</td></tr>
+<tr><td>o1.s=aarrrrrr</td><td>ベースのパターンを設定します。</td></tr>
+<tr><td>o2.s=s20</td><td>プリセットからアルペジオパターンを設定します。</td></tr> 
+<tr><td>wav.col=hue(lfo(16))</td><td>波形表示の色を切り替えます。</td></tr>
+<tr><td>wav.rot=tick</td><td>波形表示を回転させます。</td></tr>
+</table>
+</p>
+</div>
+<div class="doc_en">
+<h2>Basics:</h2>
+<p>Everythings are controlled via commands from keyboard.
+ For example, typing "o1.s=crrr" will set sequence 'crrr' to oscillator-1.
+ Almost control commands take the assignment statement like 'object.property=formula'.
+</p>
+<p>
+ Each property is a 'number' or a 'string'. The 'number' property will be repeatedly evaluated until it has a number value. And the 'string' property will be repeatedly evaluated while the result is a string.
+ <br/><br/>
+ For example, <br/>
+(osc-1 freq : number) o1.f=110 &lt;-- '110' will be evaluated as a number<br/>
+(osc-2 freq : number) o2.f=o1.f &lt;-- 'o1.f' will be '110', and evaluated as a number<br/>
+(osc-1 sequence : string) o1.s=abcde &lt;-- 'abcde' will be evaluated as a string 'abcde'<br/>
+(osc-2 sequence : string) o2.s=o1.s &lt;-- 'o1.s' will evalueted as 'abcde'<br/>
+</p>
+</div>
+<div class="doc_ja">
+<h2>Basics:</h2>
+<p>キーボードからコマンドを入力する事で全てを制御します。
+例えば、"o1.s=crrr" と入力するとオシレーター1に'crrr'というシーケンスを設定します。
+多くの制御コマンドは'オブジェクト.プロパティ=式'のような代入文の形を取ります。
+</p>
+<p>各プロパティは'数値'または'文字列'の型を持ちます。'数値'プロパティは結果が数値になるまで繰り返し評価されます。また'文字列'プロパティは結果が文字列である間、繰り返し、評価されます。
+ <br/><br/>
+例えば、<br/>
+(osc-1 freq : number) o1.f=110 &lt;-- 文字列'110' は数値として評価されます。<br/>
+(osc-2 freq : number) o2.f=o1.f &lt;-- 'o1.f'はまず文字列'110'として評価され、結果、数値として評価されます。<br/>
+(osc-1 sequence : string) o1.s=abcde &lt;-- 'abcde' は文字列'abcde'として評価されます。<br/>
+(osc-2 sequence : string) o2.s=o1.s &lt;-- 'o1.s' は文字列'abcde'として評価されます。<br/>
+</p>
+</div>
+
+<h2>Block Diagram:</h2>
+<img src="images/block.png"/>
+<div class="doc_en">
+<h2>Commands:</h2>
+<table>
+<tr><td>object.property=formula</td><td>Assign formula to object's property. Each formula will be evaluated per each step and reflected to sound/image result (there are some exception).</td></tr>
+<tr><td>list [object name]</td><td>list available objects or object's properties.</td></tr>
+<tr><td>list midi</td><td>list available MIDI ports, that can be used to specify 'cam.midi'.</td></tr>
+<tr><td>list ir</td><td>list available Impulse Response files, that can be used to specify 'master.ir'.</td></tr>
+<tr><td>print &lt;formula&gt;</td><td>evaluate the formula and print</td></tr>
+</table>
+</div>
+<div clas="doc_ja">
+<h2>Commands:</h2>
+<table>
+<tr><td>object.property=formula</td><td>formulaをオブジェクトのプロパティに設定します。それぞれの式はステップ毎に評価され、音と映像に反映されます(リアルタイムに反映されない幾つかの例外があります)
+</td></tr>
+<tr><td>list [object名]</td><td>オブジェクトの一覧、またはオブジェクトのプロパティの一覧を表示します。</td></tr>
+<tr><td>list midi</td><td>使用可能なMIDIポートの一覧を表示します。この一覧はcam.midiプロパティでMIDIポートを指定する際に使用します。</td></tr>
+<tr><td>list ir</td><td>使用可能なインパルスレスポンスファイルの一覧を表示します。この値はmaster.irの設定で使用できます。</td></tr>
+<tr><td>print &lt;formula&gt;</td><td>formulaを評価し、表示します。</td></tr>
+</table>
+</div>
+<br/><br/>
+<h2>Objects:</h2>
+
+<div class="doc_en">
+<table>
+<tr><th colspan="2">cam</th><td>Dipslay WebCam image and generate sound from motion detect.</td></tr>
+<tr><td>cam.a</td><td>number</td><td>alpha value of cam image (0.0 - 1.0)</td></tr>
+<tr><td>cam.w</td><td>number</td><td>width of cam image (0.0 - 1.0)</td></tr>
+<tr><td>cam.h</td><td>number</td><td>height of cam image (0.0 - 1.0)</td></tr>
+<tr><td>cam.x</td><td>number</td><td>x pos of cam image. (0:far left - 0.5:center - 1.0:far right)</td></tr>
+<tr><td>cam.y</td><td>number</td><td>y pos of cam image. (0:top - 0.5:center - 1.0:bottom)</td></tr>
+<tr><td>cam.z</td><td>number</td><td>zoom factor of cam image. fit to window size if 1.0</td></tr>
+<tr><td>cam.rot</td><td>number</td><td>rotation of cam image in degree.</td></tr>
+<tr><td>cam.type</td><td>number</td><td>cam image type. 0: solarize to blue plane. 1: normal video image. can be set to intermediate value.</td></tr>
+<tr><td>cam.eff</td><td>number</td><td>motion effect. 0:none, 1:motion to red, 2:motion to white, 3:motion to fire effect</tr>
+<tr><td>cam.scale</td><td>string</td><td>Specify scale of cam sound with MML-style string. In default, 2 octave pentatonic scale, 'cdega>cdega>c'</td></tr>
+<tr><td>cam.midi</td><td>number</td><td>Use MIDI message instead of built-in oscillator sound. 0:build-in oscillator(Non-MIDI), otherwise specify midi port number that is listed in 'list midi' command. Note that the Web MIDI API should be available. defalut=0.</td></tr>
+<tr><td>cam.v</td><td>number</td><td>Sound volume</td></tr>
+<tr><td>cam.delay</td><td>number</td><td>Sound send level to delay object</td></tr>
+</table>
+</div>
+<div class="doc_ja">
+<table>
+<tr><th colspan="2">cam</th><td>Webカメラの映像を表示し、モーション検出の結果から音を生成します。</td></tr>
+<tr><td>cam.a</td><td>number</td><td>映像のアルファ (0.0 - 1.0)</td></tr>
+<tr><td>cam.w</td><td>number</td><td>映像の幅 (0.0 - 1.0)</td></tr>
+<tr><td>cam.h</td><td>number</td><td>映像の高さ(0.0 - 1.0)</td></tr>
+<tr><td>cam.x</td><td>number</td><td>映像のx座標 (0:左端 - 0.5:中央 - 1.0:右端)</td></tr>
+<tr><td>cam.y</td><td>number</td><td>映像のy座標 (0:上端 - 0.5:中央 - 1.0:下端)</td></tr>
+<tr><td>cam.z</td><td>number</td><td>映像のズーム 1.0でウインドウサイズに一致</td></tr>
+<tr><td>cam.rot</td><td>number</td><td>映像の回転。単位は度</td></tr>
+<tr><td>cam.type</td><td>number</td><td>映像のタイプ 0:青プレーンにソラリゼーション効果 1:通常映像 中間の値も設定可能</td></tr>
+<tr><td>cam.eff</td><td>number</td><td>モーションエフェクト 0:エフェクトなし、 1:モーションを赤で表示、 2:モーションを白で表示、 3:モーションを黄色⇒赤で表示</tr>
+<tr><td>cam.scale</td><td>string</td><td>'cam'オブジェクトからの音声の音階をMML文字列で指定。 デフォルトでは、2オクターブのペンタトニックスケール。 'cdega>cdega>c'</td></tr>
+<tr><td>cam.midi</td><td>number</td><td>'cam'オブジェクト音声に内蔵オシレータの代わりにMIDI出力を使用。 0:内蔵オシレータ(MIDIを使用しない)、 0以外:MIDIポート番号を指定。ポート番号は 'list midi'コマンドで表示される番号。 注) ブラウザのWeb MIDI APIが有効になっている必要あり。デフォルトは0。</td></tr>
+<tr><td>cam.v</td><td>number</td><td>音量。</td></tr>
+<tr><td>cam.delay</td><td>number</td><td>delayオブジェクトへのセンドレベル。</td></tr>
+</table>
+</div>
+<br/>
+<div class="doc_en">
+<table>
+<tr><th colspan="2">wav</th><td>Wave form display object.</td></tr>
+<tr><td>wav.a</td><td>number</td><td>alpha value of wav image (0.0 - 1.0)</td></tr>
+<tr><td>wav.w</td><td>number</td><td>width of wav image (0.0 - 1.0)</td></tr>
+<tr><td>wav.h</td><td>number</td><td>height of wav image (0,0 - 1.0)</td></tr>
+<tr><td>wav.x</td><td>number</td><td>x pos of wav image. (0:far left - 0.5:center - 1.0:far right)</td></tr>
+<tr><td>wav.y</td><td>number</td><td>y pos of wav image. (0:top - 0.5:center - 1.0:bottom)</td></tr>
+<tr><td>wav.z</td><td>number</td><td>zoom factor of wav image. fit to window size if 1.0</td></tr>
+<tr><td>wav.rot</td><td>number</td><td>rotation of wav image in degree.</td></tr>
+<tr><td>wav.effx</td><td>number</td><td>x-offset effect. default=0</td></tr>
+<tr><td>wav.effy</td><td>number</td><td>y-offset effect. default=0</td></tr>
+<tr><td>wav.effz</td><td>number</td><td>zoom effect. default=1</td></tr>
+<tr><td>wav.effr</td><td>number</td><td>erase rate effect</td></tr>
+<tr><td>wav.fill</td><td>number</td><td>fill mode. 0:line 1:fill</td></tr>
+<tr><td>wav.type</td><td>number</td><td>0:waveForm 1:spectrum 2:circle 3:matrix</td></tr>
+<tr><td>wav.col</td><td>string</td><td>wav form color. e.g. '#fff'. hue(value) function is also available.</td></tr>
+</table>
+</div>
+<div class="doc_ja">
+<table>
+<tr><th colspan="2">wav</th><td>波形表示オブジェクト</td></tr>
+<tr><td>wav.a</td><td>number</td><td>wavオブジェクトのアルファ (0.0 - 1.0)</td></tr>
+<tr><td>wav.w</td><td>number</td><td>wavオブジェクトの幅 (0.0 - 1.0)</td></tr>
+<tr><td>wav.h</td><td>number</td><td>wavオブジェクトの高さ (0,0 - 1.0)</td></tr>
+<tr><td>wav.x</td><td>number</td><td>wavオブジェクトのx座標 (0:左端 - 0.5:中央 - 1.0:右端)</td></tr>
+<tr><td>wav.y</td><td>number</td><td>wavオブジェクトのy座標 (0:上端 - 0.5:中央 - 1.0:下端)</td></tr>
+<tr><td>wav.z</td><td>number</td><td>wavオブジェクトのズーム 1.0でウインドウサイズに一致</td></tr>
+<tr><td>wav.rot</td><td>number</td><td>wavオブジェクトの回転。単位は度</td></tr>
+<tr><td>wav.effx</td><td>number</td><td>xオフセットエフェクト。デフォルトは0</td></tr>
+<tr><td>wav.effy</td><td>number</td><td>yオフセットエフェクト。デフォルトは0</td></tr>
+<tr><td>wav.effz</td><td>number</td><td>ズームエフェクト。デフォルトは1</td></tr>
+<tr><td>wav.effr</td><td>number</td><td>消去レートエフェクト</td></tr>
+<tr><td>wav.fill</td><td>number</td><td>フィルモード。 0:線 1:塗りつぶし</td></tr>
+<tr><td>wav.type</td><td>number</td><td>0:波形表示 1:スペクトラム表示 2:円波形表示 3:マトリックス</td></tr>
+<tr><td>wav.col</td><td>string</td><td>波形の色 例えば'#fff'のように指定。 また、hue(value) 関数が使用できます。</td></tr>
+</table>
+</div>
+<br/>
+<div class="doc_en">
+<table>
+<tr><th colspan="2">txt</th><td>Command input object.</td></tr>
+<tr><td>txt.a</td><td>number</td><td>alpha value of txt object (0.0 - 1.0)</td></tr>
+<tr><td>txt.w</td><td>number</td><td>width of txt object (0.0 - 1.0)</td></tr>
+<tr><td>txt.h</td><td>number</td><td>height of txt object (0,0 - 1.0)</td></tr>
+<tr><td>txt.x</td><td>number</td><td>x pos of txt object. (0:far left - 0.5:center - 1.0:far right)</td></tr>
+<tr><td>txt.y</td><td>number</td><td>y pos of txt object. (0:top - 0.5:center - 1.0:bottom)</td></tr>
+<tr><td>txt.z</td><td>number</td><td>zoom factor of txt object. fit to window size if 1.0</td></tr>
+<tr><td>txt.rot</td><td>number</td><td>rotation of txt object in degree.</td></tr>
+<tr><td>txt.eff</td><td>number</td><td>txt distortion effect (0.0 - 1.0)</td></tr>
+<tr><td>txt.col</td><td>string</td><td>text color. e.g. '#fff'. hue(value) function is also available.</td></tr>
+</table>
+</div>
+<div class="doc_ja">
+<table>
+<tr><th colspan="2">txt</th><td>コマンド入力オブジェクト。キーボード入力を受け付け、コマンドを実行する。</td></tr>
+<tr><td>txt.a</td><td>number</td><td>txtオブジェクトのアルファ (0.0 - 1.0)</td></tr>
+<tr><td>txt.w</td><td>number</td><td>txtオブジェクトの幅 (0.0 - 1.0)</td></tr>
+<tr><td>txt.h</td><td>number</td><td>txtオブジェクトの高さ (0,0 - 1.0)</td></tr>
+<tr><td>txt.x</td><td>number</td><td>txtオブジェクトのx座標 (0:左端 - 0.5:中央 - 1.0:右端)</td></tr>
+<tr><td>txt.y</td><td>number</td><td>txtオブジェクトのy座標 (0:上端 - 0.5:中央 - 1.0:下端)</td></tr>
+<tr><td>txt.z</td><td>number</td><td>txtオブジェクトのズーム。1.0でウインドウサイズに一致</td></tr>
+<tr><td>txt.rot</td><td>number</td><td>txtオブジェクトの回転。単位は度。</td></tr>
+<tr><td>txt.eff</td><td>number</td><td>txt表示の歪みエフェクト (0.0 - 1.0)</td></tr>
+<tr><td>txt.col</td><td>string</td><td>txt表示の色。例えば'#fff'のように指定。また、hue(value)関数も使用可能。</td></tr>
+</table>
+</div>
+<br/>
+<div class="doc_en">
+<table>
+<tr><th colspan="2">o1,o2,...o8</th><td>Oscillators, including filter, volume and panning control. o1 and o5 are assumed to bassline. Following description is o1.x but others are same as o1.</td></tr>
+<tr><td>o1.s</td><td>string</td><td>Secquence for this osillator with MML-style string. Basically, this string is consist of chars 'rcdefgab', that means 'rest' or note name. Each char is assinged to one-step. Default value="r"</td></tr>
+<tr><td>o1.g</td><td>string</td><td>Gate control for this oscillator with MML-style string. This is consist of chars 'rcdefgab'. r=mute, c=max volume and d,e,f,g... will decrease volume.</td></tr>
+<tr><td>o1.v</td><td>number</td><td>Volume control</td></tr>
+<tr><td>o1.f</td><td>number</td><td>Base frequency for note 'a'. default value is 110 for o1 and o5. otherwise 440.</td></tr>
+<tr><td>o1.c</td><td>number</td><td>Filter cutoff. Specifying multiple number of current osc frequency.</td></tr>
+<tr><td>o1.q</td><td>number</td><td>Filter Q-factor.</td></tr>
+<tr><td>o1.pan</td><td>number</td><td>Panning control. (0(left) &lt;-&gt; 0.5(center) &lt;-&gt; 1.0(right))</td></tr>
+<tr><td>o1.type</td><td>number</td><td>Wave form (0:sine 1:sawtooth 2:square)</td></tr>
+<tr><td>o1.delay</td><td>number</td><td>Send to delay object (0.0 - 1.0)</td></tr>
+<tr><td>o1.out</td><td>object</td><td>Specify the output rourting. default='master'. FM modulation will be configured if you specify other oscillator like o1,o2,...</td></tr>
+</table>
+</div>
+<div class="doc_ja">
+<table>
+<tr><th colspan="2">o1,o2,...o8</th><td>オシレータ、(フィルター、ボリューム、パンを含む)。 o1とo5はベースラインでの使用を想定。以下の説明はo1.xとなっているが他のオシレータも同様。</td></tr>
+<tr><td>o1.s</td><td>string</td><td>このオシレータのシーケンスをMMLスタイル文字列で指定。基本的に"rcdefgab"の文字から成り、"r"は休符、その他は音名を表す。それぞれの文字は1ステップに割り当てられる。デフォルトは"r"。</td></tr>
+<tr><td>o1.g</td><td>string</td><td>このオシレータのゲートコントロールをMMLスタイル文字列で指定。"rcdefgab"の文字から成り、"r"はミュート、"c"は最大音量を表し、d,e,f,g,..で音量が下がってゆく。</td></tr>
+<tr><td>o1.v</td><td>number</td><td>音量</td></tr>
+<tr><td>o1.f</td><td>number</td><td>ノート"a"の基本周波数。デフォルトはo1、o5では110、その他のオシレータは440。</td></tr>
+<tr><td>o1.c</td><td>number</td><td>フィルターのカットオフ。オシレータの周波数に対する倍数。</td></tr>
+<tr><td>o1.q</td><td>number</td><td>フィルターのQ</td></tr>
+<tr><td>o1.pan</td><td>number</td><td>パン制御 (0(左) &lt;-&gt; 0.5(中央) &lt;-&gt; 1.0(右))</td></tr>
+<tr><td>o1.type</td><td>number</td><td>波形 (0:サイン波 1:鋸歯状波 2:矩形波)</td></tr>
+<tr><td>o1.delay</td><td>number</td><td>delayオブジェクトへのセンドレベル (0.0 - 1.0)</td></tr>
+<tr><td>o1.out</td><td>object</td><td>出力のルーティング指定。デフォルトは"master"。 o1,o2など他のオシレータを指定してFM変調を掛ける事ができる。</td></tr>
+</table>
+</div>
+<br/>
+<div class="doc_en">
+<table>
+<tr><th colspan="2">bdo,sdo,hho,cyo</th><td>percussive sound oscillators. specialized to bdo:bass-drum, sdo:snare-drum, hho:hihat, cyo:cymbal. Following description is bdo.x but others are same as bdo.</td></tr>
+<tr><td>bdo.s</td><td>string</td><td>Secquence for this osicllator with MML-style string. This string is consist of chars 'rcdefgab', that means 'rest' or note name. Each char is assinged to one-step. Default value="r"</td></tr>
+<tr><td>bdo.v</td><td>number</td><td>Volume control</td></tr>
+<tr><td>bdo.pan</td><td>number</td><td>Panning control. (0(left) &lt;-&gt; 0.5(center) &lt;-&gt; 1.0(right))</td></tr>
+</table>
+</div>
+<div class="doc_ja">
+<table>
+<tr><th colspan="2">bdo,sdo,hho,cyo</th><td>パーカッション・オシレータ。bdo:バスドラム、sdo:スネアドラム、hho:ハイハット、cyo:シンバルに特化されたオシレータ。以下の説明はbdo.xとなっているが、他のオシレータでも同様。</td></tr>
+<tr><td>bdo.s</td><td>string</td><td>このオシレータのシーケンスをMML文字列で指定。この文字列は基本的に"rcdefgab"から成り、rは休符、他は音程を表す。各文字はシーケンサーの1ステップに対応する。デフォルトは"r"。</td></tr>
+<tr><td>bdo.v</td><td>number</td><td>音量。</td></tr>
+<tr><td>bdo.pan</td><td>number</td><td>パン指定。 (0(左) &lt;-&gt; 0.5(中央) &lt;-&gt; 1.0(右))</td></tr>
+</table>
+</div>
+<br/>
+<div class="doc_en">
+<table>
+<tr><th colspan="2">delay</th><td>Delay object. This object receive sounds from 'cam' and 'o1'-'o8' and add feedback delay effect.</td></tr>
+<tr><td>delay.t</td><td>number</td><td>Delay time control. delay time is tempo synced. default=8 (8th note)</td></tr>
+<tr><td>delay.fb</td><td>number</td><td>Delay feedback ratio</td></tr>
+</table>
+</div>
+<div class="doc_ja">
+<table>
+<tr><th colspan="2">delay</th><td>ディレイ・オブジェクト。'cam'オブジェクトおよび'o1'～'o8'オブジェクトから送られた音にフィードバックディレイ効果を付加する。</td></tr>
+<tr><td>delay.t</td><td>number</td><td>ディレイタイム。 ディレイタイムはテンポに同期する。デフォルトは8 (8分音符)</td></tr>
+<tr><td>delay.fb</td><td>number</td><td>フィードバックレシオ</td></tr>
+</table>
+</div>
+<br/>
+<div class="doc_en">
+<table>
+<tr><th colspan="2">master</th><td>master control object of <b>LiveBeats</b></td></tr>
+<tr><td>master.v</td><td>number</td><td>master volume. default value is 1.0</td></tr>
+<tr><td>master.tempo</td><td>number</td><td>tempo control. default value=120</td></tr>
+<tr><td>master.g</td><td>string</td><td>master step gate control. Each char is assigned to overall volume of one-step. available chars are "rcdefgab", that means 'r'=mute, 'c'=max, and 'd','e','f'... means decrease volume.</td></tr>
+<tr><td>master.rev</td><td>number</td><td>Reverb level. 'master.ir' should abe set</td></tr>
+<tr><td>master.ir</td><td>number</td><td>Select Impulse Response file for reverb effect. Available values are listed by 'list ir' command.</td></tr>
+</table>
+</div>
+<div class="doc_ja">
+<table>
+<tr><th colspan="2">master</th><td>マスター制御オブジェクト</td></tr>
+<tr><td>master.v</td><td>number</td><td>マスターボリューム。デフォルトは1.0</td></tr>
+<tr><td>master.tempo</td><td>number</td><td>テンポコントロール。デフォルトは120</td></tr>
+<tr><td>master.g</td><td>string</td><td>マスターステップゲートコントロール。"rcdefgab"から成る文字列で、"r"はミュート、"c"は最大音量、"d","e","f",...で順次音量が下がる。</td></tr>
+<tr><td>master.rev</td><td>number</td><td>リバーブレベル。リバーブを有効にするには'master.ir'も設定する必要があります。</td></tr>
+<tr><td>master.ir</td><td>number</td><td>リバーブで使用するインパルスレスポンスファイルの選択。'list ir'コマンドで利用可能な値が一覧できます。</td></tr>
+</table>
+</div>
+<br/>
+<div class="doc_en">
+<h2>Variables:</h2>
+Pre-defined variables can be used in formula. 
+<table>
+<tr><td>tick</td><td>'tick' is a count-up value from start of <b>LiveBeats</b>. Always integer. For example, it can be used as a rotation, e.g. 'wav.rot=tick' </td></tr>
+<tr><td>s0 - s24</td><td>preset sequence pattern. can be used to o1.s-o8.s (may be also for bdo.s-cyo.s)</td></tr>
+<tr><td>sh8, sh16, sh32, sh64</td><td>shX are sample and hold random value. It will be changed to next random value per each X-tick step. value range is 0.0-1.0, for example, it can be used to 'wav.x=sh8'.</td></tr>
+<tr><td>lfo8, lfo16, lfo32, lfo64</td><td>lfoX are low frequency oscillator (LFO) values. These are equivalent to the function 'lfo(X)'. These are X-tick periodic value in the range of (0.0-1.0). Wave form is triangle. For example, it can be used as 'o1.pan=lfo16'.</td></tr>
+</table>
+</div>
+<div class="doc_ja">
+<h2>Variables:</h2>
+定義済の変数として以下が式の中で使用できる。
+<table>
+<tr><td>tick</td><td>'tick'は<b>LiveBeats</b>が起動してから順次カウントアップして行く数値。例えば、回転のパラメータとして"wav.rot=tick"のように使用できる。</td></tr>
+<tr><td>s0 - s24</td><td>プリセットされたシーケンスパターン。o1.s～o8.s、(あるいはbdo.s～cyo.sなどでも)に使用できる。</td></tr>
+<tr><td>sh8, sh16, sh32, sh64</td><td>shX はサンプル&amp;ホールド変数で、指定されたtick間隔ごとにランダムな値に変化する。値の範囲は0.0～1.0である。例えば"wav.x=sh8"のように使用できる。</td></tr>
+<tr><td>lfo8, lfo16, lfo32, lfo64</td><td>lfoXはローフリケンシーオシレータ(LFO)変数であり、関数lfo(X)と等価である。Xの値のtick間隔で周期的に変化する。値の範囲は0.0～1.0である。波形は三角波。例えば、o1.pan=lfo16のように使用できる。</td></tr>
+</table>
+</div>
+<br/>
+<div class="doc_en">
+<h2>Functions:</h2>
+Pre-defined functions can be used in formula.
+<table>
+<tr><td>lfo(value)</td><td>Low frequency oscillator (LFO) function. This function makes periodic oscillated value. The period is specified tick by 'value'. value range is (0.0 - 1.0).</td></tr>
+<tr><td>hue(value)</td><td>'hue(value)' will convert number(0.0-1.0) to color string. That can be used to 'wav.col' or 'txt.col'.</td></tr>
+</table>
+</div>
+<div class="doc_ja">
+<h2>Functions:</h2>
+式の中で定義済の関数が使用できる。
+<table>
+<tr><td>lfo(value)</td><td>ローフリケンシー・オシレータ(LFO)関数。 この周期はvalueで指定されたtickとなる。LFOの出力する価の範囲は0.0～1.0。</td></tr>
+<tr><td>hue(value)</td><td>'hue(value)'は色指定で使用される。wav.colまたはtxt.col中で使用できる。
+</td></tr>
+</table>
+</div>
+
+<br/>
+<div class="doc_en">
+<h2>MML-style string:</h2>
+o1.s - o8.s, bdo.s, sdo.s, hho.s and cyo.s are described in MML-style string.
+<table>
+<tr><td>r</td><td>r[len]<td>Rest. default length is used if no len is specified.</td></tr>
+<tr><td>c,d,e,f,g,a,b</td><td>&lt;c|d|e|f|g|a|b&gt;[#|+|-][len]<td>Note name. following #,+,- will shift semitone. Default length is used if no len is specified.</td></tr>
+<tr><td>l</td><td>l[len]</td><td>Set default length. Initial default length=16, equivalent to l16. (sixteenth)</td></tr>
+<tr><td>o</td><td>o[n]<td>Set octave. default=o4</td></tr>
+<tr><td>&gt;</td><td>&gt;</td><td>Octave Down</td></tr>
+<tr><td>&lt;</td><td>&lt;</td><td>Octable Up</td></tr>
+</table>
+<br/><br/>
+<p>IR files are from: <a href="http://www.voxengo.com/impulses/" target="_blank">http://www.voxengo.com/impulses/</a>.<a href="samples/IMreverbs1/license.txt">IMreverbs1 license.txt</a></p>
+</div>
+<div class="doc_ja">
+<h2>MML-style string:</h2>
+o1.s - o8.s、bdo.s、sdo.s、hho.s、cyo.s等ではMML形式の文字列を使用します。
+<table>
+<tr><td>r</td><td>r[len]<td>休符。長さを指定しない場合、デフォルトの長さが使われます。</td></tr>
+<tr><td>c,d,e,f,g,a,b</td><td>&lt;c|d|e|f|g|a|b&gt;[#|+|-][len]<td>音名。後ろに"#"または"+"を付けるとシャープ、"-"を付けるとフラットとなります。 その後ろに長さを指定しない場合、デフォルトの長さが使われます。</td></tr>
+<tr><td>l</td><td>l[len]</td><td>デフォルトの長さを指定します。初期値は16(l16を指定した場合と同じ)で16分音符の長さになります。</td></tr>
+<tr><td>o</td><td>o[n]<td>オクターブを指定します。デフォルトはo4です。</td></tr>
+<tr><td>&gt;</td><td>&gt;</td><td>1オクターブ下げます</td></tr>
+<tr><td>&lt;</td><td>&lt;</td><td>1オクターブあげます</td></tr>
+</table>
+<br/><br/>
+<p>IR ファイルは<a href="http://www.voxengo.com/impulses/" target="_blank">http://www.voxengo.com/impulses/</a>のものを使用しています。<a href="samples/IMreverbs1/license.txt">IMreverbs1 license.txt</a></p>
+</div>
+<script type="text/javascript">
+function ShowDoc(x) {
+	var divs=document.getElementsByTagName("div");
+	var t="doc_"+x;
+	for(var i=0;i<divs.length;++i) {
+		if(divs[i].className==="doc_ja")
+			divs[i].style.display=(x==="ja")?"block":"none";
+		if(divs[i].className=="doc_en")
+			divs[i].style.display=(x==="ja")?"none":"block";
+	}
+}
+function GetLang() {
+	return (navigator.language || navigator.browserLanguage).substring(0, 2);
+}
+
+ShowDoc(GetLang());
+</script>
+</body>
+</html>

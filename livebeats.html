@@ -1,0 +1,1733 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Live Beats | g200kg Music &amp; Software</title>
+</head>
+<body onload="Init()" style="background:#000">
+<!--<script type="text/javascript" src="three.min.js"></script>-->
+<script type="text/javascript">
+var buffers = [];
+var loadidx=0;
+var req = new XMLHttpRequest();
+var cvtxt,ctxtxt,cvtxtwork,ctxtxtwork;
+var wavdat=new Uint8Array(512);
+var freqdat=new Uint8Array(512);
+var cnt=0;
+var lfo1=0;
+var lfo2=0;
+var lfo4=0;
+var lfo8=0;
+var lfo16=0;
+var lfo32=0;
+var lfo48=0;
+var lfo64=0;
+var sh1=0;
+var sh2=0;
+var sh4=0;
+var sh8=0;
+var sh16=0;
+var rand1=rand2=rand4=0;
+var lev=0;
+var bd1="crrrcrrrcrrrcrcr";
+var sd1="rrrrcrrrrrrrcrrr";
+var hh1="crcrcrcrcrcrcrcc";
+var s0="rrrrrrrrrrrrrrrr";
+var s1="crrrcrrrcrrrcrrr";
+var s2="aarrddrrcrcrerrr";
+var s3="gagarrrrddrreerr";
+var s4="grrrddeegrrrddcc";
+var s5="errrcrerarddcrrr";
+var s6="crrrargrdcgrardr";
+var s7="ererggeecdrcgrrr";
+var s8="errrarrrgrrrerfr";
+var s9="ddddrrrrggggdddd";
+var s10="crrrcrrrcrrrcrrr";
+var s11="aaaarrrrrrrrrrrr";
+var s12="aaaarrrrddddrrrr";
+var s13="ddggrraaaaggdrdr";
+var s14="arrrggrrgrrreerr";
+var s15="crargrcrarrrdrrr";
+var s16="rrrrgrggrrrreree";
+var s17="crrrdrerrrcrdrer";
+var s18="eeeerrddeeeerrgg";
+var s19="arrrrrrrrrrrrrrr";
+var s20="cdegacdegeadcged";
+var s21="dadcgagcacdegaed";
+var s23="grcdgrcdarrrabab";
+var s24="eergeergaardaard";
+var tick=0;
+var nextTime=0;
+
+var master=null;
+var o1,o2,o3,o4,o5,o6,o7,o8;
+var delay;
+var cam=null;
+var eff=null;
+var elEff=null;
+var scrWidth=100;
+var scrHeight=100;
+
+var list=[];
+var ir=[];
+
+var fn=[
+	"wav.type=0;wav.effy=4;wav.effx=1",
+	"wav.type=2;wav.z=1;wav.fill=1;wav.effz=1.1;wav.effr=.7",
+	"wav.type=3;wav.x=.5;wav.z=1.5;wav.effx=0;wav.effy=0;wav.effz=1;wav.effr=.9",
+	"",
+	"cam.a=0;cam.v=0;wav.a=0",
+	"",
+	"bdo.v=0;sdo.v=0;hho.v=0;cam.v=0",
+	"bdo.v=.5;sdo.v=.5;hho.v=.5",
+	"",
+	"",
+	"",
+	"",
+];
+
+function Trigger(instrument,accent,when) {
+	if(accent==0)
+		return;
+	var src=audio.createBufferSource();
+	src.buffer=buffers[instrument];
+	var g=audio.createGain();
+	g.gain.value=0.8;
+	src.connect(g);
+	g.connect(out);
+	src.start(when);
+}
+function Init() {
+	window.AudioContext=window.webkitAudioContext||window.AudioContext;
+	audio=new AudioContext();
+	midi=new Midi();
+	master=new Master();
+	out=master.out;
+	run=1;
+	delay=new Delay();
+	noise=new Noise();
+	o1=new OSC(110,0.4,1,out);
+	o2=new OSC(440,0.3,1,out);
+	o3=new OSC(440,0.3,1,out);
+	o4=new OSC(880,0.3,1,out);
+	o5=new OSC(110,0.3,1,out);
+	o6=new OSC(440,0.3,1,out);
+	o7=new OSC(440,0.3,1,out);
+	o8=new OSC(880,0.3,1,out);
+	bdo=new FMO(25,1,.05,2, 29,400,.01,0, 131,100,.001,0,.5);
+	sdo=new FMO(213,.4,.1,0, 723,1900,.6,0, 140,800,.1,0,.3);
+	hho=new FMO(2200,.4,.02,0, 423,3120,.5,0, 552,1800,.1,1,.7);
+	cyo=new FMO(2612,.2,.4,0, 1826,4219,5,2, 3897,1401,1,2,.4);
+	cvtxt=document.getElementById("cvtxt");
+	ctxtxt=cvtxt.getContext("2d");
+	cvtxtwork=document.getElementById("cvtxtwork");
+	ctxtxtwork=cvtxtwork.getContext("2d");
+	wav=new Wav();
+	txt=new Txt();
+	cam=new Cam();
+	Resize();
+	window.addEventListener("resize",Resize);
+	window.document.addEventListener("keypress",KeyPress);
+	window.document.addEventListener("keydown",KeyDown);
+	setInterval("Interval()",20);
+	Reset();
+}
+function Resize() {
+	scrWidth=document.body.clientWidth;
+	scrHeight=window.innerHeight-20;
+	var b=document.getElementById("base");
+	b.style.width=scrWidth+"px";
+	b.style.height=scrHeight+"px";
+	wav.layout();
+	cam.layout();
+}
+function KeyDown(ev) {
+	switch(ev.keyCode) {
+	case 8:
+		txt.key(8);
+		ev.preventDefault();
+		return false;
+	case 13:
+		txt.key(13);
+		ev.preventDefault();
+		return false;
+	case 37:  //left
+		txt.key("l");
+		ev.preventDefault();
+		return false;
+	case 38:  //up
+		txt.key("u");
+		ev.preventDefault();
+		return false;
+	case 39:  //right
+		txt.key("r");
+		ev.preventDefault();
+		return false;
+	case 40:  //down
+		txt.key("d");
+		ev.preventDefault();
+		return false;
+	case 112:  //f1 
+		txt.key("f1");
+		ev.preventDefault();
+		return false;
+	case 113:  //f2
+		txt.key("f2");
+		ev.preventDefault();
+		return false;
+	case 114:  //f3
+		txt.key("f3");
+		ev.preventDefault();
+		return false;
+	case 115:  //f4
+		txt.key("f4");
+		ev.preventDefault();
+		return false;
+	case 116:  //f5
+		txt.key("f5");
+		ev.preventDefault();
+		return false;
+	case 117:  //f6
+		txt.key("f6");
+		ev.preventDefault();
+		return false;
+	case 118:  //f7
+		txt.key("f7");
+		ev.preventDefault();
+		return false;
+	case 119:  //f8
+		txt.key("f8");
+		ev.preventDefault();
+		return false;
+	case 120:  //f9
+		txt.key("f9");
+		ev.preventDefault();
+		return false;
+	case 121:  //f10
+		txt.key("f10");
+		ev.preventDefault();
+		return false;
+	case 122:  //f11
+		txt.key("f11");
+		ev.preventDefault();
+		return false;
+	case 123:  //f12
+		txt.key("f12");
+		ev.preventDefault();
+		return false;
+	}
+}
+function KeyPress(ev) {
+	txt.key(ev.charCode);
+	ev.preventDefault();
+	return false;
+}
+function Reset() {
+	o1.step=o2.step=o3.step=o4.step=o5.step=o6.step=o7.step=o8.step=0;
+	bdo.step=sdo.step=hho.step=cyo.step=0;
+	cnt=0;
+	lfo1=lfo2=lfo4=lfo8=lfo16=lfo32=lfo48=lfo64=0;
+}
+function Enter(s) {
+	var r="";
+	txt.log.unshift("> "+s);
+	txt.log.length=16;
+	if(s.indexOf("//")==0)
+		return "";
+	var n=0;
+	for(var i=s.length-1;i>=0;--i)
+		if(s[i]=="\"")
+			++n;
+	if(n&1)
+		s+="\"";
+	var ss=s.split(";");
+	for(var idx=0;idx<ss.length;++idx) {
+		s=ss[idx];
+		r+=Enter1(s)+" ";
+	}
+	return r;
+}
+function oscdesc(o,nam) {
+	var r;
+	r=nam+".s (note):"+o.s+"\n";
+	r+=nam+".g (gate):"+o.g+"\n";
+	r+=nam+".v (volume):"+o.v+"\n";
+	r+=nam+".f (freq):"+o.f+"\n";
+	r+=nam+".c (cutoff):"+o.c+"\n";
+	r+=nam+".q (Q):"+o.q+"\n";
+	r+=nam+".delay:"+o.delay+"\n";
+	r+=nam+".pan:"+o.pan+"\n";
+	r+=nam+".out:"+o.out;
+	return r;
+}
+function fmodesc(o,nam) {
+	var r;
+	r=nam+".s (step):"+o.s+"\n";
+	r+=nam+".v (volume):"+o.v+"\n";
+	r+=nam+".pan:"+o.pan;
+	return r;
+}
+function Parse0(s) {
+	function Parse1(l,r) {
+		var o=null;
+		var fmo=null;
+		if(l.indexOf("bdo.")==0)
+			fmo=bdo;
+		else if(l.indexOf("sdo.")==0)
+			fmo=sdo;
+		else if(l.indexOf("hho.")==0)
+			fmo=hho;
+		else if(l.indexOf("cyo.")==0)
+			fmo=cyo;
+		if(fmo) {
+			switch(l.substr(4)) {
+			case "s": fmo.s=right; break;
+			case "s+": fmo.s=streval(fmo.s)+streval(right); break;
+			case "v": fmo.v=right; break;
+			case "pan": fmo.pan=right; break;
+			default: return "Property not found";
+			}
+			return null;
+		}
+		if(l[0]=="o" && l[2]==".") {
+			switch(l[1]) {
+			case "1": o=o1; break;
+			case "2": o=o2; break;
+			case "3": o=o3; break;
+			case "4": o=o4; break;
+			case "5": o=o5; break;
+			case "6": o=o6; break;
+			case "7": o=o7; break;
+			case "8": o=o8; break;
+			}
+			if(o) {
+				switch(l.substr(3)) {
+				case "s": o.s=right; break;
+				case "s+": o.s=streval(o.s)+streval(right); break;
+				case "g": o.g=right; break;
+				case "g+": o.g=streval(o.g)+streval(right); break;
+				case "f": o.f=right; break;
+				case "v": o.v=right; break;
+				case "c": o.c=right; break;
+				case "q": o.q=right; break;
+				case "type": o.type=right; break;
+				case "delay": o.delay=right; break;
+				case "pan": o.pan=right; break;
+				case "out": o.out=right; break;
+				default: return "Property not found";
+				}
+				return null;
+			}
+		}
+		switch(l) {
+		case "master.v": master.v=r; break;
+		case "master.g": master.g=r; break;
+		case "master.tempo": master.tempo=r; break;
+		case "master.rev": master.rev=r; break;
+		case "master.ir": master.ir=numeval(r);
+			if(master.ir>=1)
+				master.conv.buffer=ir[master.ir-1].data;
+			break;
+		case "delay.t": delay.t=r; break;
+		case "delay.fb": delay.fb=r; break;
+		case "txt.a": txt.a=r; break;
+		case "txt.w": txt.w=r; break;
+		case "txt.h": txt.h=r; break;
+		case "txt.x": txt.x=r; break;
+		case "txt.y": txt.y=r; break;
+		case "txt.z": txt.z=r; break;
+		case "txt.rot": txt.rot=r; break;
+		case "txt.eff": txt.eff=r; break;
+		case "txt.col": txt.col=r; break;
+		case "wav.a": wav.a=r; break;
+		case "wav.type": wav.type=r; break;
+		case "wav.w": wav.w=r; break;
+		case "wav.h": wav.h=r; break;
+		case "wav.x": wav.x=r; break;
+		case "wav.y": wav.y=r; break;
+		case "wav.z": wav.z=r; break;
+		case "wav.rot": wav.rot=r; break;
+		case "wav.effx": wav.effx=r; break;
+		case "wav.effy": wav.effy=r; break;
+		case "wav.effz": wav.effz=r; break;
+		case "wav.effr": wav.effr=r; break;
+		case "wav.col": wav.col=r; break;
+		case "wav.fill": wav.fill=r; break;
+		case "wav.linewidth": wav.linewidth=r; break;
+		case "cam.v": cam.v=r; break;
+		case "cam.q": cam.q=r; break;
+		case "cam.c": cam.c=r; break;
+		case "cam.f": cam.f=r; break;
+		case "cam.g": cam.g=r; break;
+		case "cam.delay": cam.delay=r; break;
+		case "cam.porta": cam.porta=r; break;
+		case "cam.scale": cam.scale=r; cam.notes=Mml(cam.scale); break;
+		case "cam.midi": cam.midi=r; break;
+		case "cam.a": cam.a=r; break;
+		case "cam.type": cam.type=r; break;
+		case "cam.w": cam.w=r; break;
+		case "cam.h": cam.h=r; break;
+		case "cam.x": cam.x=r; break;
+		case "cam.y": cam.y=r; break;
+		case "cam.z": cam.z=r; break;
+		case "cam.rot": cam.rot=r; break;
+		case "cam.eff": cam.eff=r; break;
+		default: return "Object not found";
+		}
+		return null;
+	}
+	var v=s.split("=");
+	var right=v[v.length-1];
+	var r;
+	for(var i=v.length-2;i>=0;--i) {
+		r=Parse1(v[i],right);
+		if(r)
+			break;
+	}
+	if(r)
+		return r;
+	else
+		return right;
+}
+function Parse(str) {
+	function isspc(p) {
+		if(str[p]==" "||p>=str.length)
+			return true;
+		return false;
+	}
+	function skip(p) {
+		while(p<str.length&&isspc(p))
+			++p;
+		return p;
+	}
+	function test(p,s) {
+		if(str.indexOf(s,p)==p&&isspc(p+s.length))
+			return true;
+		return false;
+	}
+	var p=0;
+	p=skip(p);
+	if(test(p,"print")) {
+		var s;
+		p=skip(p+5);
+		s=str.substr(p);
+		try {
+			s=eval(s);
+		} catch(e) {s="Undefined";}
+		return s;
+	}
+	if(test(p,"list")) {
+		var r="";
+		p=skip(p+4);
+		if(test(p,"ir")) {
+			for(var i=0;i<ir.length;++i) {
+				r+=(i+1)+":"+ir[i].name+"\n";
+			}
+			return r;
+		}
+		if(test(p,"midi")) {
+			for(var i=0;i<midioutputs.length;++i) {
+				r+=(i+1)+":"+midioutputs[i].name+"\n";
+			}
+			return r;
+		}
+		if(test(p,"osc")) {
+			r="o1.s:"+o1.s;
+			r+="\no2.s:"+o2.s;
+			r+="\no3.s:"+o3.s;
+			r+="\no4.s:"+o4.s;
+			r+="\no5.s:"+o5.s;
+			r+="\no6.s:"+o6.s;
+			r+="\no7.s:"+o7.s;
+			r+="\no8.s:"+o8.s+"\n";
+			return r;
+		}
+		if(test(p,"fmo")) {
+			r="cyo.s:"+cyo.s;
+			r+="\nhho.s:"+hho.s;
+			r+="\nsdo.s:"+sdo.s;
+			r+="\nbdo.s:"+bdo.s+"\n";
+			return r;
+		}
+		if(test(p,"master")) {
+			r="master.v (volume):"+master.v+"\n";
+			r+="master.g (gate):"+master.g+"\n";
+			r+="master.tempo:"+master.tempo+"\n";
+			r+="master.rev:"+master.rev+"\n";
+			r+="master.ir:"+master.ir;
+			return r;
+		}
+		if(test(p,"delay")) {
+			r="delay.t (time):"+delay.t+"\n";
+			r+="delay.fb (feedback):"+delay.fb;
+			return r;
+		}
+		if(test(p,"txt")) {
+			r="txt.a (alpha):"+txt.a+"\n";
+			r+="txt.w (width):"+txt.w+"\n";
+			r+="txt.h (height):"+txt.h+"\n";
+			r+="txt.x (pos x):"+txt.x+"\n";
+			r+="txt.y (pos y):"+txt.y+"\n";
+			r+="txt.z (zoom):"+txt.z+"\n";
+			r+="txt.rot (rotate):"+txt.rot+"\n";
+			r+="txt.eff (effect):"+txt.eff+"\n";
+			r+="txt.col (color):"+txt.col;
+			return r;
+		}
+		if(test(p,"wav")) {
+			r="wav.a (alpha):"+wav.a+"\n";
+			r+="wav.type (type):"+wav.type+"\n";
+			r+="wav.w (width):"+wav.w+"\n";
+			r+="wav.h (height):"+wav.h+"\n";
+			r+="wav.x (pos x):"+wav.x+"\n";
+			r+="wav.y (pos y):"+wav.y+"\n";
+			r+="wav.z (zoom):"+wav.z+"\n";
+			r+="wav.rot (rotate):"+wav.rot+"\n";
+			r+="wav.effx (x-offset):"+wav.effx+"\n";
+			r+="wav.effy (y-offset):"+wav.effy+"\n";
+			r+="wav.effz (zoom rate):"+wav.effz+"\n";
+			r+="wav.effr (erase rate):"+wav.effr+"\n";
+			r+="wav.col (color):"+wav.col+"\n";
+			r+="wav.fill (fillmode):"+wav.fill;
+			return r;
+		}
+		if(test(p,"cam")) {
+			r="cam.v (volume):"+cam.v+"\n";
+			r+="cam.q:"+cam.q+"\n";
+			r+="cam.delay (delay):"+cam.delay+"\n";
+			r+="cam.porta (portament):"+cam.porta+"\n";
+			r+="cam.scale:"+cam.scale+"\n";
+			r+="cam.midi (midiport):"+cam.midi+"\n";
+			r+="cam.a (alpha):"+cam.a+"\n";
+			r+="cam.type (video-type):"+cam.type+"\n";
+			r+="cam.w (width):"+cam.w+"\n";
+			r+="cam.h (height):"+cam.h+"\n";
+			r+="cam.x (pos x):"+cam.x+"\n";
+			r+="cam.y (pos y):"+cam.y+"\n";
+			r+="cam.z (zoom):"+cam.z+"\n";
+			r+="cam.rot (rotate):"+cam.rot+"\n";
+			r+="cam.eff (effect):"+cam.eff;
+			return r;
+		}
+		if(test(p,"o1"))
+			return oscdesc(o1,"o1");
+		if(test(p,"o2"))
+			return oscdesc(o2,"o2");
+		if(test(p,"o3"))
+			return oscdesc(o3,"o3");
+		if(test(p,"o4"))
+			return oscdesc(o4,"o4");
+		if(test(p,"o5"))
+			return oscdesc(o5,"o5");
+		if(test(p,"o6"))
+			return oscdesc(o6,"o6");
+		if(test(p,"o7"))
+			return oscdesc(o7,"o7");
+		if(test(p,"o8"))
+			return oscdesc(o8,"o8");
+		if(test(p,"bdo"))
+			return fmodesc(bdo,"bdo");
+		if(test(p,"sdo"))
+			return fmodesc(sdo,"sdo");
+		if(test(p,"hho"))
+			return fmodesc(hho,"hho");
+		if(test(p,"cyo"))
+			return fmodesc(cyo,"cyo");
+		r="master\n";
+		r+="delay\n";
+		r+="txt\n";
+		r+="wav\n";
+		r+="cam\n";
+		r+="osc:o1 o2 o3 o4 o5 o6 o7 o8\n";
+		r+="fmo:bdo sdo hho cyo\n";
+		r+="--variables--\ns0-s24:pre-defined sequence\ntick: currentTick\nlev:currentLevel\nsh8/16/32/64: S&H/(n)tick\n";
+		r+="lfo8/16/32/64: LFO (n)tick\n";
+		r+="--functions--\nhue(): for colorString\nlfo(n): (n)tickLFO"
+		return r;
+	}
+	return null;
+}
+function Enter1(s) {
+	var v=Parse(s);
+	if(v!==null)
+		return v;
+	return Parse0(s);
+}
+function Mml(s) {
+	function GetN(def) {
+		var v=0;
+		while(s[p]>="0"&&s[p]<="9") {
+			v=v*10+s[p];
+			++p;
+		}
+		if(v==0)
+			return def;
+		return v;
+	}
+	function GetLen(def) {
+		var l=16/GetN(def);
+		var l2=l;
+		while(s[p]==".") {
+			++p;
+			l2/=2;
+			l+=l2;
+		}
+		return l;
+	}
+	function Shift(n) {
+		for(;;) {
+			switch(s[p]) {
+			case "+": case "#":
+				++p;
+				++n;
+				break;
+			case "-":
+				++p;
+				--n;
+			default:
+				return n;
+			}
+		}
+	}
+	var r=[];
+	var len=s.length;
+	var p=0;
+	var n=0;
+	var o=4;
+	var l=0;
+	var defl=16;
+	while(p<len) {
+		l=0;
+		switch(s[p]) {
+		case ">":
+			++p;
+			--o;
+			break;
+		case "<":
+			++p;
+			++o;
+			break;
+		case "O": case "o":
+			++p;
+			o=GetN(4);
+			break;
+		case "L": case "l":
+			++p;
+			defl=GetN(16);
+			break;
+		case "R": case "r":
+			++p;
+			n=0;
+			l=GetLen(defl);
+			break;
+		case "C": case "c":
+			++p;
+			n=Shift(o*12);
+			l=GetLen(defl);
+			break;
+		case "D": case "d":
+			++p;
+			n=Shift(o*12+2);
+			l=GetLen(defl);
+			break;
+		case "E": case "e":
+			++p;
+			n=Shift(o*12+4);
+			l=GetLen(defl);
+			break;
+		case "F": case "f":
+			++p;
+			n=Shift(o*12+5);
+			l=GetLen(defl);
+			break;
+		case "G": case "g":
+			++p;
+			n=Shift(o*12+7);
+			l=GetLen(defl);
+			break;
+		case "A": case "a":
+			++p;
+			n=Shift(o*12+9);
+			l=GetLen(defl);
+			break;
+		case "B": case "b":
+			++p;
+			n=Shift(o*12+11);
+			l=GetLen(defl);
+			break;
+		default:
+			++p;
+		}
+		for(var i=0;i<l;++i)
+			r.push(n);
+	}
+	return r;
+}
+function Timecode(t) {
+	var hh=(t/3600)|0;
+	t-=hh*3600;
+	var mm=(t/60)|0;
+	t-=mm*60;
+	var ss=t|0;
+	var ff=((t-ss)*30)|0;
+	return ("00"+hh).substr(-2)+":"+("00"+mm).substr(-2)+":"+("00"+ss).substr(-2)+":"+("00"+ff).substr(-2);
+}
+function Interval(timestamp) {
+	var current=audio.currentTime;
+	var err;
+	if(current>=nextTime-.1) {
+		document.getElementById("timecode").innerHTML=Timecode(current);
+		++tick;
+		master.next(nextTime);
+		bdo.next(nextTime);
+		sdo.next(nextTime);
+		hho.next(nextTime);
+		cyo.next(nextTime);
+		o1.next(nextTime);
+		o2.next(nextTime);
+		o3.next(nextTime);
+		o4.next(nextTime);
+		o5.next(nextTime);
+		o6.next(nextTime);
+		o7.next(nextTime);
+		o8.next(nextTime);
+		delay.next(nextTime);
+		var c4=tick&3;
+		var c8=tick&7;
+		var c16=tick&15;
+		var c32=tick&31;
+		var c64=tick&63;
+		var c96=tick%96;
+		var c128=tick&127;
+		lfo1=cnt&1;
+		lfo2=((c4>2)?4-c4:c4)*.5;
+		lfo4=((c8>4)?8-c8:c8)*.25;
+		lfo8=((c16>8)?16-c16:c16)*.125;
+		lfo16=((c32>16)?32-c32:c32)*.0625;
+		lfo32=((c64>32)?64-c64:c64)*.03125;
+		lfo48=((c96>48)?96-c96:c96)/48;
+		lfo64=((c128>64)?128-c128:c128)*.015625;
+		if((tick&1)==0) sh1=Math.random();
+		if(c4==0) sh2=Math.random();
+		if(c8==0) sh4=Math.random();
+		if(c16==0) sh8=Math.random();
+		if(c32==0) sh16=Math.random();
+		if(c64==0) sh32=Math.random();
+		if(c96==0) sh48=Math.random();
+		if(c128==0) sh64=Math.random();
+		var a=0;
+		for(var i=0;i<512;++i) {
+			var t=wavdat[i]-128;
+			a+=t*t;
+		}
+		lev=Math.sqrt(a/512)/256;
+		txt.next();
+		wav.next();
+		cam.next();
+		txt.layout();
+		wav.layout();
+		cam.layout();		
+		wav.draw();
+		txt.draw();
+		cam.draw();
+		if(nextTime==0)
+			nextTime=current;
+		do {
+			nextTime=nextTime+15/master._tempo;
+		} while(nextTime<current);
+	}
+}
+function lfo(t) {
+	var l=t|0;
+	var l2=l/2;
+	var p=tick%l;
+	p=(p>=l2)?l-p:p;
+	return p/l2;
+}
+function hue(h) {
+	h-=(h|0);
+	var t=h*6;
+	var r=g=b=0;
+	if(t<1) {
+		r=255;
+		g=(t*255)|0;
+		b=0;
+	}
+	else if(t<2) {
+		r=((2-t)*255)|0;
+		g=255;
+		b=0;
+	}
+	else if(t<3) {
+		r=0;
+		g=255;
+		b=((t-2)*255)|0;
+	}
+	else if(t<4) {
+		r=0;
+		g=((4-t)*255)|0;
+		b=255;
+	}
+	else if(t<5) {
+		r=((t-4)*255)|0;
+		g=0;
+		b=255;
+	}
+	else {
+		r=255;
+		g=0;
+		b=((6-t)*255)|0;
+	}
+	var c="rgb("+r+","+g+","+b+")";
+	return c;
+}
+function streval(s) {
+	var l=s;
+	for(;;) {
+		if(typeof(s)=="string") {
+			l=s;
+			try {
+				s=eval(s);
+			} catch(e) {return l;}
+		}
+		else
+			return l;
+	}
+}
+function numeval(s) {
+	try {
+		for(;;) {
+			var t=typeof(s);
+			switch(t) {
+			case "number":
+				return s;
+			case "string":
+				s=eval(s);
+				break;
+			default:
+				return 0;
+			}
+		}
+	} catch(e) {return 0;}
+}
+function Note2Vol(n) {
+	n-=48;
+	if(n<0)
+		return 0;
+	return 2/(n+2); 
+}
+function num1eval(s) {
+	switch(s) {
+	case "0":
+	case "r":
+		return 0;
+	case "1":
+	case "c":
+		return 1;
+	case "2":
+	case "d":
+		return .5;
+	case "3":
+	case "e":
+		return .33;
+	case "4":
+	case "f":
+		return .25;
+	case "5":
+	case "g":
+		return .2;
+	case "6":
+	case "a":
+		return .167;
+	case "7":
+	case "b":
+		return .143;
+	case "8":
+		return .125;
+	case "9":
+		return .111;
+	}
+	return 1;
+}
+function Noise() {
+	this.scr=audio.createScriptProcessor();
+	this.Process=function() {
+//		Interval();
+	};
+	this.scr.onaudioprocess=this.Process;
+	this.scr.connect(out);
+}
+function OSC(f,v,t,to) {
+	this.ena=0;
+	this.form={0:"sine",1:"sawtooth",2:"square"};
+	this.Osc=audio.createOscillator();
+	this.Fil=audio.createBiquadFilter();
+	this.Gain=audio.createGain();
+	this.Mod=audio.createGain();
+	this.Send=audio.createGain();
+	this.Pan=audio.createPanner();
+	this.Osc.connect(this.Fil);
+	this.Fil.connect(this.Gain);
+	this.Gain.connect(this.Mod);
+	this.Gain.connect(this.Send);
+	this.Send.connect(delay.Dly);
+	this.Gain.connect(this.Pan);
+	this.Gain.connect(this.Mod);
+	this.Gain.gain.value=0;
+	this.Send.gain.value=0;
+	this.Mod.gain.value=1000;
+	this.Pan.panningModel="equalpower";
+	if(to) {
+		this.Pan.connect(to);
+	}
+	this.s="r";
+	this.g="c";
+	this.type=t;
+	this.c=20;
+	this.q=10;
+	this.v=v;
+	this.pan=.5;
+	this.step=0;
+	this._out=null;
+	this.out="master";
+	this.freq="";
+	this.delay=0.0;
+	this.f=f;
+	this.Osc.start(0);
+	this.next=function(t) {
+		this.Send.gain.value=this.delay;
+		this.Osc.type=this.form[numeval(this.type)];
+		var s=Mml(streval(this.s));
+		this.step=tick%s.length;
+		var tune=s[this.step];
+		var g=Mml(streval(this.g));
+		var v=Note2Vol(g[tick%g.length]);
+		if(this._out!=this.out) {
+			this._out=this.out;
+			this.Pan.disconnect();
+			this.Mod.disconnect();
+			if(this._out=="master")
+				this.Pan.connect(master.out);
+			else {
+				this.Gain.connect(this.Mod);
+				try {
+					this.Mod.connect(eval(this.out).Osc.frequency);
+				} catch(e) {}
+			}
+		}
+		if(tune) {
+			tune=(tune-57)*100;
+			this.Osc.detune.setValueAtTime(tune,t);
+			this.Fil.detune.setValueAtTime(tune,t);
+			var _freq=numeval(this.f);
+			this.Osc.frequency.setValueAtTime(_freq,t);
+			var _cutoff=numeval(this.c);
+			this.Fil.frequency.setValueAtTime(_freq*_cutoff,t);
+			this.Fil.Q.value=numeval(this.q);
+			this.Gain.gain.setValueAtTime(numeval(this.v)*v,t);
+		}
+		else
+			this.Gain.gain.setValueAtTime(0,t);
+		var th=Math.PI*(numeval(this.pan)-.5);
+		this.Pan.setPosition(Math.sin(th),0,-Math.cos(th));
+	}
+}
+function FMO(f1,v1,r1,t1,f2,v2,r2,t2,f3,v3,r3,t3,p) {
+	this.Op1=audio.createOscillator();
+	this.Op1gain=audio.createGain();
+	this.Op2=audio.createOscillator();
+	this.Op2gain=audio.createGain();
+	this.Op3=audio.createOscillator();
+	this.Op3gain=audio.createGain();
+	this.Pan=audio.createPanner();
+	this.Pan.panningModel="equalpower";
+	this.form={0:"sine",1:"sawtooth",2:"square"};
+
+	this.Op3.connect(this.Op3gain);
+	this.Op3gain.connect(this.Op2.frequency);
+	this.Op2.connect(this.Op2gain);
+	this.Op2gain.connect(this.Op1.frequency);
+	this.Op1.connect(this.Op1gain);
+	this.Op1gain.connect(this.Pan);
+	this.Pan.connect(master.out);
+	this.Op1gain.gain.value=0;
+	this.s="r";
+	this.step=0;
+	this.f1=f1;
+	this._v=this.v=v1;
+	this.r1=r1;
+	this.f2=f2;
+	this.v2=v2;
+	this.r2=r2;
+	this.f3=f3;
+	this.v3=v3;
+	this.r3=r3;
+	this.pan=p;
+	this.Op1.start(0);
+	this.Op2.start(0);
+	this.Op3.start(0);
+	this.Op1.frequency.value=f1;
+	this.Op2.frequency.value=f2;
+	this.Op3.frequency.value=f3;
+	this.Op1.type=this.form[t1];
+	this.Op2.type=this.form[t2];
+	this.Op3.type=this.form[t3];
+	this.trig=function(t) {
+		this.Op1gain.gain.setValueAtTime(this._v,t);
+		this.Op2gain.gain.setValueAtTime(this.v2,t);
+		this.Op3gain.gain.setValueAtTime(this.v3,t);
+		this.Op1gain.gain.setTargetAtTime(0,t+0.01,this.r1);
+		this.Op2gain.gain.setTargetAtTime(0,t+0.01,this.r2);
+		this.Op3gain.gain.setTargetAtTime(0,t+0.01,this.r3);
+	}
+	this.next=function(t) {
+		var s=Mml(streval(this.s));
+		this.step=tick%s.length;
+		var c=s[this.step];
+		this._v=numeval(this.v);
+		if(c) {
+			var n=(c-48)*100;
+			this.Op1.detune.value=n;
+			this.trig(t);
+		}
+		var th=Math.PI*(numeval(this.pan)-.5);
+		this.Pan.setPosition(Math.sin(th),0,-Math.cos(th));
+	}
+}
+function Master() {
+	function GetName(s) {
+		var p=s.lastIndexOf("/");
+		return s.substr(p+1);
+	}
+	function LoadSample(n,url) {
+		var req = new XMLHttpRequest();
+		req.open("GET", url, true);
+		req.responseType = "arraybuffer";
+		req.nam=GetName(url);
+		req.onload = function() {
+			if(req.response) {
+				audio.decodeAudioData(req.response,function(b){ir[n]={"name":req.nam,"data":b};},function(){});
+			}
+		}
+		req.send();
+	}
+	LoadSample(0,"samples/IMreverbs1/Five Columns Long.wav");
+	LoadSample(1,"samples/IMreverbs1/Five Columns.wav");
+	LoadSample(2,"samples/IMreverbs1/French 18th Century Salon.wav");
+	LoadSample(3,"samples/IMreverbs1/Going Home.wav");
+	LoadSample(4,"samples/IMreverbs1/In The Silo Revised.wav");
+	LoadSample(5,"samples/IMreverbs1/Narrow Bumpy Space.wav");
+	LoadSample(6,"samples/IMreverbs1/Nice Drum Room.wav");
+	LoadSample(7,"samples/IMreverbs1/Parking Garage.wav");
+	LoadSample(8,"samples/IMreverbs1/Rays.wav");
+	LoadSample(9,"samples/IMreverbs1/Trig Room.wav");
+
+	this.v=this._v=1.0;
+	this.fade=.1;
+	this.conv=audio.createConvolver();
+	this.convgain=audio.createGain();
+	this.comp=audio.createDynamicsCompressor();
+	this.out=audio.createGain();
+	this.ana=audio.createAnalyser();
+	this.ana.fftSize=1024;
+	this.out.connect(this.conv);
+	this.out.connect(this.comp);
+	this.conv.connect(this.convgain);
+	this.convgain.connect(this.comp);
+	this.comp.connect(audio.destination);
+	this.comp.connect(this.ana);
+	this.g="c";
+	this.ir=0;
+	this._rev=this.rev=.5;
+	this._tempo=this.tempo=120;
+	this.step=0;
+	this.next=function(t) {
+		this._tempo=numeval(this.tempo);
+		var g=Mml(streval(this.g));
+		var v=Note2Vol(g[tick%g.length]);
+		var _v=numeval(this.v);
+		this._rev=numeval(this.rev);
+		this.convgain.gain.value=this._rev;
+		this._v+=(_v-this._v)*this.fade;
+		this.out.gain.setValueAtTime(this._v*v,t);
+	}
+}
+function Delay() {
+	this.Dly=audio.createDelay();
+	this.Dly.delayTime.value=60/master._tempo;
+	this.Fb=audio.createGain();
+	this.Fb.gain.value=.5;
+	this.Dly.connect(this.Fb);
+	this.Dly.connect(out);
+	this.Fb.connect(this.Dly)
+	this.t=8;
+	this.fb=.5;
+	this.next=function() {
+		var n=4/numeval(this.t);
+		this.Fb.gain.value=numeval(this.fb);
+		this.Dly.delayTime.value=60*n/master._tempo+0.02;
+	}
+}
+function Midi() {
+	console.log("---MIDI---");
+	this.onMIDIFailure=function(msg) {console.log(msg);};
+	this.onMIDISuccess=function(ac) {
+		console.log("success");
+		midioutputs=ac.outputs();
+		console.log("number of midi ports:"+midioutputs.length);
+	};
+	if(navigator.requestMIDIAccess) {
+		navigator.requestMIDIAccess().then(this.onMIDISuccess,this.onMIDIFailure);
+		this.setup=function(midiout) {
+			if(midiout) {
+				midiout.send([0xb0,70,125]);	//detune
+				midiout.send([0xb0,76,55]);	//lfo rate
+			}
+		}
+	}
+}
+function Wav() {
+	this.a=this._a=1.0;
+	this.v=this._v=0.0;
+	this.w=this._w=1.0;
+	this.h=this._h=1.0;
+	this.x=this._x=0.5;
+	this.y=this._y=0.5;
+	this.z=this._z=1.0;
+	this.rot=this._rot=0;
+	this.fade=0.3;
+	this.t=0;
+	this.r=255;
+	this.g=0;
+	this.b=0;
+	this.fill=0;
+	this.rx=1024;
+	this.ry=768;
+	this.mrx=this.rx/64;
+	this.mry=this.ry/48;
+	this.effx=0;
+	this.effy=0;
+	this.effz=1;
+	this.effr=0.92;
+	this.col="#f02";
+	this.cvwav=document.getElementById("cvwav");
+	this.cvwav.width=this.rx;
+	this.cvwav.height=this.ry;
+	this.ctxwav=cvwav.getContext("2d");
+	this.cvwavwork=document.getElementById("cvwavwork");
+	this.cvwavwork.width=this.rx;
+	this.cvwavwork.height=this.ry;
+	this.ctxwavwork=cvwavwork.getContext("2d");
+	this._col="#f00";
+	this._linewidth=this.linewidth=3;
+	this.ctxwav.font=this.mry+"px Courier,monospace";
+	this.mat=Array(64);
+	this.ph=0;
+	for(var i=0;i<64;++i)
+		this.mat[i]=-1;
+	this.layout=function() {
+		var w=scrWidth*this._w*this._z;
+		var h=scrHeight*this._h*this._z;
+		var x=scrWidth*this._x-w*.5;
+		var y=scrHeight*this._y-h*.5;
+		this.cvwav.style.opacity=this._a;
+		this.cvwav.style.width=w+"px";
+		this.cvwav.style.height=h+"px";
+		this.cvwav.style.left=x+"px";
+		this.cvwav.style.top=y+"px";
+		this.cvwav.style.WebkitTransform="rotate("+this._rot+"deg)";
+	}
+	this.next=function() {
+		this._t=numeval(this.type);
+		this._a+=(numeval(this.a)-this._a)*this.fade;
+		this._v+=(numeval(this.v)-this._v)*this.fade;
+		this._w+=(numeval(this.w)-this._w)*this.fade;
+		this._h+=(numeval(this.h)-this._h)*this.fade;
+		this._x+=(numeval(this.x)-this._x)*this.fade;
+		this._y+=(numeval(this.y)-this._y)*this.fade;
+		this._z+=(numeval(this.z)-this._z)*this.fade;
+		this._rot+=(numeval(this.rot)-this._rot)*this.fade;
+		this._effr=numeval(this.effr);
+		this._effx=numeval(this.effx);
+		this._effy=numeval(this.effy);
+		this._effz=numeval(this.effz);
+		this._col=streval(this.col);
+		this._fill=numeval(this.fill);
+		this._linewidth=numeval(this.linewidth);
+	}
+	this.draw=function() {
+		var sx=(this.rx*this._effz)|0;
+		var sy=(this.ry*this._effz)|0;
+		var sxoff=((this.rx-sx)*.5)|0+this._effx;
+		var syoff=((this.ry-sy)*.5)|0+this._effy;
+		var grad=null;
+
+		this.ctxwavwork.clearRect(0,0,this.rx,this.ry);
+		this.ctxwavwork.drawImage(this.cvwav,sxoff,syoff,sx,sy);
+		this.ctxwav.clearRect(0,0,this.rx,this.ry);
+		this.ctxwav.globalAlpha=this._effr;
+		this.ctxwav.drawImage(cvwavwork,0,0,this.rx,this.ry);
+		this.ctxwav.globalAlpha=1.0;
+
+		var hrx=this.rx*.5;
+		var hry=this.ry*.5;
+		master.ana.getByteTimeDomainData(wavdat);
+		master.ana.getByteFrequencyData(freqdat);
+		this.ctxwav.beginPath();
+		switch(this._t) {
+		case 1:
+			var ryh=this.ry*.75;
+			this.ctxwav.moveTo(0,ryh);
+			for(var i=0;i<this.rx;i+=2)
+				this.ctxwav.lineTo(i,ryh-freqdat[(128*(i/this.rx))|0]);
+			this.ctxwav.lineTo(this.rx,ryh);
+			break;
+		case 2:
+			var mpy=0;
+			for(var i=0;i<this.rx;i+=2) {
+				var v=0.2+(wavdat[(i*512/this.rx)|0]-128)*.005;
+				var px=hrx*Math.sin(Math.PI*2*i/this.rx)*v+hrx;
+				var py=hry*Math.cos(Math.PI*2*i/this.rx)*v+hry;
+				if(py>mpy)
+					mpy=py;
+				if(i==0)
+					this.ctxwav.moveTo(px,py);
+				this.ctxwav.lineTo(px,py);
+			}
+			if((this.ph+=0.1)>=2*Math.PI)
+				this.ph-=2*Math.PI;
+			this.ctxwav.closePath();
+			var mx=mpy-hry;
+			grad=this.ctxwav.createRadialGradient(hrx-Math.sin(this.ph)*mx*.5,hry-Math.cos(this.ph)*mx*.5,1,hrx,hry,mx);
+			grad.addColorStop(0,"#fff");
+			grad.addColorStop(1,this._col);
+			break;
+		case 3:
+			var i=wavdat[0]>>2;
+			if(this.mat[i]<0)
+				this.mat[i]=0;
+			for(var i=0;i<64;++i) {
+				if(this.mat[i]>=0) {
+					this.ctxwav.fillStyle=this._col;
+					this.ctxwav.fillText(String.fromCharCode(0x21+(wavdat[i*2]&0x3f)),i*this.mrx,this.mat[i]*this.mry);
+					this.ctxwav.fillText(String.fromCharCode(0x21+(wavdat[i*2+1]&0x3f)),i*this.mrx,this.mat[i]*this.mry+this.mry);
+					if((this.mat[i]+=2)>48)
+						this.mat[i]=0;
+				}
+			}
+			return;
+		default:
+			var ryh=this.ry*.5;
+			this.ctxwav.moveTo(0,ryh);
+			for(var i=0;i<this.rx;i+=2)
+				this.ctxwav.lineTo(i,ryh-((wavdat[(i*512/this.rx)|0]-128)*ryh>>8));
+			this.ctxwav.lineTo(this.rx,ryh);
+			break;
+		}
+		this.ctxwav.lineWidth=this._linewidth;
+		this.ctxwav.lineJoin="round";
+		if(this._fill) {
+			if(grad)
+				this.ctxwav.fillStyle=grad;
+			else
+				this.ctxwav.fillStyle=this._col;
+			this.ctxwav.fill();
+		}
+		else {
+			this.ctxwav.strokeStyle=this._col;
+			this.ctxwav.stroke();
+		}
+	}
+}
+function Txt() {
+	this.a=this._a=1.0;
+	this.v=this._v=0.0;
+	this.w=this._w=0.5;
+	this.h=this._h=1.0;
+	this.x=this._x=0.25;
+	this.y=this._y=0.5;
+	this.z=this._z=1.0
+	this.eff=0;
+	this.rot=this._rot=0;
+	this.fade=0.5;
+	this.cmdline="";
+	this.cursor=0;
+	this.log=["","","","","","","","","","","","","","","",""];
+	this.hist=[];
+	this.histcur=0;
+	this.col="#0f0";
+	this.cvtxt=document.getElementById("cvtxt");
+	this.ctxtxt=this.cvtxt.getContext("2d");
+	this.cvtxtwork=document.getElementById("cvtxtwork");
+	this.ctxtxtwork=this.cvtxtwork.getContext("2d");
+	this.linep=new Array(512);
+	this.layout=function() {
+		var w=scrWidth*this._w*this._z;
+		var h=scrHeight*this._h*this._z;
+		var x=scrWidth*this._x-w*.5;
+		var y=scrHeight*this._y-h*.5;
+		this.cvtxt.style.opacity=this._a;
+		this.cvtxt.style.width=w+"px";
+		this.cvtxt.style.height=h+"px";
+		this.cvtxt.style.left=x+"px";
+		this.cvtxt.style.top=y+"px";
+		this.cvtxt.style.WebkitTransform="rotate("+this._rot+"deg)";
+	}
+	this.next=function() {
+		this._a+=(numeval(this.a)-this._a)*this.fade;
+		this._v+=(numeval(this.v)-this._v)*this.fade;
+		this._w+=(numeval(this.w)-this._w)*this.fade;
+		this._h+=(numeval(this.h)-this._h)*this.fade;
+		this._x+=(numeval(this.x)-this._x)*this.fade;
+		this._y+=(numeval(this.y)-this._y)*this.fade;
+		this._z+=(numeval(this.z)-this._z)*this.fade;
+		this._rot+=(numeval(this.rot)-this._rot)*this.fade;
+		this._eff=numeval(this.eff);
+		this._col=streval(this.col);
+	}
+	this.draw=function() {
+		this.ctxtxtwork.clearRect(0,0,512,512);
+		this.ctxtxtwork.fillStyle=this._col;
+		this.ctxtxtwork.font="bold 24px Courier,monospace";
+		var i;
+		for(i=0,e=this.log.length;i<e;++i)
+			this.ctxtxtwork.fillText(this.log[e-1-i],10,i*25+20);
+		this.ctxtxtwork.fillText("> "+this.cmdline,10,420);
+		if(tick&1)
+			this.ctxtxtwork.fillRect(40+this.cursor*14,403,20,20);
+		this.ctxtxt.clearRect(0,0,512,512);
+		for(i=0;i<512;++i) {
+			this.ctxtxt.globalAlpha=Math.max(0.5,Math.min(1,0.5+(wavdat[i]-128)*0.2*this._eff));
+			this.ctxtxt.drawImage(this.cvtxtwork,0,i,512,1,wavdat[i]*this._eff,i,512,1);
+		}
+	}
+	this.message=function(mess) {
+		this.log.unshift(mess+"");
+		if(this.log.length>16)
+			this.log.length=16;
+	}
+	this.key=function(k) {
+		switch(k) {
+		case "l":
+			return;
+		case "u":
+			if(this.histcur<this.hist.length-1) {
+				++this.histcur;
+				this.cmdline=this.hist[this.histcur];
+				this.cursor=this.cmdline.length;
+			}
+			return;
+		case "r":
+			return;
+		case "d":
+			if(this.histcur>=0) {
+				--this.histcur;
+				if(this.histcur==-1) {
+					this.cmdline="";
+					this.cursor=0;
+				}
+				else {
+					this.cmdline=this.hist[this.histcur];
+					this.cursor=this.cmdline.length;
+				}
+
+			}
+			return;
+		case "f1":
+			this.cmdline=fn[0];
+			this.cursor=this.cmdline.length;
+			return;
+		case "f2":
+			this.cmdline=fn[1];
+			this.cursor=this.cmdline.length;
+			return;
+		case "f3":
+			this.cmdline=fn[2];
+			this.cursor=this.cmdline.length;
+			return;
+		case "f4":
+			this.cmdline=fn[3];
+			this.cursor=this.cmdline.length;
+			return;
+		case "f5":
+			this.cmdline=fn[4];
+			this.cursor=this.cmdline.length;
+			return;
+		case "f6":
+			this.cmdline=fn[5];
+			this.cursor=this.cmdline.length;
+			return;
+		case "f7":
+			this.cmdline=fn[6];
+			this.cursor=this.cmdline.length;
+			return;
+		case "f8":
+			this.cmdline=fn[7];
+			this.cursor=this.cmdline.length;
+			return;
+		case "f9":
+			this.cmdline=fn[8];
+			this.cursor=this.cmdline.length;
+			return;
+		case "f10":
+			this.cmdline=fn[9];
+			this.cursor=this.cmdline.length;
+			return;
+		case "f11":
+			this.cmdline=fn[10];
+			this.cursor=this.cmdline.length;
+			return;
+		case "f12":
+			this.cmdline=fn[11];
+			this.cursor=this.cmdline.length;
+			return;
+		case 8:
+			if(this.cursor) {
+				this.cmdline=this.cmdline.slice(0,-1);
+				--this.cursor;
+			}
+			return;
+		case 13:
+			this.histcur=-1;
+			this.hist.unshift(this.cmdline);
+			if(this.hist.length>10)
+				this.hist.length=10;
+			var s=Enter(this.cmdline);
+			this.cmdline="";
+			this.cursor=0;
+			if(s!=undefined) {
+				var ss=(s+"").split("\n");
+				for(ii=0;ii<ss.length;++ii) {
+					this.log.unshift(ss[ii]);
+					this.log.length=16;
+				}
+			}
+			for(var i=0;i<512;++i)
+				this.linep[i]=1;
+			return;
+		}
+		var s=String.fromCharCode(k);
+		this.cmdline+=s;
+		this.cursor=this.cmdline.length;
+		this.histcur=-1;
+	}
+}
+function Cam() {
+	this.imgdatframe=[null,null];
+	this.imgdatcam=null;
+	this.frame=0;
+	this.levx=new Array(320);
+	this.levy=new Array(240);
+	this.scrdiff=new Array(320*240);
+	this.eff=1;
+	this.curvol=0;
+	this._q=this.q=5;
+	this._f=this.f=440;
+	this._c=this.c=32;
+	this.a=this._a=0;
+	this.type=this._type=0;
+	this.v=this._v=0;
+	this.w=this._w=1.0;
+	this.h=this._h=1.0;
+	this.x=this._x=0.5;
+	this.y=this._y=0.5;
+	this.z=this._z=1.0;
+	this.rot=this._rot=0;
+	this.delay=0;
+	this.fade=0.5;
+	this.video=document.getElementById("video");
+	this.cvcam=document.getElementById("cvcam");
+	this.cvcamwork=document.getElementById("cvcamwork");
+	this.ctxcam=cvcam.getContext("2d");
+	this.ctxcamwork=cvcamwork.getContext("2d");
+	this.Osc=audio.createOscillator();
+	this.Fil=audio.createBiquadFilter();
+	this.Lfo=audio.createOscillator();
+	this.LfoGain=audio.createGain();
+	this.Gain=audio.createGain();
+	this.Send=audio.createGain();
+	this.Send.gain.value=0;
+	this.Gain.gain.value=0;
+	this.Osc.connect(this.Fil);
+	this.Lfo.connect(this.LfoGain);
+	this.LfoGain.connect(this.Osc.detune);
+	this.Fil.connect(this.Gain);
+	this.Gain.connect(this.Send);
+	this.Gain.connect(out);
+	this.Send.connect(delay.Dly);
+	this.Osc.type="square";
+	this.Lfo.type="sine";
+	this.Osc.frequency.value=440;
+	this.Lfo.frequency.value=6;
+	this.Fil.frequency.value=4400;
+	this.Fil.Q.value=this.q;
+	this.LfoGain.gain.value=0;
+	this.Lfo.start(0);
+	this.Osc.start(0);
+	this.midi=0;
+	this._midi=0;
+	this.porta=0.05;
+	this.px=0;
+	this.midipitch=0;
+	this.scale="cdega<cdega<c";
+	this.g="c";
+	this.notes=Mml(this.scale);
+	this.layout=function() {
+		var w=scrWidth*this._w*this._z;
+		var h=scrHeight*this._h*this._z;
+		var x=scrWidth*this._x-w*.5;
+		var y=scrHeight*this._y-h*.5;
+		this.cvcam.style.opacity=this._a;
+		this.cvcam.style.width=w+"px";
+		this.cvcam.style.height=h+"px";
+		this.cvcam.style.left=x+"px";
+		this.cvcam.style.top=y+"px";
+		cvcam.style.WebkitTransform="rotate("+this._rot+"deg)";
+	}
+	this.next=function() {
+		this._g=Mml(streval(this.g));
+		this.gate=Note2Vol(this._g[tick%this._g.length]);
+		this._a+=(numeval(this.a)-this._a)*this.fade;
+		this._v+=(numeval(this.v)-this._v)*this.fade;
+		this._w+=(numeval(this.w)-this._w)*this.fade;
+		this._h+=(numeval(this.h)-this._h)*this.fade;
+		this._x+=(numeval(this.x)-this._x)*this.fade;
+		this._y+=(numeval(this.y)-this._y)*this.fade;
+		this._z+=(numeval(this.z)-this._z)*this.fade;
+		this._rot+=(numeval(this.rot)-this._rot)*this.fade;
+		this._f=numeval(this.f);
+		this._q=numeval(this.q);
+		this._c=numeval(this.c);
+		this._eff=numeval(this.eff);
+		this._type=numeval(this.type);
+	}
+	this.draw=function() {
+		var oframe=this.frame^1;
+		var px,py,x,y;
+		var note;
+		var freq;
+		var avex=0;
+		var avey=0;
+		var sumpx=0;
+		var sumpy=0;
+		var cntpx=0;
+		var avex=0;
+		var avey=0;
+		var vol=0;
+		var r,g,b,dr,dg,db;
+		px=0;
+		py=0;
+		this.ctxcamwork.drawImage(this.video,0,0,320,240);
+		this.imgdatframe[this.frame]=this.ctxcamwork.getImageData(0,0,320,240);
+		if(this.imgdatframe[this.frame]&&this.imgdatframe[oframe]) {
+			var cpix=this.imgdatframe[this.frame].data;
+			var opix=this.imgdatframe[oframe].data;
+			var dpix=this.imgdatcam.data;
+			var t=this._type;
+			for(i=0;i<320;++i)
+				this.levx[i]=0;
+			for(i=0;i<240;++i)
+				this.levy[i]=0;
+			for(var y=0;y<240;++y) {
+				var offs=y*320;
+				var offs4=offs*4;
+				var roffs4=(offs+320-1)*4;
+				var soffs4;
+				var cr,cg,cb,r,g,b,diff,v;
+				for(var x=0;x<320;++x) {
+					soffs4=roffs4;
+					cr=cpix[soffs4];
+					cg=cpix[soffs4+1];
+					cb=cpix[soffs4+2];
+					diff=Math.min(255,(Math.abs(cr-opix[soffs4])+Math.abs(cg-opix[soffs4+1])+Math.abs(cb-opix[soffs4+2])));
+					v=Math.max(this.scrdiff[offs]*0.9,diff);
+					this.scrdiff[offs]=v;
+					this.levx[x]+=v;
+					this.levy[y]+=v;
+
+					r=cr*t;
+					g=cg*t;
+					b=cb*t+((cg>128)?255:0)*(1-t);
+
+					switch(this._eff) {
+					case 1:
+						r+=v;
+						break;
+					case 2:
+						r+=v;
+						g+=v;
+						b+=v;
+						break;
+					case 3:
+						if(v<20) {
+						}
+						else if(v<50) {
+							b+=v;
+						}
+						else if(v<100) {
+							r+=v;
+						}
+						else if(v<150) {
+							r+=v;
+						}
+						else if(v<200) {
+							r+=v;
+							g+=v;
+						}
+						else {
+							r+=v;
+							g+=v;
+							b+=v;
+						}
+						break;
+					}
+					dpix[offs4]=r;
+					dpix[offs4+1]=g;
+					dpix[offs4+2]=b;
+					dpix[offs4+3]=200;
+					++offs;
+					offs4+=4;
+					roffs4-=4;
+				}
+			}
+			for(x=0;x<320;++x)
+				avex+=this.levx[x];
+			avex/=320;
+			for(y=0;y<240;++y)
+				avey+=this.levy[y];
+			avey/=240;
+			px=0;
+			for(x=0;x<320;++x) {
+				if(this.levx[x]>avex) {
+					var d=this.levx[x]-avex;
+					px+=x*d;
+					sumpx+=d;
+					++cntpx;
+				}
+			}
+			if(sumpx)
+				px/=sumpx;
+			sumpx/=cntpx;
+			py=0;
+			for(y=0;y<240;++y) {
+				if(this.levy[y]>avey) {
+					var d=this.levy[y]-avey;
+					py+=y*d;
+					sumpy+=d;
+				}
+			}
+			if(sumpy)
+				py/=sumpy;
+			vol=Math.min(1,sumpx*0.0002);
+			vol=vol*vol;
+			if(vol>0)
+				this.curvol=this.curvol*0.8+vol*0.2;
+			var r=(this.curvol*15+5);
+			var grad=this.ctxcam.createRadialGradient(px|0,(py-r/4)|0,1,px|0,py|0,r|0);
+			grad.addColorStop(0,"#fff");
+			grad.addColorStop(0.4,"#ff0");
+			grad.addColorStop(0.6,"#aa0");
+			grad.addColorStop(1,"#000");
+			this.ctxcam.putImageData(this.imgdatcam,0,0);
+			this.ctxcam.fillStyle=grad;
+			this.ctxcam.beginPath();
+			this.ctxcam.arc(px,py,r,0,360,0);
+			this.ctxcam.fill();
+
+		}
+		this.frame^=1;
+		this.px=px/320;
+		var c;
+		c=(this.notes[(px*this.notes.length/320)|0]-57)*100;
+		if(this.midi>0) {
+			var midiout=midioutputs[this.midi-1];
+			if(midiout) {
+				if(this.midi!=this._midi) {
+					midi.setup(midiout);
+					this._midi=this.midi;
+				}
+				this.Gain.gain.value=0;
+				this.midipitch+=(c-this.midipitch)*(1-this.porta);
+				var vol=(this.curvol*this.v*127)|0;
+				midiout.send([0xb0,7,vol]);
+				midiout.send([0x90,69,127]);
+				var p=((this.midipitch/1200*8191)|0)+8192;
+				midiout.send([0xe0,p&0x7f,(p>>7)&0x7f]);
+				var m=(240-py)/240;
+				midiout.send([0xb0,70,0]);//detune
+				midiout.send([0xb0,80,32]);//cutoff
+				midiout.send([0xb0,1,(m*16)|0]);
+			}
+		}
+		else {
+			this.Gain.gain.value=this.curvol*this.v*this.gate;
+			var f=Math.pow(this._c,((240-py)/240));
+			this.Osc.frequency.value=this._f;
+			this.Osc.detune.setTargetAtTime(c,0,this.porta*.1);
+			this.Fil.frequency.value=this._f*f;
+			this.Fil.Q.value=this._q;
+			this.LfoGain.gain.value=f*2;
+			this.Fil.detune.value=c;
+			this.Send.gain.value=this.delay;
+		}
+		return null;
+	}
+	function err(err) {
+		alert("Camera Error");
+		console.log(err);
+	}
+	function success(stream) {
+		var v=document.getElementById("video");
+		v.src= stream;
+		v.play();
+//		setInterval("cam.capture()",50);
+	}
+	function success2(stream) {
+		var v=document.getElementById("video");
+		v.src= window.URL.createObjectURL(stream);
+		v.play();
+//		setInterval("cam.capture()",50);
+	}
+	if(typeof(navigator.getUserMedia)=="function") {
+		console.log("getUserMedia");
+		navigator.getUserMedia( {video: true},success,err);
+	}
+	else if(typeof(navigator.webkitGetUserMedia)=="function") {
+		console.log("webkitGetUserMedia");
+		navigator.webkitGetUserMedia( {video: true},success2,err);
+	}
+	else if(typeof(navigator.mozGetUserMedia)=="function") {
+		console.log("mozGetUserMedia");
+		navigator.mozGetUserMedia( {video: true},success2,err);
+	}
+	this.imgdatcam=this.ctxcam.createImageData(320,240);
+	for(var y=0;y<240;++y) {
+		for(var x=0;x<320;++x) {
+			this.scrdiff[y*320+x]=0;
+		}
+	}
+	for(var y=0;y<240;++y) {
+		for(var x=0;x<320;++x) {
+			this.imgdatcam.data[(y*320+x)*4]=0;
+			this.imgdatcam.data[(y*320+x)*4+1]=0;
+			this.imgdatcam.data[(y*320+x)*4+2]=0;
+			this.imgdatcam.data[(y*320+x)*4+3]=255;
+		}
+	}
+}
+</script>
+<div id="base" style="position:relative;background:#000;overflow:hidden">
+<canvas id="cvcam" width="320" height="240" style="position:absolute;left:0px;top:0px;height:0px;background:#000"></canvas>
+<canvas id="cvwav" width="0" height="0" style="position:absolute;left:0px;top:0px;height:0px"></canvas>
+<canvas id="cvwavwork" width="0" height="0" style="position:absolute;left:0px;top:0px;height:0px"></canvas>
+<!--<canvas id="cvwavwork2" width="0" height="0" style="position:absolute;left:0px;top:0px;height:0px"></canvas>-->
+<canvas id="cvtxt" width="512" height="512" style="position:absolute;left:0px;top:0px;height:0px"></canvas>
+<canvas id="cvtxtwork" width="512" height="512" style="position:absolute;left:0px;top:0px;height:0px"></canvas>
+<div id="timecode" style="position:absolute;right:0px;top:0px;width:150px;height:20px;color:#aaa;font-size:20px;font-family:courier">00:00:00:00</div>
+</div>
+<div style="display:none">
+	<video id="video" width="320" height="240"></video>
+	<canvas id="cvcamwork" width="320" height="240"></canvas>
+</div>
+</body>
+</html>
