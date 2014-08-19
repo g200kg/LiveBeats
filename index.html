@@ -27,6 +27,9 @@ body {
 #link a {
 	color:#840;
 }
+h2 {
+	border-bottom:2px solid #840;
+}
 table {
 	background:#ebedfe;
 	border:1px solid #668;
@@ -182,7 +185,7 @@ Chrome または Firefox とWebカメラが必要です (私の環境ではWin+F
 <tr><td>cam.type</td><td>number</td><td>映像のタイプ 0:青プレーンにソラリゼーション効果 1:通常映像 中間の値も設定可能</td></tr>
 <tr><td>cam.eff</td><td>number</td><td>モーションエフェクト 0:エフェクトなし、 1:モーションを赤で表示、 2:モーションを白で表示、 3:モーションを黄色⇒赤で表示</tr>
 <tr><td>cam.scale</td><td>string</td><td>'cam'オブジェクトからの音声の音階をMML文字列で指定。 デフォルトでは、2オクターブのペンタトニックスケール。 'cdega>cdega>c'</td></tr>
-<tr><td>cam.midi</td><td>number</td><td>'cam'オブジェクト音声に内蔵オシレータの代わりにMIDI出力を使用。 0:内蔵オシレータ(MIDIを使用しない)、 0以外:MIDIポート番号を指定。ポート番号は 'list midi'コマンドで表示される番号。 注) ブラウザのWeb MIDI APIが有効になっている必要あり。デフォルトは0。</td></tr>
+<tr><td>cam.midi</td><td>number</td><td>'cam'オブジェクト音声に内蔵オシレータの代わりにMIDI出力を使用。 0:内蔵オシレータ(MIDIを使用しない)、 0以外:MIDIポート番号を指定。ポート番号は 'list midi'コマンドで表示される番号。 注) ブラウザのWeb MIDI APIが有効になっている必要があります。デフォルトは0。</td></tr>
 <tr><td>cam.v</td><td>number</td><td>音量。</td></tr>
 <tr><td>cam.delay</td><td>number</td><td>delayオブジェクトへのセンドレベル。</td></tr>
 </table>
@@ -243,7 +246,7 @@ Chrome または Firefox とWebカメラが必要です (私の環境ではWin+F
 </div>
 <div class="doc_ja">
 <table>
-<tr><th colspan="2">txt</th><td>コマンド入力オブジェクト。キーボード入力を受け付け、コマンドを実行する。</td></tr>
+<tr><th colspan="2">txt</th><td>コマンド入力オブジェクト。キーボード入力を受け付け、コマンドを実行します。</td></tr>
 <tr><td>txt.a</td><td>number</td><td>txtオブジェクトのアルファ (0.0 - 1.0)</td></tr>
 <tr><td>txt.w</td><td>number</td><td>txtオブジェクトの幅 (0.0 - 1.0)</td></tr>
 <tr><td>txt.h</td><td>number</td><td>txtオブジェクトの高さ (0,0 - 1.0)</td></tr>
@@ -273,9 +276,9 @@ Chrome または Firefox とWebカメラが必要です (私の環境ではWin+F
 </div>
 <div class="doc_ja">
 <table>
-<tr><th colspan="2">o1,o2,...o8</th><td>オシレータ、(フィルター、ボリューム、パンを含む)。 o1とo5はベースラインでの使用を想定。以下の説明はo1.xとなっているが他のオシレータも同様。</td></tr>
-<tr><td>o1.s</td><td>string</td><td>このオシレータのシーケンスをMMLスタイル文字列で指定。基本的に"rcdefgab"の文字から成り、"r"は休符、その他は音名を表す。それぞれの文字は1ステップに割り当てられる。デフォルトは"r"。</td></tr>
-<tr><td>o1.g</td><td>string</td><td>このオシレータのゲートコントロールをMMLスタイル文字列で指定。"rcdefgab"の文字から成り、"r"はミュート、"c"は最大音量を表し、d,e,f,g,..で音量が下がってゆく。</td></tr>
+<tr><th colspan="2">o1,o2,...o8</th><td>オシレータ、(フィルター、ボリューム、パンを含む)。 o1とo5はベースラインでの使用を想定。以下の説明はo1.xとなっていますが他のオシレータも同様です。</td></tr>
+<tr><td>o1.s</td><td>string</td><td>このオシレータのシーケンスをMMLスタイル文字列で指定。基本的に"rcdefgab"の文字等から成り、"r"は休符、その他は音名を表します。それぞれの文字は1ステップに割り当てられます。デフォルトは"r"。</td></tr>
+<tr><td>o1.g</td><td>string</td><td>このオシレータのゲートコントロールをMMLスタイル文字列で指定。"rcdefgab"の文字から成り、"r"はミュート、"c"は最大音量を表し、d,e,f,g,..で音量が下がって行きます。</td></tr>
 <tr><td>o1.v</td><td>number</td><td>音量</td></tr>
 <tr><td>o1.f</td><td>number</td><td>ノート"a"の基本周波数。デフォルトはo1、o5では110、その他のオシレータは440。</td></tr>
 <tr><td>o1.c</td><td>number</td><td>フィルターのカットオフ。オシレータの周波数に対する倍数。</td></tr>
@@ -283,7 +286,7 @@ Chrome または Firefox とWebカメラが必要です (私の環境ではWin+F
 <tr><td>o1.pan</td><td>number</td><td>パン制御 (0(左) &lt;-&gt; 0.5(中央) &lt;-&gt; 1.0(右))</td></tr>
 <tr><td>o1.type</td><td>number</td><td>波形 (0:サイン波 1:鋸歯状波 2:矩形波)</td></tr>
 <tr><td>o1.delay</td><td>number</td><td>delayオブジェクトへのセンドレベル (0.0 - 1.0)</td></tr>
-<tr><td>o1.out</td><td>object</td><td>出力のルーティング指定。デフォルトは"master"。 o1,o2など他のオシレータを指定してFM変調を掛ける事ができる。</td></tr>
+<tr><td>o1.out</td><td>object</td><td>出力のルーティング指定。デフォルトは"master"。 o1,o2など他のオシレータを指定してFM変調を掛ける事ができます。</td></tr>
 </table>
 </div>
 <br/>
@@ -297,8 +300,8 @@ Chrome または Firefox とWebカメラが必要です (私の環境ではWin+F
 </div>
 <div class="doc_ja">
 <table>
-<tr><th colspan="2">bdo,sdo,hho,cyo</th><td>パーカッション・オシレータ。bdo:バスドラム、sdo:スネアドラム、hho:ハイハット、cyo:シンバルに特化されたオシレータ。以下の説明はbdo.xとなっているが、他のオシレータでも同様。</td></tr>
-<tr><td>bdo.s</td><td>string</td><td>このオシレータのシーケンスをMML文字列で指定。この文字列は基本的に"rcdefgab"から成り、rは休符、他は音程を表す。各文字はシーケンサーの1ステップに対応する。デフォルトは"r"。</td></tr>
+<tr><th colspan="2">bdo,sdo,hho,cyo</th><td>パーカッション・オシレータ。bdo:バスドラム、sdo:スネアドラム、hho:ハイハット、cyo:シンバルに特化されたオシレータ。以下の説明はbdo.xとなっていますが、他のオシレータでも同様です。</td></tr>
+<tr><td>bdo.s</td><td>string</td><td>このオシレータのシーケンスをMML文字列で指定。この文字列は"rcdefgab"等の文字から成り、rは休符、他は音名を表します。各文字はシーケンサーの1ステップに対応します。デフォルトは"r"。</td></tr>
 <tr><td>bdo.v</td><td>number</td><td>音量。</td></tr>
 <tr><td>bdo.pan</td><td>number</td><td>パン指定。 (0(左) &lt;-&gt; 0.5(中央) &lt;-&gt; 1.0(右))</td></tr>
 </table>
@@ -313,8 +316,8 @@ Chrome または Firefox とWebカメラが必要です (私の環境ではWin+F
 </div>
 <div class="doc_ja">
 <table>
-<tr><th colspan="2">delay</th><td>ディレイ・オブジェクト。'cam'オブジェクトおよび'o1'～'o8'オブジェクトから送られた音にフィードバックディレイ効果を付加する。</td></tr>
-<tr><td>delay.t</td><td>number</td><td>ディレイタイム。 ディレイタイムはテンポに同期する。デフォルトは8 (8分音符)</td></tr>
+<tr><th colspan="2">delay</th><td>ディレイ・オブジェクト。'cam'オブジェクトおよび'o1'～'o8'オブジェクトから送られた音にフィードバックディレイ効果を付加します。</td></tr>
+<tr><td>delay.t</td><td>number</td><td>ディレイタイム。 ディレイタイムはテンポに同期します。デフォルトは8 (8分音符)</td></tr>
 <tr><td>delay.fb</td><td>number</td><td>フィードバックレシオ</td></tr>
 </table>
 </div>
@@ -334,7 +337,7 @@ Chrome または Firefox とWebカメラが必要です (私の環境ではWin+F
 <tr><th colspan="2">master</th><td>マスター制御オブジェクト</td></tr>
 <tr><td>master.v</td><td>number</td><td>マスターボリューム。デフォルトは1.0</td></tr>
 <tr><td>master.tempo</td><td>number</td><td>テンポコントロール。デフォルトは120</td></tr>
-<tr><td>master.g</td><td>string</td><td>マスターステップゲートコントロール。"rcdefgab"から成る文字列で、"r"はミュート、"c"は最大音量、"d","e","f",...で順次音量が下がる。</td></tr>
+<tr><td>master.g</td><td>string</td><td>マスターステップゲートコントロール。"rcdefgab"から成る文字列で、"r"はミュート、"c"は最大音量、"d","e","f",...で順次音量が下がります。</td></tr>
 <tr><td>master.rev</td><td>number</td><td>リバーブレベル。リバーブを有効にするには'master.ir'も設定する必要があります。</td></tr>
 <tr><td>master.ir</td><td>number</td><td>リバーブで使用するインパルスレスポンスファイルの選択。'list ir'コマンドで利用可能な値が一覧できます。</td></tr>
 </table>
@@ -352,12 +355,12 @@ Pre-defined variables can be used in formula.
 </div>
 <div class="doc_ja">
 <h2>Variables:</h2>
-定義済の変数として以下が式の中で使用できる。
+定義済の変数として以下が式の中で使用できます。
 <table>
-<tr><td>tick</td><td>'tick'は<b>LiveBeats</b>が起動してから順次カウントアップして行く数値。例えば、回転のパラメータとして"wav.rot=tick"のように使用できる。</td></tr>
-<tr><td>s0 - s24</td><td>プリセットされたシーケンスパターン。o1.s～o8.s、(あるいはbdo.s～cyo.sなどでも)に使用できる。</td></tr>
-<tr><td>sh8, sh16, sh32, sh64</td><td>shX はサンプル&amp;ホールド変数で、指定されたtick間隔ごとにランダムな値に変化する。値の範囲は0.0～1.0である。例えば"wav.x=sh8"のように使用できる。</td></tr>
-<tr><td>lfo8, lfo16, lfo32, lfo64</td><td>lfoXはローフリケンシーオシレータ(LFO)変数であり、関数lfo(X)と等価である。Xの値のtick間隔で周期的に変化する。値の範囲は0.0～1.0である。波形は三角波。例えば、o1.pan=lfo16のように使用できる。</td></tr>
+<tr><td>tick</td><td>'tick'は<b>LiveBeats</b>が起動してから順次カウントアップして行く数値。例えば、回転のパラメータとして"wav.rot=tick"のように使用できます。</td></tr>
+<tr><td>s0 - s24</td><td>プリセットされたシーケンスパターン。o1.s～o8.s、(あるいはbdo.s～cyo.sなどでも)に使用できます。</td></tr>
+<tr><td>sh8, sh16, sh32, sh64</td><td>shX はサンプル&amp;ホールド変数で、指定されたtick間隔ごとにランダムな値に変化します。値の範囲は0.0～1.0となります。例えば"wav.x=sh8"のように使用できます。</td></tr>
+<tr><td>lfo8, lfo16, lfo32, lfo64</td><td>lfoXはローフリケンシーオシレータ(LFO)変数であり、関数lfo(X)と等価です。Xの値のtick間隔で周期的に変化します。値の範囲は0.0～1.0となります。波形は三角波です。例えば、o1.pan=lfo16のように使用できます。</td></tr>
 </table>
 </div>
 <br/>
@@ -371,10 +374,10 @@ Pre-defined functions can be used in formula.
 </div>
 <div class="doc_ja">
 <h2>Functions:</h2>
-式の中で定義済の関数が使用できる。
+式の中で定義済の関数が使用できます。
 <table>
-<tr><td>lfo(value)</td><td>ローフリケンシー・オシレータ(LFO)関数。 この周期はvalueで指定されたtickとなる。LFOの出力する価の範囲は0.0～1.0。</td></tr>
-<tr><td>hue(value)</td><td>'hue(value)'は色指定で使用される。wav.colまたはtxt.col中で使用できる。
+<tr><td>lfo(value)</td><td>ローフリケンシー・オシレータ(LFO)関数。 この周期はvalueで指定されたtickとなります。例えばlfo(16)ならば1周期が1小節になります。LFOの出力する価の範囲は0.0～1.0です。</td></tr>
+<tr><td>hue(value)</td><td>'hue(value)'は色指定で使用されます。wav.colまたはtxt.col中で使用できます。
 </td></tr>
 </table>
 </div>
@@ -391,8 +394,7 @@ o1.s - o8.s, bdo.s, sdo.s, hho.s and cyo.s are described in MML-style string.
 <tr><td>&gt;</td><td>&gt;</td><td>Octave Down</td></tr>
 <tr><td>&lt;</td><td>&lt;</td><td>Octable Up</td></tr>
 </table>
-<br/><br/>
-<p>IR files are from: <a href="http://www.voxengo.com/impulses/" target="_blank">http://www.voxengo.com/impulses/</a>.<a href="samples/IMreverbs1/license.txt">IMreverbs1 license.txt</a></p>
+<br/>
 </div>
 <div class="doc_ja">
 <h2>MML-style string:</h2>
@@ -405,8 +407,29 @@ o1.s - o8.s、bdo.s、sdo.s、hho.s、cyo.s等ではMML形式の文字列を使�
 <tr><td>&gt;</td><td>&gt;</td><td>1オクターブ下げます</td></tr>
 <tr><td>&lt;</td><td>&lt;</td><td>1オクターブあげます</td></tr>
 </table>
-<br/><br/>
-<p>IR ファイルは<a href="http://www.voxengo.com/impulses/" target="_blank">http://www.voxengo.com/impulses/</a>のものを使用しています。<a href="samples/IMreverbs1/license.txt">IMreverbs1 license.txt</a></p>
+<br/>
+</div>
+<h2>GitHub:</h2>
+<div class="doc_en">
+<p>GitHub repository is available at:<br/>
+<b><a href="http://github.com/g200kg/LiveBeats/">http://github.com/g200kg/LiveBeats/</a></b>
+</p>
+</div>
+<div class="doc_ja">
+<p>GitHubリポジトリ:<br/>
+<b><a href="http://github.com/g200kg/LiveBeats/">http://github.com/g200kg/LiveBeats/</a></b>
+</p>
+</div>
+<h2>License:</h2>
+<div class="doc_en">
+<p>IR files are from: <a href="http://www.voxengo.com/impulses/" target="_blank">http://www.voxengo.com/impulses/</a>, licensed under: <a href="samples/IMreverbs1/license.txt">IMreverbs1 license.txt</a><br/>
+Others: MIT License
+</p>
+</div>
+<div class="doc_ja">
+<p>IRファイルは<a href="http://www.voxengo.com/impulses/" target="_blank">http://www.voxengo.com/impulses/</a>のものを使用しています。<a href="samples/IMreverbs1/license.txt">IMreverbs1 license.txt</a><br/>
+その他のファイルはMITライセンスです。
+</p>
 </div>
 <script type="text/javascript">
 function ShowDoc(x) {
