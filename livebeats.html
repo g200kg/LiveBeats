@@ -242,7 +242,7 @@ function Enter(s) {
 	var ss=s.split(";");
 	for(var idx=0;idx<ss.length;++idx) {
 		s=ss[idx];
-		r+=Enter1(s)+" ";
+		r+=Enter1(s);
 	}
 	return r;
 }
@@ -256,7 +256,7 @@ function oscdesc(o,nam) {
 	r+=nam+".q (Q):"+o.q+"\n";
 	r+=nam+".delay:"+o.delay+"\n";
 	r+=nam+".pan:"+o.pan+"\n";
-	r+=nam+".out:"+o.out;
+	r+=nam+".out:"+o.out+"\n";
 	return r;
 }
 function fmodesc(o,nam) {
@@ -453,12 +453,12 @@ function Parse(str) {
 			r+="master.g (gate):"+master.g+"\n";
 			r+="master.tempo:"+master.tempo+"\n";
 			r+="master.rev:"+master.rev+"\n";
-			r+="master.ir:"+master.ir;
+			r+="master.ir:"+master.ir+"\n";
 			return r;
 		}
 		if(test(p,"delay")) {
 			r="delay.t (time):"+delay.t+"\n";
-			r+="delay.fb (feedback):"+delay.fb;
+			r+="delay.fb (feedback):"+delay.fb+"\n";
 			return r;
 		}
 		if(test(p,"txt")) {
@@ -470,7 +470,7 @@ function Parse(str) {
 			r+="txt.z (zoom):"+txt.z+"\n";
 			r+="txt.rot (rotate):"+txt.rot+"\n";
 			r+="txt.eff (effect):"+txt.eff+"\n";
-			r+="txt.col (color):"+txt.col;
+			r+="txt.col (color):"+txt.col+"\n";
 			return r;
 		}
 		if(test(p,"wav")) {
@@ -487,7 +487,7 @@ function Parse(str) {
 			r+="wav.effz (zoom rate):"+wav.effz+"\n";
 			r+="wav.effr (erase rate):"+wav.effr+"\n";
 			r+="wav.col (color):"+wav.col+"\n";
-			r+="wav.fill (fillmode):"+wav.fill;
+			r+="wav.fill (fillmode):"+wav.fill+"\n";
 			return r;
 		}
 		if(test(p,"cam")) {
@@ -505,7 +505,7 @@ function Parse(str) {
 			r+="cam.y (pos y):"+cam.y+"\n";
 			r+="cam.z (zoom):"+cam.z+"\n";
 			r+="cam.rot (rotate):"+cam.rot+"\n";
-			r+="cam.eff (effect):"+cam.eff;
+			r+="cam.eff (effect):"+cam.eff+"\n";
 			return r;
 		}
 		if(test(p,"o1"))
@@ -532,16 +532,12 @@ function Parse(str) {
 			return fmodesc(hho,"hho");
 		if(test(p,"cyo"))
 			return fmodesc(cyo,"cyo");
-		r="master\n";
-		r+="delay\n";
-		r+="txt\n";
-		r+="wav\n";
-		r+="cam\n";
+		r="master, delay, txt, wav, cam\n";
 		r+="osc:o1 o2 o3 o4 o5 o6 o7 o8\n";
 		r+="fmo:bdo sdo hho cyo\n";
-		r+="--variables--\ns0-s24:pre-defined sequence\ntick: currentTick\nlev:currentLevel\nsh8/16/32/64: S&H/(n)tick\n";
+		r+="--variables--\ns0-s24:pre-defined sequence\ntick:currentTick\nlev:currentLevel\nsh8/16/32/64: S&H/(n)tick\n";
 		r+="lfo8/16/32/64: LFO (n)tick\n";
-		r+="--functions--\nhue(): for colorString\nlfo(n): (n)tickLFO"
+		r+="--functions--\nhue(): for colorString\nlfo(n): (n)tickLFO\n";
 		return r;
 	}
 	return null;
@@ -1396,7 +1392,7 @@ function Txt() {
 			this.cursor=0;
 			if(s!=undefined) {
 				var ss=(s+"").split("\n");
-				for(ii=0;ii<ss.length;++ii) {
+				for(ii=0;ii<ss.length-1;++ii) {
 					this.log.unshift(ss[ii]);
 					this.log.length=16;
 				}

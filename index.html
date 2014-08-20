@@ -130,8 +130,8 @@ Chrome または Firefox とWebカメラが必要です (私の環境ではWin+F
 
 <h2>Block Diagram:</h2>
 <img src="images/block.png"/>
-<div class="doc_en">
 <h2>Commands:</h2>
+<div class="doc_en">
 <table>
 <tr><td>object.property=formula</td><td>Assign formula to object's property. Each formula will be evaluated per each step and reflected to sound/image result (there are some exception).</td></tr>
 <tr><td>list [object name]</td><td>list available objects or object's properties.</td></tr>
@@ -140,8 +140,7 @@ Chrome または Firefox とWebカメラが必要です (私の環境ではWin+F
 <tr><td>print &lt;formula&gt;</td><td>evaluate the formula and print</td></tr>
 </table>
 </div>
-<div clas="doc_ja">
-<h2>Commands:</h2>
+<div class="doc_ja">
 <table>
 <tr><td>object.property=formula</td><td>formulaをオブジェクトのプロパティに設定します。それぞれの式はステップ毎に評価され、音と映像に反映されます(リアルタイムに反映されない幾つかの例外があります)
 </td></tr>
@@ -193,7 +192,7 @@ Chrome または Firefox とWebカメラが必要です (私の環境ではWin+F
 <br/>
 <div class="doc_en">
 <table>
-<tr><th colspan="2">wav</th><td>Wave form display object.</td></tr>
+<tr><th colspan="2">wav</th><td>Wave form display.</td></tr>
 <tr><td>wav.a</td><td>number</td><td>alpha value of wav image (0.0 - 1.0)</td></tr>
 <tr><td>wav.w</td><td>number</td><td>width of wav image (0.0 - 1.0)</td></tr>
 <tr><td>wav.h</td><td>number</td><td>height of wav image (0,0 - 1.0)</td></tr>
@@ -212,7 +211,7 @@ Chrome または Firefox とWebカメラが必要です (私の環境ではWin+F
 </div>
 <div class="doc_ja">
 <table>
-<tr><th colspan="2">wav</th><td>波形表示オブジェクト</td></tr>
+<tr><th colspan="2">wav</th><td>波形表示</td></tr>
 <tr><td>wav.a</td><td>number</td><td>wavオブジェクトのアルファ (0.0 - 1.0)</td></tr>
 <tr><td>wav.w</td><td>number</td><td>wavオブジェクトの幅 (0.0 - 1.0)</td></tr>
 <tr><td>wav.h</td><td>number</td><td>wavオブジェクトの高さ (0,0 - 1.0)</td></tr>
@@ -232,7 +231,7 @@ Chrome または Firefox とWebカメラが必要です (私の環境ではWin+F
 <br/>
 <div class="doc_en">
 <table>
-<tr><th colspan="2">txt</th><td>Command input object.</td></tr>
+<tr><th colspan="2">txt</th><td>Command inputs.</td></tr>
 <tr><td>txt.a</td><td>number</td><td>alpha value of txt object (0.0 - 1.0)</td></tr>
 <tr><td>txt.w</td><td>number</td><td>width of txt object (0.0 - 1.0)</td></tr>
 <tr><td>txt.h</td><td>number</td><td>height of txt object (0,0 - 1.0)</td></tr>
@@ -246,7 +245,7 @@ Chrome または Firefox とWebカメラが必要です (私の環境ではWin+F
 </div>
 <div class="doc_ja">
 <table>
-<tr><th colspan="2">txt</th><td>コマンド入力オブジェクト。キーボード入力を受け付け、コマンドを実行します。</td></tr>
+<tr><th colspan="2">txt</th><td>コマンド入力。キーボード入力を受け付け、コマンドを実行します。</td></tr>
 <tr><td>txt.a</td><td>number</td><td>txtオブジェクトのアルファ (0.0 - 1.0)</td></tr>
 <tr><td>txt.w</td><td>number</td><td>txtオブジェクトの幅 (0.0 - 1.0)</td></tr>
 <tr><td>txt.h</td><td>number</td><td>txtオブジェクトの高さ (0,0 - 1.0)</td></tr>
@@ -309,14 +308,14 @@ Chrome または Firefox とWebカメラが必要です (私の環境ではWin+F
 <br/>
 <div class="doc_en">
 <table>
-<tr><th colspan="2">delay</th><td>Delay object. This object receive sounds from 'cam' and 'o1'-'o8' and add feedback delay effect.</td></tr>
+<tr><th colspan="2">delay</th><td>Delay effects. This object receive sounds from 'cam' and 'o1'-'o8' and add feedback delay effect.</td></tr>
 <tr><td>delay.t</td><td>number</td><td>Delay time control. delay time is tempo synced. default=8 (8th note)</td></tr>
 <tr><td>delay.fb</td><td>number</td><td>Delay feedback ratio</td></tr>
 </table>
 </div>
 <div class="doc_ja">
 <table>
-<tr><th colspan="2">delay</th><td>ディレイ・オブジェクト。'cam'オブジェクトおよび'o1'～'o8'オブジェクトから送られた音にフィードバックディレイ効果を付加します。</td></tr>
+<tr><th colspan="2">delay</th><td>ディレイエフェクト。'cam'オブジェクトおよび'o1'～'o8'オブジェクトから送られた音にフィードバックディレイ効果を付加します。</td></tr>
 <tr><td>delay.t</td><td>number</td><td>ディレイタイム。 ディレイタイムはテンポに同期します。デフォルトは8 (8分音符)</td></tr>
 <tr><td>delay.fb</td><td>number</td><td>フィードバックレシオ</td></tr>
 </table>
@@ -324,7 +323,7 @@ Chrome または Firefox とWebカメラが必要です (私の環境ではWin+F
 <br/>
 <div class="doc_en">
 <table>
-<tr><th colspan="2">master</th><td>master control object of <b>LiveBeats</b></td></tr>
+<tr><th colspan="2">master</th><td>master control</td></tr>
 <tr><td>master.v</td><td>number</td><td>master volume. default value is 1.0</td></tr>
 <tr><td>master.tempo</td><td>number</td><td>tempo control. default value=120</td></tr>
 <tr><td>master.g</td><td>string</td><td>master step gate control. Each char is assigned to overall volume of one-step. available chars are "rcdefgab", that means 'r'=mute, 'c'=max, and 'd','e','f'... means decrease volume.</td></tr>
@@ -334,7 +333,7 @@ Chrome または Firefox とWebカメラが必要です (私の環境ではWin+F
 </div>
 <div class="doc_ja">
 <table>
-<tr><th colspan="2">master</th><td>マスター制御オブジェクト</td></tr>
+<tr><th colspan="2">master</th><td>マスター制御</td></tr>
 <tr><td>master.v</td><td>number</td><td>マスターボリューム。デフォルトは1.0</td></tr>
 <tr><td>master.tempo</td><td>number</td><td>テンポコントロール。デフォルトは120</td></tr>
 <tr><td>master.g</td><td>string</td><td>マスターステップゲートコントロール。"rcdefgab"から成る文字列で、"r"はミュート、"c"は最大音量、"d","e","f",...で順次音量が下がります。</td></tr>
