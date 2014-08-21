@@ -128,7 +128,7 @@ function Init() {
 	window.addEventListener("resize",Resize);
 	window.document.addEventListener("keypress",KeyPress);
 	window.document.addEventListener("keydown",KeyDown);
-	setInterval("Interval()",20);
+//	setInterval("Interval()",20);
 	Reset();
 }
 function Resize() {
@@ -656,6 +656,8 @@ function Mml(s) {
 		for(var i=0;i<l;++i)
 			r.push(n);
 	}
+	if(r.length==0)
+		return [0];
 	return r;
 }
 function Timecode(t) {
@@ -667,7 +669,7 @@ function Timecode(t) {
 	var ff=((t-ss)*30)|0;
 	return ("00"+hh).substr(-2)+":"+("00"+mm).substr(-2)+":"+("00"+ss).substr(-2)+":"+("00"+ff).substr(-2);
 }
-function Interval(timestamp) {
+function Interval() {
 	var current=audio.currentTime;
 	var err;
 	if(current>=nextTime-.1) {
@@ -777,6 +779,8 @@ function hue(h) {
 	return c;
 }
 function streval(s) {
+	if(s=="s") return s;
+	if(s=="l") return s;
 	var l=s;
 	for(;;) {
 		if(typeof(s)=="string") {
@@ -811,43 +815,13 @@ function Note2Vol(n) {
 		return 0;
 	return 2/(n+2); 
 }
-function num1eval(s) {
-	switch(s) {
-	case "0":
-	case "r":
-		return 0;
-	case "1":
-	case "c":
-		return 1;
-	case "2":
-	case "d":
-		return .5;
-	case "3":
-	case "e":
-		return .33;
-	case "4":
-	case "f":
-		return .25;
-	case "5":
-	case "g":
-		return .2;
-	case "6":
-	case "a":
-		return .167;
-	case "7":
-	case "b":
-		return .143;
-	case "8":
-		return .125;
-	case "9":
-		return .111;
-	}
-	return 1;
-}
 function Noise() {
-	this.scr=audio.createScriptProcessor();
-	this.Process=function() {
-//		Interval();
+	this.scr=audio.createScriptProcessor(1024,1,1);
+	this.Process=function(ev) {
+		Interval();
+//		var buf=ev.getChannelData(0);
+//		for(var i=0;i<1024;++i)
+//			buf.data[i]=Math.random()*.5;
 	};
 	this.scr.onaudioprocess=this.Process;
 	this.scr.connect(out);
@@ -919,10 +893,11 @@ function OSC(f,v,t,to) {
 			var _cutoff=numeval(this.c);
 			this.Fil.frequency.setValueAtTime(_freq*_cutoff,t);
 			this.Fil.Q.value=numeval(this.q);
-			this.Gain.gain.setValueAtTime(numeval(this.v)*v,t);
+			this.Gain.gain.setTargetAtTime(numeval(this.v)*v,t,0.001);
 		}
-		else
-			this.Gain.gain.setValueAtTime(0,t);
+		else {
+			this.Gain.gain.setTargetAtTime(0,t,0.01);
+		}
 		var th=Math.PI*(numeval(this.pan)-.5);
 		this.Pan.setPosition(Math.sin(th),0,-Math.cos(th));
 	}
@@ -1675,13 +1650,11 @@ function Cam() {
 		var v=document.getElementById("video");
 		v.src= stream;
 		v.play();
-//		setInterval("cam.capture()",50);
 	}
 	function success2(stream) {
 		var v=document.getElementById("video");
 		v.src= window.URL.createObjectURL(stream);
 		v.play();
-//		setInterval("cam.capture()",50);
 	}
 	if(typeof(navigator.getUserMedia)=="function") {
 		console.log("getUserMedia");
