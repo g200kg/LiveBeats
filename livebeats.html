@@ -338,6 +338,7 @@ function Parse0(s) {
 		case "txt.rot": txt.rot=r; break;
 		case "txt.eff": txt.eff=r; break;
 		case "txt.col": txt.col=r; break;
+		case "txt.bcol": txt.bcol=r; break;
 		case "wav.a": wav.a=r; break;
 		case "wav.type": wav.type=r; break;
 		case "wav.w": wav.w=r; break;
@@ -346,11 +347,13 @@ function Parse0(s) {
 		case "wav.y": wav.y=r; break;
 		case "wav.z": wav.z=r; break;
 		case "wav.rot": wav.rot=r; break;
+		case "wav.effb": wav.effb=r; break;
 		case "wav.effx": wav.effx=r; break;
 		case "wav.effy": wav.effy=r; break;
 		case "wav.effz": wav.effz=r; break;
 		case "wav.effr": wav.effr=r; break;
 		case "wav.col": wav.col=r; break;
+		case "wav.bcol": wav.bcol=r; break;
 		case "wav.fill": wav.fill=r; break;
 		case "wav.linewidth": wav.linewidth=r; break;
 		case "cam.v": cam.v=r; break;
@@ -371,6 +374,7 @@ function Parse0(s) {
 		case "cam.z": cam.z=r; break;
 		case "cam.rot": cam.rot=r; break;
 		case "cam.eff": cam.eff=r; break;
+		case "cam.effb": cam.effb=r; break;
 		default: return "Object not found";
 		}
 		return null;
@@ -1075,11 +1079,11 @@ function Wav() {
 	this.ry=768;
 	this.mrx=this.rx/64;
 	this.mry=this.ry/48;
+	this.effb=0;
 	this.effx=0;
 	this.effy=0;
 	this.effz=1;
 	this.effr=0.92;
-	this.col="#f02";
 	this.cvwav=document.getElementById("cvwav");
 	this.cvwav.width=this.rx;
 	this.cvwav.height=this.ry;
@@ -1088,7 +1092,8 @@ function Wav() {
 	this.cvwavwork.width=this.rx;
 	this.cvwavwork.height=this.ry;
 	this.ctxwavwork=cvwavwork.getContext("2d");
-	this._col="#f00";
+	this._col=this.col="#f00";
+	this._bcol=this.bcol="#fff";
 	this._linewidth=this.linewidth=3;
 	this.ctxwav.font=this.mry+"px Courier,monospace";
 	this.mat=Array(64);
@@ -1117,11 +1122,13 @@ function Wav() {
 		this._y+=(numeval(this.y)-this._y)*this.fade;
 		this._z+=(numeval(this.z)-this._z)*this.fade;
 		this._rot+=(numeval(this.rot)-this._rot)*this.fade;
+		this._effb=numeval(this.effb);
 		this._effr=numeval(this.effr);
 		this._effx=numeval(this.effx);
 		this._effy=numeval(this.effy);
 		this._effz=numeval(this.effz);
 		this._col=streval(this.col);
+		this._bcol=streval(this.bcol);
 		this._fill=numeval(this.fill);
 		this._linewidth=numeval(this.linewidth);
 	}
@@ -1131,6 +1138,7 @@ function Wav() {
 		var sxoff=((this.rx-sx)*.5)|0+this._effx;
 		var syoff=((this.ry-sy)*.5)|0+this._effy;
 		var grad=null;
+		this.ctxwav.shadowBlur=0;
 
 		this.ctxwavwork.clearRect(0,0,this.rx,this.ry);
 		this.ctxwavwork.drawImage(this.cvwav,sxoff,syoff,sx,sy);
@@ -1138,6 +1146,13 @@ function Wav() {
 		this.ctxwav.globalAlpha=this._effr;
 		this.ctxwav.drawImage(cvwavwork,0,0,this.rx,this.ry);
 		this.ctxwav.globalAlpha=1.0;
+
+		this.ctxwav.strokeStyle=this._col;
+		this.ctxwav.fillStyle=this._col;
+		this.ctxwav.lineWidth=this._linewidth;
+		this.ctxwav.lineJoin="round";
+		this.ctxwav.shadowBlur=this._effb;
+		this.ctxwav.shadowColor=this._bcol;
 
 		var hrx=this.rx*.5;
 		var hry=this.ry*.5;
@@ -1168,19 +1183,24 @@ function Wav() {
 				this.ph-=2*Math.PI;
 			this.ctxwav.closePath();
 			var mx=mpy-hry;
-			grad=this.ctxwav.createRadialGradient(hrx-Math.sin(this.ph)*mx*.5,hry-Math.cos(this.ph)*mx*.5,1,hrx,hry,mx);
-			grad.addColorStop(0,"#fff");
-			grad.addColorStop(1,this._col);
+//			grad=this.ctxwav.createRadialGradient(hrx-Math.sin(this.ph)*mx*.5,hry-Math.cos(this.ph)*mx*.5,1,hrx,hry,mx);
+//			grad.addColorStop(0,"#fff");
+//			grad.addColorStop(1,this._col);
 			break;
 		case 3:
 			var i=wavdat[0]>>2;
 			if(this.mat[i]<0)
 				this.mat[i]=0;
+			this.ctxwav.lineWidth=this._linewidth;
+			this.ctxwav.lineJoin="round";
 			for(var i=0;i<64;++i) {
 				if(this.mat[i]>=0) {
-					this.ctxwav.fillStyle=this._col;
-					this.ctxwav.fillText(String.fromCharCode(0x21+(wavdat[i*2]&0x3f)),i*this.mrx,this.mat[i]*this.mry);
-					this.ctxwav.fillText(String.fromCharCode(0x21+(wavdat[i*2+1]&0x3f)),i*this.mrx,this.mat[i]*this.mry+this.mry);
+					this.ctxwav.strokeText(String.fromCharCode(0x21+(wavdat[i*2]&0x3f)),i*this.mrx,this.mat[i]*this.mry);
+					this.ctxwav.strokeText(String.fromCharCode(0x21+(wavdat[i*2+1]&0x3f)),i*this.mrx,this.mat[i]*this.mry+this.mry);
+					if(this._fill) {
+						this.ctxwav.fillText(String.fromCharCode(0x21+(wavdat[i*2]&0x3f)),i*this.mrx,this.mat[i]*this.mry);
+						this.ctxwav.fillText(String.fromCharCode(0x21+(wavdat[i*2+1]&0x3f)),i*this.mrx,this.mat[i]*this.mry+this.mry);
+					}
 					if((this.mat[i]+=2)>48)
 						this.mat[i]=0;
 				}
@@ -1194,19 +1214,12 @@ function Wav() {
 			this.ctxwav.lineTo(this.rx,ryh);
 			break;
 		}
-		this.ctxwav.lineWidth=this._linewidth;
-		this.ctxwav.lineJoin="round";
-		if(this._fill) {
-			if(grad)
-				this.ctxwav.fillStyle=grad;
-			else
-				this.ctxwav.fillStyle=this._col;
+//		this.ctxwav.shadowColor=this._bcol;
+//		this.ctxwav.shadowBlur=this._effb;
+//		this.ctxwav.strokeStyle=this._col;
+		this.ctxwav.stroke();
+		if(this._fill)
 			this.ctxwav.fill();
-		}
-		else {
-			this.ctxwav.strokeStyle=this._col;
-			this.ctxwav.stroke();
-		}
 	}
 }
 function Txt() {
@@ -1225,12 +1238,14 @@ function Txt() {
 	this.log=["","","","","","","","","","","","","","","",""];
 	this.hist=[];
 	this.histcur=0;
-	this.col="#0f0";
+	this._col=this.col="#0f0";
+	this._bcol=this.bcol="#000";
 	this.cvtxt=document.getElementById("cvtxt");
 	this.ctxtxt=this.cvtxt.getContext("2d");
 	this.cvtxtwork=document.getElementById("cvtxtwork");
 	this.ctxtxtwork=this.cvtxtwork.getContext("2d");
 	this.linep=new Array(512);
+
 	this.layout=function() {
 		var w=scrWidth*this._w*this._z;
 		var h=scrHeight*this._h*this._z;
@@ -1254,17 +1269,27 @@ function Txt() {
 		this._rot+=(numeval(this.rot)-this._rot)*this.fade;
 		this._eff=numeval(this.eff);
 		this._col=streval(this.col);
+		this._bcol=streval(this.bcol);
 	}
 	this.draw=function() {
 		this.ctxtxtwork.clearRect(0,0,512,512);
+		this.ctxtxtwork.strokeStyle=this._bcol;
+		this.ctxtxtwork.lineWidth=4;
 		this.ctxtxtwork.fillStyle=this._col;
 		this.ctxtxtwork.font="bold 24px Courier,monospace";
 		var i;
-		for(i=0,e=this.log.length;i<e;++i)
+		for(i=0,e=this.log.length;i<e;++i) {
+			this.ctxtxtwork.strokeText(this.log[e-1-i],10,i*25+20);
 			this.ctxtxtwork.fillText(this.log[e-1-i],10,i*25+20);
+		}
+		this.ctxtxtwork.strokeText("> "+this.cmdline,10,420);
 		this.ctxtxtwork.fillText("> "+this.cmdline,10,420);
-		if(tick&1)
+		if(tick&1) {
+			this.ctxtxtwork.beginPath();
+			this.ctxtxtwork.rect(40+this.cursor*14,403,20,20);
+			this.ctxtxtwork.stroke();
 			this.ctxtxtwork.fillRect(40+this.cursor*14,403,20,20);
+		}
 		this.ctxtxt.clearRect(0,0,512,512);
 		for(i=0;i<512;++i) {
 			this.ctxtxt.globalAlpha=Math.max(0.5,Math.min(1,0.5+(wavdat[i]-128)*0.2*this._eff));
@@ -1436,6 +1461,7 @@ function Cam() {
 	this.Osc.start(0);
 	this.midi=0;
 	this._midi=0;
+	this.effb=this._effb=0;
 	this.porta=0.05;
 	this.px=0;
 	this.midipitch=0;
@@ -1453,6 +1479,7 @@ function Cam() {
 		this.cvcam.style.left=x+"px";
 		this.cvcam.style.top=y+"px";
 		cvcam.style.WebkitTransform="rotate("+this._rot+"deg)";
+		cvcam.style.WebkitFilter="blur("+this._effb+"px)";
 	}
 	this.next=function() {
 		this._g=Mml(streval(this.g));
@@ -1469,6 +1496,7 @@ function Cam() {
 		this._q=numeval(this.q);
 		this._c=numeval(this.c);
 		this._eff=numeval(this.eff);
+		this._effb=numeval(this.effb);
 		this._type=numeval(this.type);
 	}
 	this.draw=function() {
