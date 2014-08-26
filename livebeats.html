@@ -130,6 +130,7 @@ function Init() {
 	window.document.addEventListener("keydown",KeyDown);
 //	setInterval("Interval()",20);
 	Reset();
+	txt.message("LiveBeats initialized.");
 }
 function Resize() {
 	scrWidth=document.body.clientWidth;
@@ -1671,8 +1672,8 @@ function Cam() {
 		return null;
 	}
 	function err(err) {
-		alert("Camera Error");
-		console.log(err);
+//		alert("Camera Error");
+		txt.message("'cam' object is not available.");
 	}
 	function success(stream) {
 		var v=document.getElementById("video");
