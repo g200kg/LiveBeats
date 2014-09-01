@@ -49,10 +49,10 @@ table td {
 <button onclick="ShowDoc('ja')">Japanese</button>|<button onclick="ShowDoc('en')">English</button><br/>
 <div class="doc_en"><p><b>LiveBeats</b> is a command-line based audio/visual live performance tool for browser.
 <b>LiveBeats</b> can generate various sounds and visual effects by commmands from keyboard.
-Chrome or Firefox, and WebCam is required. (In my test, Windows+Firefox may cause some trouble with WebCam Image, please try with Chrome when you have trouble.</p>
+Chrome is recommended. and WebCam is required.</p>
 </div>
 <div class="doc_ja"><p><b>LiveBeats</b> はブラウザ上で動作するコマンドラインベースの音響/映像ライブパフォーマンス用のツールです。キーボードからコマンドを入力して行く事で様々な音と映像効果をリアルタイムに生成する事が可能です。
-Chrome または Firefox とWebカメラが必要です (私の環境ではWin+Firefoxの場合、Webカメラによって正常に動作しない場合がありました、Firefoxで正常動作しない場合はChromeで試してみてください)。
+Chrome の使用を推奨します。またWebカメラが必要です。
 
 </p>
 </div>
@@ -92,7 +92,7 @@ Chrome または Firefox とWebカメラが必要です (私の環境ではWin+F
 <tr><td>o1.s=aarrrrrr</td><td>ベースのパターンを設定します。</td></tr>
 <tr><td>o2.s=s20</td><td>プリセットからアルペジオパターンを設定します。</td></tr> 
 <tr><td>wav.col=hue(lfo(16))</td><td>波形表示の色を切り替えます。</td></tr>
-<tr><td>wav.rot=tick</td><td>波形表示を回転させます。</td></tr>
+<tr><td>wav.r=tick</td><td>波形表示を回転させます。</td></tr>
 </table>
 </p>
 </div>
@@ -137,6 +137,7 @@ Chrome または Firefox とWebカメラが必要です (私の環境ではWin+F
 <tr><td>list [object name]</td><td>list available objects or object's properties.</td></tr>
 <tr><td>list midi</td><td>list available MIDI ports, that can be used to specify 'cam.midi'.</td></tr>
 <tr><td>list ir</td><td>list available Impulse Response files, that can be used to specify 'master.ir'.</td></tr>
+<tr><td>list plugins</td><td>list available visualizer plugins.</td></tr>
 <tr><td>print &lt;formula&gt;</td><td>evaluate the formula and print</td></tr>
 </table>
 </div>
@@ -147,6 +148,7 @@ Chrome または Firefox とWebカメラが必要です (私の環境ではWin+F
 <tr><td>list [object名]</td><td>オブジェクトの一覧、またはオブジェクトのプロパティの一覧を表示します。</td></tr>
 <tr><td>list midi</td><td>使用可能なMIDIポートの一覧を表示します。この一覧はcam.midiプロパティでMIDIポートを指定する際に使用します。</td></tr>
 <tr><td>list ir</td><td>使用可能なインパルスレスポンスファイルの一覧を表示します。この値はmaster.irの設定で使用できます。</td></tr>
+<tr><td>list plugins</td><td>現在組み込まれているビジュアライザー・プラグインの一覧を表示します。</td></tr>
 <tr><td>print &lt;formula&gt;</td><td>formulaを評価し、表示します。</td></tr>
 </table>
 </div>
@@ -187,51 +189,6 @@ Chrome または Firefox とWebカメラが必要です (私の環境ではWin+F
 <tr><td>cam.midi</td><td>number</td><td>'cam'オブジェクト音声に内蔵オシレータの代わりにMIDI出力を使用。 0:内蔵オシレータ(MIDIを使用しない)、 0以外:MIDIポート番号を指定。ポート番号は 'list midi'コマンドで表示される番号。 注) ブラウザのWeb MIDI APIが有効になっている必要があります。デフォルトは0。</td></tr>
 <tr><td>cam.v</td><td>number</td><td>音量。</td></tr>
 <tr><td>cam.delay</td><td>number</td><td>delayオブジェクトへのセンドレベル。</td></tr>
-</table>
-</div>
-<br/>
-<div class="doc_en">
-<table>
-<tr><th colspan="2">wav</th><td>Wave form display.</td></tr>
-<tr><td>wav.a</td><td>number</td><td>alpha value of wav image (0.0 - 1.0)</td></tr>
-<tr><td>wav.w</td><td>number</td><td>width of wav image (0.0 - 1.0)</td></tr>
-<tr><td>wav.h</td><td>number</td><td>height of wav image (0,0 - 1.0)</td></tr>
-<tr><td>wav.x</td><td>number</td><td>x pos of wav image. (0:far left - 0.5:center - 1.0:far right)</td></tr>
-<tr><td>wav.y</td><td>number</td><td>y pos of wav image. (0:top - 0.5:center - 1.0:bottom)</td></tr>
-<tr><td>wav.z</td><td>number</td><td>zoom factor of wav image. fit to window size if 1.0</td></tr>
-<tr><td>wav.rot</td><td>number</td><td>rotation of wav image in degree.</td></tr>
-<tr><td>wav.effb</td><td>number</td><td>blur effect. .bcol will be used. default=0</td></tr>
-<tr><td>wav.effx</td><td>number</td><td>x-offset effect. default=0</td></tr>
-<tr><td>wav.effy</td><td>number</td><td>y-offset effect. default=0</td></tr>
-<tr><td>wav.effz</td><td>number</td><td>zoom effect. default=1</td></tr>
-<tr><td>wav.effr</td><td>number</td><td>erase rate effect</td></tr>
-<tr><td>wav.fill</td><td>number</td><td>fill mode. 0:line 1:fill</td></tr>
-<td><td>wav.linewidth</td><td>number</td><td>stroke line width</td></tr>
-<tr><td>wav.type</td><td>number</td><td>0:waveForm 1:spectrum 2:circle 3:matrix</td></tr>
-<tr><td>wav.col</td><td>string</td><td>wav form color. e.g. '#fff'. hue(value) function is also available.</td></tr>
-<tr><td>wav.bcol</td><td>string</td><td>wav blur color. e.g. '#fff'. hue(value) function is also available.</td></tr>
-</table>
-</div>
-<div class="doc_ja">
-<table>
-<tr><th colspan="2">wav</th><td>波形表示</td></tr>
-<tr><td>wav.a</td><td>number</td><td>wavオブジェクトのアルファ (0.0 - 1.0)</td></tr>
-<tr><td>wav.w</td><td>number</td><td>wavオブジェクトの幅 (0.0 - 1.0)</td></tr>
-<tr><td>wav.h</td><td>number</td><td>wavオブジェクトの高さ (0,0 - 1.0)</td></tr>
-<tr><td>wav.x</td><td>number</td><td>wavオブジェクトのx座標 (0:左端 - 0.5:中央 - 1.0:右端)</td></tr>
-<tr><td>wav.y</td><td>number</td><td>wavオブジェクトのy座標 (0:上端 - 0.5:中央 - 1.0:下端)</td></tr>
-<tr><td>wav.z</td><td>number</td><td>wavオブジェクトのズーム 1.0でウインドウサイズに一致</td></tr>
-<tr><td>wav.rot</td><td>number</td><td>wavオブジェクトの回転。単位は度</td></tr>
-<tr><td>wav.effb</td><td>number</td><td>ブラーエフェクト。bcolが使用されます。デフォルトは0</td></tr>
-<tr><td>wav.effx</td><td>number</td><td>xオフセットエフェクト。デフォルトは0</td></tr>
-<tr><td>wav.effy</td><td>number</td><td>yオフセットエフェクト。デフォルトは0</td></tr>
-<tr><td>wav.effz</td><td>number</td><td>ズームエフェクト。デフォルトは1</td></tr>
-<tr><td>wav.effr</td><td>number</td><td>消去レートエフェクト</td></tr>
-<tr><td>wav.fill</td><td>number</td><td>フィルモード。 0:線 1:塗りつぶし</td></tr>
-<td><td>wav.linewidth</td><td>number</td><td>線の太さ</td></tr>
-<tr><td>wav.type</td><td>number</td><td>0:波形表示 1:スペクトラム表示 2:円波形表示 3:マトリックス</td></tr>
-<tr><td>wav.col</td><td>string</td><td>波形の色 例えば'#fff'のように指定。 また、hue(value) 関数が使用できます。</td></tr>
-<tr><td>wav.bcol</td><td>string</td><td>ブラーエフェクトの色 例えば'#fff'のように指定。 また、hue(value) 関数が使用できます。</td></tr>
 </table>
 </div>
 <br/>
@@ -348,6 +305,108 @@ Chrome または Firefox とWebカメラが必要です (私の環境ではWin+F
 </table>
 </div>
 <br/>
+
+<h2>Visualizer Plugins:</h2>
+<div class="doc_en">
+<p>Visualizer effects are modules that visualize output sounds.	Visualizers are implemented as plugin modules. Currentry, 'vj_wave' and 'vj_matrix' are available and defaultly be loaded. Plugin codes is just a JavaScript function that create a dom-element and draw. 'vj_simplewave.js' is a simple sample code. If you make your own plugin, that can be loaded by drop to LiveBeats.
+</p>
+<p>Detail spec is here : <b><a href="vjpluginspec.html">vjpluginspec.html</a></b></p>
+<p>Followings are default loaded visualizers.</p>
+<p>'wav' module displays waveform or spectrums.</p>
+<table>
+<tr><th colspan="2">wav</th><td>Wave form display.</td></tr>
+<tr><td>wav.a</td><td>number</td><td>alpha value of wav image (0.0 - 1.0)</td></tr>
+<tr><td>wav.w</td><td>number</td><td>width of wav image (0.0 - 1.0)</td></tr>
+<tr><td>wav.h</td><td>number</td><td>height of wav image (0,0 - 1.0)</td></tr>
+<tr><td>wav.x</td><td>number</td><td>x pos of wav image. (0:far left - 0.5:center - 1.0:far right)</td></tr>
+<tr><td>wav.y</td><td>number</td><td>y pos of wav image. (0:top - 0.5:center - 1.0:bottom)</td></tr>
+<tr><td>wav.z</td><td>number</td><td>zoom factor of wav image. fit to window size if 1.0</td></tr>
+<tr><td>wav.blur</td><td>number</td><td>whole blur effect.</td></tr>
+<tr><td>wav.rot</td><td>number</td><td>rotation of wav image in degree.</td></tr>
+<tr><td>wav.effb</td><td>number</td><td>blur effect around lines. .bcol will be used. default=0</td></tr>
+<tr><td>wav.effx</td><td>number</td><td>x-offset effect. default=0</td></tr>
+<tr><td>wav.effy</td><td>number</td><td>y-offset effect. default=0</td></tr>
+<tr><td>wav.effz</td><td>number</td><td>zoom effect. default=1</td></tr>
+<tr><td>wav.effr</td><td>number</td><td>erase rate effect</td></tr>
+<tr><td>wav.fill</td><td>number</td><td>fill mode. 0:line 1:fill</td></tr>
+<td><td>wav.line</td><td>number</td><td>stroke line width</td></tr>
+<tr><td>wav.type</td><td>number</td><td>0:waveForm 1:spectrum 2:circle</td></tr>
+<tr><td>wav.col</td><td>string</td><td>wav form color. e.g. '#fff'. hue(value),hsv(h,s,v) function is also available.</td></tr>
+<tr><td>wav.bcol</td><td>string</td><td>wav blur color. e.g. '#fff'. hue(value),hsv(h,s,v) function is also available.</td></tr>
+</table>
+<p>'mat' module is charactor based 'matrix' like effect.</p>
+<table>
+<tr><th colspan="2">wav</th><td>Matrix effects.</td></tr>
+<tr><td>mat.a</td><td>number</td><td>alpha value of mat object (0.0 - 1.0)</td></tr>
+<tr><td>mat.w</td><td>number</td><td>width of mat object (0.0 - 1.0)</td></tr>
+<tr><td>mat.h</td><td>number</td><td>height of mat object (0,0 - 1.0)</td></tr>
+<tr><td>mat.x</td><td>number</td><td>x pos of mat object. (0:far left - 0.5:center - 1.0:far right)</td></tr>
+<tr><td>mat.y</td><td>number</td><td>y pos of mat object. (0:top - 0.5:center - 1.0:bottom)</td></tr>
+<tr><td>mat.z</td><td>number</td><td>zoom factor of mat object. fit to window size if 1.0</td></tr>
+<tr><td>mat.blur</td><td>number</td><td>whole blur effects.</td></tr>
+<tr><td>mat.rot</td><td>number</td><td>rotation of mat object in degree.</td></tr>
+<tr><td>mat.effb</td><td>number</td><td>blur effect around chars. bcol will be used. default=0</td></tr>
+<tr><td>mat.effx</td><td>number</td><td>x-offset effect. default=0</td></tr>
+<tr><td>mat.effy</td><td>number</td><td>y-offset effect. default=0</td></tr>
+<tr><td>mat.effz</td><td>number</td><td>zoom effect. default=1</td></tr>
+<tr><td>mat.effr</td><td>number</td><td>erase rate effect</td></tr>
+<tr><td>mat.fill</td><td>number</td><td>fill mode. 0:line 1:fill</td></tr>
+<tr><td>mat.col</td><td>string</td><td>charactor color. e.g. '#fff'. hue(value),hsv(h,s,v) function is also available.</td></tr>
+<tr><td>mat.bcol</td><td>string</td><td>blur color. e.g. '#fff'. hue(value),hsv(h,s,v) function is also available.</td></tr>
+</table>
+</div>
+<div class="doc_ja">
+<p>ビジュアライザーエフェクトは出力される音をもとに映像効果を発生させるモジュールです。ビジュアライザーはプラグイン・モジュールとして実装されており、現在 'vj_wave' と 'vj_matrix' がデフォルトで読み込まれ、使用可能になっています。
+	その実体はcanvas等のエレメントを作成して描画を行うJavaScriptの関数になっており、シンプルなサンプルコードとして 'vj_simplewave' が付属しています。 幾つかのルールがありますが、それに沿ってjsファイルを作成し、LiveBeatsにドロップする事で読み込む事ができます。
+</p>
+<p>詳細は<b><a href="vjpluginspec.html">vjプラグインスペック</a></b>を参照してください。
+</p>
+<p>以下はデフォルトで読み込まれているビジュアライザーです</p>
+<p>wavオブジェクトは音の波形とスペクトラム表示を行います。
+</p>
+<table>
+<tr><th colspan="2">wav</th><td>波形表示</td></tr>
+<tr><td>wav.a</td><td>number</td><td>wavオブジェクトのアルファ (0.0 - 1.0)</td></tr>
+<tr><td>wav.w</td><td>number</td><td>wavオブジェクトの幅 (0.0 - 1.0)</td></tr>
+<tr><td>wav.h</td><td>number</td><td>wavオブジェクトの高さ (0,0 - 1.0)</td></tr>
+<tr><td>wav.x</td><td>number</td><td>wavオブジェクトのx座標 (0:左端 - 0.5:中央 - 1.0:右端)</td></tr>
+<tr><td>wav.y</td><td>number</td><td>wavオブジェクトのy座標 (0:上端 - 0.5:中央 - 1.0:下端)</td></tr>
+<tr><td>wav.z</td><td>number</td><td>wavオブジェクトのズーム 1.0でウインドウサイズに一致</td></tr>
+<tr><td>wav.blur</td><td>number</td><td>オブジェクト全体のブラーエフェクト</td></tr>
+<tr><td>wav.rot</td><td>number</td><td>wavオブジェクトの回転。単位は度</td></tr>
+<tr><td>wav.effb</td><td>number</td><td>波形周囲のブラーエフェクト。bcolが使用されます。デフォルトは0</td></tr>
+<tr><td>wav.effx</td><td>number</td><td>xオフセットエフェクト。デフォルトは0</td></tr>
+<tr><td>wav.effy</td><td>number</td><td>yオフセットエフェクト。デフォルトは0</td></tr>
+<tr><td>wav.effz</td><td>number</td><td>ズームエフェクト。デフォルトは1</td></tr>
+<tr><td>wav.effr</td><td>number</td><td>消去レートエフェクト</td></tr>
+<tr><td>wav.fill</td><td>number</td><td>フィルモード。 0:線 1:塗りつぶし</td></tr>
+<tr><td>wav.line</td><td>number</td><td>線の太さ</td></tr>
+<tr><td>wav.type</td><td>number</td><td>0:波形表示 1:スペクトラム表示 2:円波形表示</td></tr>
+<tr><td>wav.col</td><td>string</td><td>波形の色 例えば'#fff'のように指定。 また、hue(value)、hsv(h,s,v) 関数が使用できます。</td></tr>
+<tr><td>wav.bcol</td><td>string</td><td>ブラーエフェクトの色 例えば'#fff'のように指定。 また、hue(value)、hsv(h,s,v) 関数が使用できます。</td></tr>
+</table>
+<p>matオブジェクトは文字が流れるマトリックス風のエフェクトを付加します</p>
+<table>
+<tr><th colspan="2">mat</th><td>マトリックスエフェクト</td></tr>
+<tr><td>mat.a</td><td>number</td><td>matオブジェクトのアルファ (0.0 - 1.0)</td></tr>
+<tr><td>mat.w</td><td>number</td><td>matオブジェクトの幅 (0.0 - 1.0)</td></tr>
+<tr><td>mat.h</td><td>number</td><td>matオブジェクトの高さ (0,0 - 1.0)</td></tr>
+<tr><td>mat.x</td><td>number</td><td>matオブジェクトのx座標 (0:左端 - 0.5:中央 - 1.0:右端)</td></tr>
+<tr><td>mat.y</td><td>number</td><td>matオブジェクトのy座標 (0:上端 - 0.5:中央 - 1.0:下端)</td></tr>
+<tr><td>mat.z</td><td>number</td><td>matオブジェクトのズーム 1.0でウインドウサイズに一致</td></tr>
+<tr><td>mat.blur</td><td>number</td><td>オブジェクト全体のブラーエフェクト</td></tr>
+<tr><td>mat.rot</td><td>number</td><td>matオブジェクトの回転。単位は度</td></tr>
+<tr><td>mat.effb</td><td>number</td><td>波形周囲のブラーエフェクト。bcolが使用されます。デフォルトは0</td></tr>
+<tr><td>mat.effx</td><td>number</td><td>xオフセットエフェクト。デフォルトは0</td></tr>
+<tr><td>mat.effy</td><td>number</td><td>yオフセットエフェクト。デフォルトは0</td></tr>
+<tr><td>mat.effz</td><td>number</td><td>ズームエフェクト。デフォルトは1.5</td></tr>
+<tr><td>mat.effr</td><td>number</td><td>消去レートエフェクト</td></tr>
+<tr><td>mat.col</td><td>string</td><td>波形の色 例えば'#fff'のように指定。 また、hue(value)、hsv(h,s,v) 関数が使用できます。</td></tr>
+<tr><td>mat.bcol</td><td>string</td><td>ブラーエフェクトの色 例えば'#fff'のように指定。 また、hue(value)、hsv(h,s,v) 関数が使用できます。</td></tr>
+</table>
+</div>
+<br/>
+
 <div class="doc_en">
 <h2>Variables:</h2>
 Pre-defined variables can be used in formula. 
@@ -374,7 +433,8 @@ Pre-defined variables can be used in formula.
 Pre-defined functions can be used in formula.
 <table>
 <tr><td>lfo(value)</td><td>Low frequency oscillator (LFO) function. This function makes periodic oscillated value. The period is specified tick by 'value'. value range is (0.0 - 1.0).</td></tr>
-<tr><td>hue(value)</td><td>'hue(value)' will convert number(0.0-1.0) to color string. That can be used to 'wav.col' or 'txt.col'.</td></tr>
+<tr><td>hue(value)</td><td>'hue(value)' will convert number(0.0-1.0) to color string. This is equivalent to hsv(value,1,1). That can be used as 'wav.col' or 'txt.col'.</td></tr>
+<tr><td>hsv(h,s,v)</td><td>'hsv(h,s,v)' will convert h:hue, s:saturation, v:brightness to color string. That can be used as 'wav.col', 'txt.col'.</td></tr>
 </table>
 </div>
 <div class="doc_ja">
@@ -382,8 +442,9 @@ Pre-defined functions can be used in formula.
 式の中で定義済の関数が使用できます。
 <table>
 <tr><td>lfo(value)</td><td>ローフリケンシー・オシレータ(LFO)関数。 この周期はvalueで指定されたtickとなります。例えばlfo(16)ならば1周期が1小節になります。LFOの出力する価の範囲は0.0～1.0です。</td></tr>
-<tr><td>hue(value)</td><td>'hue(value)'は色指定で使用されます。wav.colまたはtxt.col中で使用できます。
+<tr><td>hue(value)</td><td>'hue(value)'はvalueで色相を指定する色指定文字列を作成します。hsv(value,1,1)と等価です。valueの値の範囲は0.0～1.0の小数部分のみ使用されます。wav.colまたはtxt.col中で使用できます。
 </td></tr>
+<tr><td>hsv(h,s,v)</td><td>'hsv(h,s,v)'はh:色相、s:彩度、v:明度を指定して色指定文字列を作成します。wav.colまたはtxt.colで使用できます。各値の範囲0.0～1.0です。</td></tr>
 </table>
 </div>
 

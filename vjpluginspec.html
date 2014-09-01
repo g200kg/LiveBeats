@@ -1,0 +1,219 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style type="text/css">
+body {
+	font-family:courier;
+	background:#c8ccf0;
+	color:#337;
+}
+#header {
+	font-family:courier;
+	font-size:42px;
+	font-weight:bold;
+	background:#7077d4;
+	margin:0px;
+	padding:5px;
+	color:#eef;
+}
+#link {
+	padding:10px;
+	background:#fff4bd;
+	display:inline-block;
+	border:1px solid #a84;
+	border-radius: 5px;
+}
+#link a {
+	color:#840;
+}
+h2 {
+	border-bottom:2px solid #840;
+}
+table {
+	background:#ebedfe;
+	border:1px solid #668;
+	border-radius:5px;
+}
+table td {
+	border:1px solid #668;
+	padding:3px 10px;
+	border-radius:3px;
+}
+</style>
+<title>vj plugin | g200kg Music &amp; Software</title>
+</head>
+<body>
+<div id="header"><a href="http://www.g200kg.com/"><img src="images/g200kg160x80.png" style="margin:10px;vertical-align:middle"></a><div style="display:inline-block;margin:10px;vertical-align:middle">vj plugin specification<div style="font-size:16px"> for audio visualization</div></div></div>
+<br/>
+<button onclick="ShowDoc('ja')">Japanese</button>|<button onclick="ShowDoc('en')">English</button><br/>
+
+<div class="doc_en">
+<h2>Overview</h2>
+<img src="images/20140902livebeats.png" width="400"/>
+<p><b>vj_plugin</b> is a visualizer plugin module spec that is used in <b>LiveBeats</b> performance application.</p>
+<p>This visualizer plugin will be loaded to <b>LiveBeats</b> with file-drop, and automatically new visual effect plane is added.
+</p>
+<p>plugin file is a .js file and the filename should start with 'vj_'.
+In this file, the function should be defined that has same name as filename (except extension).
+<br/>
+For example, if the plugin name is "test", filename is "vj_test.js" and the function "vj_test()" should be defined.
+</p>
+
+LiveBeats is here : <b><a href="index.html">LiveBeats</a></b></b>
+<h2>Sample code</h2>
+
+<pre><code>
+//-- vj_simplewave.js --
+vj_simplewave=function(param) {
+	this.w=param.w;
+	this.h=param.h;
+	this.n=param.n;
+	this.wavedat=param.wavedat;
+	this.freqdat=param.freqdat;
+	this.elem=document.createElement("canvas");
+	this.elem.width=this.w;
+	this.elem.height=this.h;
+	this.ctx=this.elem.getContext("2d");
+	this.ctx.lineJoin="round";
+	this.anim=function(timestamp) {
+		this.ctx.strokeStyle=this.param.col.value;
+		this.ctx.lineWidth=this.param.line.value;
+		this.ctx.clearRect(0,0,this.w,this.h);
+		this.ctx.beginPath();
+		this.ctx.moveTo(0,this.h/2-(this.wavedat[0]-128)*this.h/512);
+		for(var i=1;i&lt;this.n;i+=2) {
+			var x=this.w*i/this.n;
+			var y=this.h/2-(this.wavedat[i]-128)*this.h/512;
+			this.ctx.lineTo(x,y);
+		}
+		this.ctx.stroke();
+	};
+	this.param={
+	"line":{"value":3,"type":"double","min":1,"max":10},
+	"col":{"value":"#f00","type":"string"},
+	};
+}
+</code></pre>
+
+<h2>Plugin Behavior:</h2>
+<p>
+Host app pass a object to fuction that include environment.
+The invokation will be following:
+<pre><code>
+	new vj_simplewave({"w":1024,"h":768,"wavedat":wavdat,"freqdat":freqdat})
+</code></pre><br/>
+
+Arguments are:
+<table>
+<tr><td>"w"</td><td>Horizontal resolution. Plugin should make DOM-element with this resolution.</td></tr>
+<tr><td>"h"</td><td>Vertical resolution. Plugin should make DOM-element width this resolution.</td></tr>
+<tr><td>"wavedat"</td><td>Uint8Array of wave-data. The value 128 indicate center, and the range is 0-255. This is match to Web Audio API AnalyserNode's getByteTimeDomationData().</td></tr>
+<tr><td>"freqdat"</td><td>Uint8Array of spectrum data. The value is appropreately scaled to the range 0-255. This is match to Web Audio data AnalyserNode's getByteFrequencyData().</td></tr>
+</table>
+</p>
+
+<h2>Function properties</h2>
+<table>
+<tr><td>this.elem</td><td>
+	Drawing DOM-element, e.g. canvas. Plugin should newly make element that has the size "w"/"h" and store to "this.elem". Host app will appropriately place this element to view area.</td></tr>
+<tr><td>this.anim</td><td>
+	Animation function. Host app will invoke this function periodically with current-time argument. Because this invocation is not so accurate time managed, plugin should manage the animation speed if needed. This invocation is assumed with requestAnimationFrame().</td></tr>
+<tr><td>this.param</td><td>
+	The list of controllable parameters. Host app will change these parameters for dynamic visual effects. For example, <b>LiveBeats</b> can do parameter change by command input.
+	Each param has sub-properties. "type" is a parameter type that means "double" for contiguous value, "int" for integer value and "string" for string. "value" is a initial value, "min" is typical minimum value and "max" is typical max value.
+	Additionally even these properties are plugin specific, host app may add more properties that can make effect by CSS.
+	For example <b>LiveBeats</b> adds "a":alpha, "w":width, "h":height, "x":x-pos, "y":y-pos, "z":zoom factor, "blur":blur effect and "rot":rotation.</td></tr>
+</table>
+</div>
+
+
+
+<div class="doc_ja">
+<h2>概要</h2>
+<img src="images/20140902livebeats.png" width="400"/>
+<p><b>vj_plugin</b>は<b>LiveBeats</b>パフォーマンスアプリで使用される、ビジュアライザープラグインです。
+</p>
+<p>このビジュアライザープラグインは<b>LiveBeats</b>にドロップする事で読み込まれ、新しい映像効果を付加する事ができるようになります。
+ファイル名は"vj_"で始まります。内容はJavascriptのファイルで拡張子は".js"です。
+ファイル内ではプラグイン名を付けた関数定義を行います。
+例えばプラグイン名を"test"とした場合、ファイル名は"vj_test.js"となり、そのファイル内で関数"vj_test()"を定義します。
+
+<p><b>LiveBeats</b>はこちらを参照してください。<b><a href="index.html">LiveBeats</a></b></p>
+
+<h2>サンプルコード</h2>
+<pre><code>
+//-- vj_simplewave.js --
+vj_simplewave=function(param) {
+	this.w=param.w;
+	this.h=param.h;
+	this.n=param.n;
+	this.wavedat=param.wavedat;
+	this.freqdat=param.freqdat;
+	this.elem=document.createElement("canvas");
+	this.elem.width=this.w;
+	this.elem.height=this.h;
+	this.ctx=this.elem.getContext("2d");
+	this.ctx.lineJoin="round";
+	this.anim=function(timestamp) {
+		this.ctx.strokeStyle=this.param.col.value;
+		this.ctx.lineWidth=this.param.line.value;
+		this.ctx.clearRect(0,0,this.w,this.h);
+		this.ctx.beginPath();
+		this.ctx.moveTo(0,this.h/2-(this.wavedat[0]-128)*this.h/512);
+		for(var i=1;i&lt;this.n;i+=2) {
+			var x=this.w*i/this.n;
+			var y=this.h/2-(this.wavedat[i]-128)*this.h/512;
+			this.ctx.lineTo(x,y);
+		}
+		this.ctx.stroke();
+	};
+	this.param={
+	"line":{"value":3,"type":"double","min":1,"max":10},
+	"col":{"value":"#f00","type":"string"},
+	};
+}
+</code></pre>
+
+<h2>プラグインの動作</h2>
+<p>
+関数の引数として動作環境に関する幾つかのパラメータをまとめたオブジェクトが渡されます。ホストアプリは以下のような形でプラグインの呼び出しを行います。
+<pre><code>
+	new vj_simplewave({"w":1024,"h":768,"wavedat":wavdat,"freqdat":freqdat})
+</code></pre><br/>
+引数の内容は以下の通りです。
+<table>
+<tr><td>"w"</td><td>横方向の解像度。プラグインはこの解像度のDOMエレメントを作成します。</td></tr>
+<tr><td>"h"</td><td>縦方向の解像度。プラグインはこの解像度のDOMエレメントを作成します。</td></tr>
+<tr><td>"wavedat"</td><td>波形データが入ったUint8Array配列。波形は128を中心として0-255の範囲の値で格納される。これはWeb Audio APIのAnalyserNodeのgetByteTimeDomainData()で取得できる形式に一致します。</td></tr>
+<tr><td>"freqdat"</td><td>スペクトラムデータが入ったUint8Array配列。スペクトラムデータは適宜スケーリングされ、0-255の範囲の値で格納される。これはWeb Audio APIのAnalyserNodeのgetByteFrequencyData()で取得できる形式に一致します。</td></tr>
+</table>
+</p>
+
+<h2>プラグインで定義する必要があるもの</h2>
+<table>
+<tr><td>this.elem</td><td>描画の対象とするDOMエレメントです。プラグインは初期化時に"w","h"で指定された大きさのCanvas等のエレメントを作成し、this.elemに格納します。ホストアプリはこのエレメントを適宜表示領域に貼り付けます。</td></tr>
+<tr><td>this.anim</td><td>描画関数です。ホストアプリは現在時刻を引数として、この関数を定期的に呼び出します。ただし、呼び出しのタイミングはついては正確な時間管理はされていませんので、一定の速度でアニメーションを行う場合などは引数の現在時刻をもとにプラグイン側で制御します。この呼び出しは、requestAnimationFrame()によるものを想定しています。</td></tr>
+<tr><td>this.param</td><td>操作可能なパラメータのリストです。ホストアプリでの何らかの操作により、これらのパラメータを変化させる事ができます(<b>LiveBeats</b>では、コマンドの入力で設定します)。"type"はパラメータの型で連続変化が可能な"double"、整数値の"int"、文字列の"string"のいずれかになり、初期値を"value"、典型的な最小値を"min"、最大値を"max"とします。なお、ここにリストされているものはプラグインに固有のパラメータですが、ホストアプリ側でDOMエレメントに対してCSSレベルで操作可能なパラメータを全てのプラグインに共通のパラメータとして追加するかも知れません。<b>LiveBeats</b>では、"a":アルファ、"w":幅、"h":高さ、"x":x位置、"y":y位置、"z":ズーム、"blur":ブラー効果、"rot":回転を共通パラメータとして追加します。</td></tr>
+</table>
+
+</div>
+<script type="text/javascript">
+function ShowDoc(x) {
+	var divs=document.getElementsByTagName("div");
+	var t="doc_"+x;
+	for(var i=0;i<divs.length;++i) {
+		if(divs[i].className==="doc_ja")
+			divs[i].style.display=(x==="ja")?"block":"none";
+		if(divs[i].className=="doc_en")
+			divs[i].style.display=(x==="ja")?"none":"block";
+	}
+}
+function GetLang() {
+	return (navigator.language || navigator.browserLanguage).substring(0, 2);
+}
+
+ShowDoc(GetLang());
+</script>
+</body>
+</html>
