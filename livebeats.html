@@ -150,35 +150,44 @@ function FileDrop(ev) {
 	}
 }
 function animInterval(timestamp) {
+	var layout=false;
 	master.ana.getByteTimeDomainData(wavdat);
 	master.ana.getByteFrequencyData(freqdat);
+	if(timestamp-lastTime>50) {
+		lastTime=timestamp;
+		layout=true;
+	}
 	for(var i=0,e=plugins.length;i<e;++i) {
 		var plug=plugins[i].obj;
 		var plugparam=pluginsparam[i];
 		plug.anim(timestamp);
 		for(var j in plugparam) {
-			if(isNaN(plug.param[j].value))
-				plug.param[j].value=0;
-			switch(plug.param[j].type) {
-			case "string":
-			case "int":
-				plug.param[j].value=streval(plugparam[j]);
-				break;
-			case "double":
-			default:
-				plug.param[j].value+=(numeval(plugparam[j])-plug.param[j].value)*.2;
-				break;
+			if(plug.param[j]) {
+				if(isNaN(plug.param[j].value))
+					plug.param[j].value=0;
+				switch(plug.param[j].type) {
+				case "string":
+				case "int":
+					plug.param[j].value=streval(plugparam[j]);
+					break;
+				case "double":
+				default:
+					plug.param[j].value+=(numeval(plugparam[j])-plug.param[j].value)*.2;
+					break;
+				}
 			}
 		}
-		var w=plug.param.w.value*plug.param.z.value;
-		var h=plug.param.h.value*plug.param.z.value;
-		plug.elem.style.left=((scrWidth*plug.param.x.value-scrWidth*w*.5)|0)+"px";
-		plug.elem.style.top=((scrHeight*plug.param.y.value-scrHeight*h*.5)|0)+"px";
-		plug.elem.style.width=((scrWidth*w)|0)+"px";
-		plug.elem.style.height=((scrHeight*h)|0)+"px";
-		plug.elem.style.opacity=plug.param.a.value;
-		plug.elem.style.WebkitFilter="blur("+(plug.param.blur.value|0)+"px)";
-		plug.elem.style.WebkitTransform="rotate("+plug.param.rot.value+"deg)";
+		if(layout) {
+			var w=plug.param.w.value*plug.param.z.value;
+			var h=plug.param.h.value*plug.param.z.value;
+			plug.elem.style.left=((scrWidth*plug.param.x.value-scrWidth*w*.5)|0)+"px";
+			plug.elem.style.top=((scrHeight*plug.param.y.value-scrHeight*h*.5)|0)+"px";
+			plug.elem.style.width=((scrWidth*w)|0)+"px";
+			plug.elem.style.height=((scrHeight*h)|0)+"px";
+			plug.elem.style.opacity=plug.param.a.value;
+			plug.elem.style.WebkitFilter="blur("+(plug.param.blur.value|0)+"px)";
+			plug.elem.style.WebkitTransform="rotate("+plug.param.rot.value+"deg)";
+		}
 	}
 	window.requestAnimationFrame(animInterval);
 }
@@ -221,6 +230,7 @@ function Init() {
 		txt.message("  May be connect with 'file:///'?");
 		txt.message("  Should be placed on WebServer and connect with http://");
 	}
+	lastTime=0;
 	window.requestAnimationFrame(animInterval);
 	document.addEventListener("dragover",DragOver,false);
 	document.addEventListener("drop",FileDrop,false);

@@ -39,7 +39,11 @@ vj_wave=function(param) {
 	this.ctx=this.elem.getContext("2d");
 	this.ctxwork=this.elemwork.getContext("2d");
 	this.ctx.lineJoin="round";
+	this.lasttime=0;
 	this.anim=function(timestamp) {
+		if(timestamp-this.lasttime<50)
+			return;
+		this.lasttime=timestamp;
 		var rz=this.param.effz.value;
 		var sx=(this.w*rz)|0;
 		var sy=(this.h*rz)|0;
