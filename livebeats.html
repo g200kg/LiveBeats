@@ -5,13 +5,17 @@
 <title>Live Beats | g200kg Music &amp; Software</title>
 </head>
 <body onload="Init()" style="background:#000">
+<script type="text/javascript" src="./vj_txt.js"></script>
 <script type="text/javascript" src="./vj_wave.js"></script>
 <script type="text/javascript" src="./vj_matrix.js"></script>
 <script type="text/javascript">
+
+var internalResoX=800;
+var internalResoY=600;
+
 var buffers = [];
 var loadidx=0;
 var req = new XMLHttpRequest();
-var cvtxt,ctxtxt,cvtxtwork,ctxtxtwork;
 var wavdat=new Uint8Array(512);
 var freqdat=new Uint8Array(256);
 var cnt=0;
@@ -109,7 +113,7 @@ function DragOver(ev) {
 function LoadPlugin(s,script,name) {
 	eval(s);
 	var plug={"script":script,"name":name};
-	eval("plug.obj=new "+script+"({'w':1024,'h':768,'n':512,'wavedat':wavdat,'freqdat':freqdat})");
+	eval("plug.obj=new "+script+"({'w':"+internalResoX+",'h':"+internalResoY+",'n':512,'wavedat':wavdat,'freqdat':freqdat})");
 	InitPlugin(plug);
 }
 function InitPlugin(plug) {
@@ -132,7 +136,7 @@ function InitPlugin(plug) {
 		p[j]=plug.obj.param[j];
 	plug.obj.param=p;
 	document.getElementById("base").appendChild(plug.obj.elem);
-	txt.message("plugin '"+plug.script+"' is loaded as:"+plug.name);
+	cmds.message("plugin '"+plug.script+"' is loaded as:"+plug.name);
 }
 function FileDrop(ev) {
 	ev.stopPropagation();
@@ -150,6 +154,8 @@ function FileDrop(ev) {
 	}
 }
 function animInterval(timestamp) {
+	if(master.run==0)
+		return;
 	var layout=false;
 	master.ana.getByteTimeDomainData(wavdat);
 	master.ana.getByteFrequencyData(freqdat);
@@ -167,12 +173,19 @@ function animInterval(timestamp) {
 					plug.param[j].value=0;
 				switch(plug.param[j].type) {
 				case "string":
-				case "int":
 					plug.param[j].value=streval(plugparam[j]);
+					break;
+				case "int":
+					plug.param[j].value=numeval(plugparam[j])|0;
 					break;
 				case "double":
 				default:
-					plug.param[j].value+=(numeval(plugparam[j])-plug.param[j].value)*.2;
+					var v=numeval(plugparam[j]);
+					var d=v-plug.param[j].value;
+					if(Math.abs(d)<1e-10)
+						plug.param[j].value=v;
+					else
+						plug.param[j].value+=d*.2;
 					break;
 				}
 			}
@@ -212,32 +225,30 @@ function Init() {
 	sdo=new FMO(213,.4,.1,0, 723,1900,.6,0, 140,800,.1,0,.3);
 	hho=new FMO(2200,.4,.02,0, 423,3120,.5,0, 552,1800,.1,1,.7);
 	cyo=new FMO(2612,.2,.4,0, 1826,4219,5,2, 3897,1401,1,2,.4);
-	cvtxt=document.getElementById("cvtxt");
-	ctxtxt=cvtxt.getContext("2d");
-	cvtxtwork=document.getElementById("cvtxtwork");
-	ctxtxtwork=cvtxtwork.getContext("2d");
-	txt=new Txt();
+	cmds=new Cmds();
 	cam=new Cam();
 	Resize();
 	window.addEventListener("resize",Resize);
 	window.document.addEventListener("keypress",KeyPress);
 	window.document.addEventListener("keydown",KeyDown);
 	Reset();
-	txt.message("LiveBeats initialized.");
-	txt.message("");
+	cmds.message("LiveBeats initialized.");
+	cmds.message("");
 	if(window.xhrreqerr) {
-		txt.message("IR files cannot be loaded, 'master.ir' is desabled.");
-		txt.message("  May be connect with 'file:///'?");
-		txt.message("  Should be placed on WebServer and connect with http://");
+		cmds.message("IR files cannot be loaded, 'master.ir' is desabled.");
+		cmds.message("  May be connect with 'file:///'?");
+		cmds.message("  Should be placed on WebServer and connect with http://");
 	}
 	lastTime=0;
 	window.requestAnimationFrame(animInterval);
 	document.addEventListener("dragover",DragOver,false);
 	document.addEventListener("drop",FileDrop,false);
 	var plug;
-	plug={"script":"vj_matrix","name":"mat","obj":new vj_matrix({"w":1024,"h":768,"wavedat":wavdat,"freqdat":freqdat})};
+	plug={"script":"vj_matrix","name":"mat","obj":new vj_matrix({"w":internalResoX,"h":internalResoY,"wavedat":wavdat,"freqdat":freqdat})};
 	InitPlugin(plug);
-	plug={"script":"vj_wave","name":"wav","obj":new vj_wave({"w":1024,"h":768,"wavedat":wavdat,"freqdat":freqdat})};
+	plug={"script":"vj_wave","name":"wav","obj":new vj_wave({"w":internalResoX,"h":internalResoY,"wavedat":wavdat,"freqdat":freqdat})};
+	InitPlugin(plug);
+	plug={"script":"vj_txt","name":"txt","obj":new vj_txt({"w":internalResoX,"h":internalResoY,"txt":cmds.log,"wavedat":wavdat,"freqdat":freqdat})};
 	InitPlugin(plug);
 }
 function Resize() {
@@ -254,81 +265,81 @@ function Resize() {
 function KeyDown(ev) {
 	switch(ev.keyCode) {
 	case 8:
-		txt.key(8);
+		cmds.key(8);
 		ev.preventDefault();
 		return false;
 	case 13:
-		txt.key(13);
+		cmds.key(13);
 		ev.preventDefault();
 		return false;
 	case 37:  //left
-		txt.key("l");
+		cmds.key("l");
 		ev.preventDefault();
 		return false;
 	case 38:  //up
-		txt.key("u");
+		cmds.key("u");
 		ev.preventDefault();
 		return false;
 	case 39:  //right
-		txt.key("r");
+		cmds.key("r");
 		ev.preventDefault();
 		return false;
 	case 40:  //down
-		txt.key("d");
+		cmds.key("d");
 		ev.preventDefault();
 		return false;
 	case 112:  //f1 
-		txt.key("f1");
+		cmds.key("f1");
 		ev.preventDefault();
 		return false;
 	case 113:  //f2
-		txt.key("f2");
+		cmds.key("f2");
 		ev.preventDefault();
 		return false;
 	case 114:  //f3
-		txt.key("f3");
+		cmds.key("f3");
 		ev.preventDefault();
 		return false;
 	case 115:  //f4
-		txt.key("f4");
+		cmds.key("f4");
 		ev.preventDefault();
 		return false;
 	case 116:  //f5
-		txt.key("f5");
+		cmds.key("f5");
 		ev.preventDefault();
 		return false;
 	case 117:  //f6
-		txt.key("f6");
+		cmds.key("f6");
 		ev.preventDefault();
 		return false;
 	case 118:  //f7
-		txt.key("f7");
+		cmds.key("f7");
 		ev.preventDefault();
 		return false;
 	case 119:  //f8
-		txt.key("f8");
+		cmds.key("f8");
 		ev.preventDefault();
 		return false;
 	case 120:  //f9
-		txt.key("f9");
+		cmds.key("f9");
 		ev.preventDefault();
 		return false;
 	case 121:  //f10
-		txt.key("f10");
+		cmds.key("f10");
 		ev.preventDefault();
 		return false;
 	case 122:  //f11
-		txt.key("f11");
+		cmds.key("f11");
 		ev.preventDefault();
 		return false;
 	case 123:  //f12
-		txt.key("f12");
+		cmds.key("f12");
 		ev.preventDefault();
 		return false;
 	}
 }
 function KeyPress(ev) {
-	txt.key(ev.charCode);
+	cmds.key(ev.charCode);
 	ev.preventDefault();
 	return false;
 }
@@ -340,8 +351,8 @@ function Reset() {
 }
 function Enter(s) {
 	var r="";
-	txt.log.unshift("> "+s);
-	txt.log.length=txt.rows;
+//	cmds.log.unshift("> "+s);
+//	cmds.log.length=cmds.rows;
 	if(s.indexOf("//")==0)
 		return "";
 	var n=0;
@@ -455,18 +466,19 @@ function Parse0(s) {
 			if(master.ir>=1)
 				master.conv.buffer=ir[master.ir-1].data;
 			break;
+		case "master.run": master.run=r; break;
 		case "delay.t": delay.t=r; break;
 		case "delay.fb": delay.fb=r; break;
-		case "txt.a": txt.a=r; break;
-		case "txt.w": txt.w=r; break;
-		case "txt.h": txt.h=r; break;
-		case "txt.x": txt.x=r; break;
-		case "txt.y": txt.y=r; break;
-		case "txt.z": txt.z=r; break;
-		case "txt.rot": txt.rot=r; break;
-		case "txt.eff": txt.eff=r; break;
-		case "txt.col": txt.col=r; break;
-		case "txt.bcol": txt.bcol=r; break;
+		case "txt.a": cmds.a=r; break;
+		case "txt.w": cmds.w=r; break;
+		case "txt.h": cmds.h=r; break;
+		case "txt.x": cmds.x=r; break;
+		case "txt.y": cmds.y=r; break;
+		case "txt.z": cmds.z=r; break;
+		case "txt.rot": cmds.rot=r; break;
+		case "txt.eff": cmds.eff=r; break;
+		case "txt.col": cmds.col=r; break;
+		case "txt.bcol": cmds.bcol=r; break;
 		case "cam.v": cam.v=r; break;
 		case "cam.q": cam.q=r; break;
 		case "cam.c": cam.c=r; break;
@@ -522,7 +534,7 @@ function Parse(str) {
 	var p=0;
 	p=skip(p);
 	if(test(p,"clear")) {
-		txt.log=[];
+		cmds.log=["> "];
 		return "";
 	}
 	if(test(p,"print")) {
@@ -596,15 +608,15 @@ function Parse(str) {
 			return r;
 		}
 		if(test(p,"txt")) {
-			r="txt.a (alpha):"+txt.a+"\n";
-			r+="txt.w (width):"+txt.w+"\n";
-			r+="txt.h (height):"+txt.h+"\n";
-			r+="txt.x (pos x):"+txt.x+"\n";
-			r+="txt.y (pos y):"+txt.y+"\n";
-			r+="txt.z (zoom):"+txt.z+"\n";
-			r+="txt.rot (rotate):"+txt.rot+"\n";
-			r+="txt.eff (effect):"+txt.eff+"\n";
-			r+="txt.col (color):"+txt.col+"\n";
+			r="txt.a (alpha):"+cmds.a+"\n";
+			r+="txt.w (width):"+cmds.w+"\n";
+			r+="txt.h (height):"+cmds.h+"\n";
+			r+="txt.x (pos x):"+cmds.x+"\n";
+			r+="txt.y (pos y):"+cmds.y+"\n";
+			r+="txt.z (zoom):"+cmds.z+"\n";
+			r+="txt.rot (rotate):"+cmds.rot+"\n";
+			r+="txt.eff (effect):"+cmds.eff+"\n";
+			r+="txt.col (color):"+cmds.col+"\n";
 			return r;
 		}
 		if(test(p,"cam")) {
@@ -838,11 +850,8 @@ function Interval() {
 			a+=t*t;
 		}
 		lev=Math.sqrt(a/512)/256;
-		txt.next();
 		cam.next();
-		txt.layout();
 		cam.layout();
-		txt.draw();
 		cam.draw();
 		if(nextTime==0)
 			nextTime=current;
@@ -1169,6 +1178,7 @@ function Master() {
 	this._rev=this.rev=.5;
 	this._tempo=this.tempo=120;
 	this.step=0;
+	this.run=1;
 	this.next=function(t) {
 		this._tempo=numeval(this.tempo);
 		var g=Mml(streval(this.g));
@@ -1213,97 +1223,15 @@ function Midi() {
 		}
 	}
 }
-function Txt() {
-	this.a=this._a=1.0;
-	this.v=this._v=0.0;
-	this.w=this._w=1.0;
-	this.h=this._h=1.0;
-	this.x=this._x=0.5;
-	this.y=this._y=0.5;
-	this.z=this._z=1.0
-	this.eff=0;
-	this.rot=this._rot=0;
-	this.fade=0.5;
-	this.cmdline="";
+function Cmds() {
 	this.cursor=0;
 	this.log=[];
+	this.log.push("> ");
 	this.hist=[];
 	this.histcur=0;
-	this._col=this.col="#0f0";
-	this._bcol=this.bcol="#000";
-	this.rx=640;
-	this.ry=480;
-	this.yheight=400;
 	this.rows=25;
-	this.mry=(this.yheight/this.rows)|0;
-	this.cvtxt=document.getElementById("cvtxt");
-	this.cvtxt.width=this.rx;
-	this.cvtxt.height=this.ry;
-	this.ctxtxt=this.cvtxt.getContext("2d");
-	this.cvtxtwork=document.getElementById("cvtxtwork");
-	this.cvtxtwork.width=this.rx;
-	this.cvtxtwork.height=this.ry;
-	this.ctxtxtwork=this.cvtxtwork.getContext("2d");
-	this.ctxtxtwork.lineWidth=6;
-	this.ctxtxtwork.font="bold "+this.mry+"px Courier,monospace";
-	this.mrx=this.ctxtxtwork.measureText("M").width;
-
-	this.layout=function() {
-		var w=scrWidth*this._w*this._z;
-		var h=scrHeight*this._h*this._z;
-		var x=scrWidth*this._x-w*.5;
-		var y=scrHeight*this._y-h*.5;
-		this.cvtxt.style.opacity=this._a;
-		this.cvtxt.style.width=w+"px";
-		this.cvtxt.style.height=h+"px";
-		this.cvtxt.style.left=x+"px";
-		this.cvtxt.style.top=y+"px";
-		this.cvtxt.style.WebkitTransform="rotate("+this._rot+"deg)";
-		this.cvtxt.style.MozTransform="rotate("+this._rot+"deg)";
-	}
-	this.next=function() {
-		this._a+=(numeval(this.a)-this._a)*this.fade;
-		this._v+=(numeval(this.v)-this._v)*this.fade;
-		this._w+=(numeval(this.w)-this._w)*this.fade;
-		this._h+=(numeval(this.h)-this._h)*this.fade;
-		this._x+=(numeval(this.x)-this._x)*this.fade;
-		this._y+=(numeval(this.y)-this._y)*this.fade;
-		this._z+=(numeval(this.z)-this._z)*this.fade;
-		this._rot+=(numeval(this.rot)-this._rot)*this.fade;
-		this._eff=numeval(this.eff);
-		this._col=streval(this.col);
-		this._bcol=streval(this.bcol);
-	}
-	this.draw=function() {
-		this.ctxtxtwork.clearRect(0,0,this.rx,this.ry);
-		this.ctxtxtwork.strokeStyle=this._bcol;
-		this.ctxtxtwork.fillStyle=this._col;
-		var i;
-		for(i=0;i<this.rows;++i) {
-			var s=this.log[i];
-			if(!s)
-				s="";
-			this.ctxtxtwork.strokeText(s,10,this.yheight-(i+1)*this.mry);
-			this.ctxtxtwork.fillText(s,10,this.yheight-(i+1)*this.mry);
-		}
-		var cmd="> "+this.cmdline;
-		this.ctxtxtwork.strokeText(cmd,10,this.yheight);
-		this.ctxtxtwork.fillText(cmd,10,this.yheight);
-		if(tick&1) {
-			var m=this.ctxtxtwork.measureText(cmd);
-			this.ctxtxtwork.beginPath();
-			this.ctxtxtwork.rect(m.width+10,this.yheight-this.mry+4,this.mrx,this.mry);
-			this.ctxtxtwork.stroke();
-			this.ctxtxtwork.fillRect(m.width+10,this.yheight-this.mry+4,this.mrx,this.mry);
-		}
-		this.ctxtxt.clearRect(0,0,this.rx,this.ry);
-		for(i=0;i<this.ry;++i) {
-//			this.ctxtxt.globalAlpha=Math.max(0.5,Math.min(1,0.5+(wavdat[i]-128)*0.2*this._eff));
-			this.ctxtxt.drawImage(this.cvtxtwork,0,i,this.rx,1,wavdat[i]*this._eff,i,this.rx,1);
-		}
-	}
 	this.message=function(mess) {
-		this.log.unshift(mess+"");
+		this.log.splice(1,0,mess);
 		if(this.log.length>this.rows)
 			this.log.length=this.rows;
 	}
@@ -1314,8 +1242,8 @@ function Txt() {
 		case "u":
 			if(this.histcur<this.hist.length-1) {
 				++this.histcur;
-				this.cmdline=this.hist[this.histcur];
-				this.cursor=this.cmdline.length;
+				this.log[0]=this.hist[this.histcur];
+				this.cursor=this.log[0].length;
 			}
 			return;
 		case "r":
@@ -1324,12 +1252,12 @@ function Txt() {
 			if(this.histcur>=0) {
 				--this.histcur;
 				if(this.histcur==-1) {
-					this.cmdline="";
-					this.cursor=0;
+					this.log[0]="> ";
+					this.cursor=2;
 				}
 				else {
-					this.cmdline=this.hist[this.histcur];
-					this.cursor=this.cmdline.length;
+					this.log[0]=this.hist[this.histcur];
+					this.cursor=this.log[0].length;
 				}
 
 			}
@@ -1383,31 +1311,31 @@ function Txt() {
 			this.cursor=this.cmdline.length;
 			return;
 		case 8:
-			if(this.cursor) {
-				this.cmdline=this.cmdline.slice(0,-1);
+			if(this.cursor>2) {
+				this.log[0]=this.log[0].slice(0,-1);
 				--this.cursor;
 			}
 			return;
 		case 13:
 			this.histcur=-1;
-			this.hist.unshift(this.cmdline);
+			this.hist.unshift(this.log[0]);
 			if(this.hist.length>10)
 				this.hist.length=10;
-			var s=Enter(this.cmdline);
-			this.cmdline="";
+			var s=Enter(this.log[0].substr(2));
 			this.cursor=0;
 			if(s!=undefined) {
-				var ss=(s+"").split("\n");
+				var ss=s.split("\n");
 				for(ii=0;ii<ss.length-1;++ii) {
 					this.log.unshift(ss[ii]);
 					this.log.length=this.rows;
 				}
 			}
+			this.log.unshift("> ");
 			return;
 		}
 		var s=String.fromCharCode(k);
-		this.cmdline+=s;
-		this.cursor=this.cmdline.length;
+		this.log[0]+=s;
+		this.cursor=this.log[0].length;
 		this.histcur=-1;
 	}
 }
@@ -1675,7 +1603,7 @@ function Cam() {
 		return null;
 	}
 	function err(err) {
-		txt.message("'cam' object is not available.");
+		cmds.message("'cam' object is not available.");
 	}
 	function success(stream) {
 		console.log("getUserMedia:success");
@@ -1684,6 +1612,7 @@ function Cam() {
 		v.play();
 	}
 	function success2(stream) {
+		console.log("getUserMedia:success");
 		var v=document.getElementById("video");
 		v.src= window.URL.createObjectURL(stream);
 		v.play();
@@ -1722,8 +1651,6 @@ function Cam() {
 <canvas id="cvwavwork" width="0" height="0" style="position:absolute;left:0px;top:0px;height:0px"></canvas>
 </div>
 <div id="base2" style="position:absolute;left:0px;top:0px;overflow:hidden">
-<canvas id="cvtxt" width="0" height="0" style="position:absolute;left:0px;top:0px;height:0px"></canvas>
-<canvas id="cvtxtwork" width="0" height="0" style="position:absolute;left:0px;top:0px;height:0px"></canvas>
 </div>
 <div id="timecode" style="position:absolute;right:0px;top:0px;width:150px;height:20px;color:#aaa;font-size:20px;font-family:courier">00:00:00:00</div>
 <div style="display:none">
