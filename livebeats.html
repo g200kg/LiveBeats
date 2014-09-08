@@ -8,6 +8,7 @@
 <script type="text/javascript" src="./vj_txt.js"></script>
 <script type="text/javascript" src="./vj_wave.js"></script>
 <script type="text/javascript" src="./vj_matrix.js"></script>
+<script type="text/javascript" src="./vj_cam.js"></script>
 <script type="text/javascript">
 
 var internalResoX=800;
@@ -62,12 +63,13 @@ var s21="dadcgagcacdegaed";
 var s23="grcdgrcdarrrabab";
 var s24="eergeergaardaard";
 var tick=0;
+var mouse={"x":0,"y":0,"z":0};
 var nextTime=0;
 
 var master=null;
 var o1,o2,o3,o4,o5,o6,o7,o8;
 var delay;
-var cam=null;
+var video=null;
 var eff=null;
 var elEff=null;
 var scrWidth=100;
@@ -77,13 +79,12 @@ var list=[];
 var ir=[];
 var plugins=[];
 var pluginsparam=[];
-var pluginsparamval=[];
 
 var fn=[
-	"wav.type=0;wav.effy=4;wav.effx=1",
-	"wav.type=2;wav.z=1;wav.fill=1;wav.effz=1.1;wav.effr=.7",
-	"wav.type=3;wav.x=.5;wav.z=1.5;wav.effx=0;wav.effy=0;wav.effz=1;wav.effr=.9",
-	"",
+	"wav.type=0;wav.fill=0;wav.effr=.9;wav.effx=0;wav.effy=0;wav.effz=1.05",
+	"wav.type=1;wav.fill=0;wav.effr=.9;wav.effx=0;wav.effy=10;wav.effz=1",
+	"wav.type=2;wav.fill=0;wav.effr=.9;wav.effx=0;wav.effy=0;wav.effz=1.05",
+	"wav.type=2;wav.fill=1;wav.effr=.9;wav.effx=0;wav.effy=0;wav.effz=1.05",
 	"cam.a=0;cam.v=0;wav.a=0",
 	"",
 	"bdo.v=0;sdo.v=0;hho.v=0;cam.v=0",
@@ -97,9 +98,9 @@ var fn=[
 function Trigger(instrument,accent,when) {
 	if(accent==0)
 		return;
-	var src=audio.createBufferSource();
+	var src=audioctx.createBufferSource();
 	src.buffer=buffers[instrument];
-	var g=audio.createGain();
+	var g=audioctx.createGain();
 	g.gain.value=0.8;
 	src.connect(g);
 	g.connect(out);
@@ -110,13 +111,47 @@ function DragOver(ev) {
 	ev.preventDefault();
 	ev.dataTransfer.dropEffect="copy";
 }
-function LoadPlugin(s,script,name) {
-	eval(s);
+function _LoadPlugin(script,name,layer) {
 	var plug={"script":script,"name":name};
-	eval("plug.obj=new "+script+"({'w':"+internalResoX+",'h':"+internalResoY+",'n':512,'wavedat':wavdat,'freqdat':freqdat})");
-	InitPlugin(plug);
+	eval("plug.obj=new "+script+"({'w':"+internalResoX+",'h':"+internalResoY+",'txt':cmds.log,'wavedat':wavdat,'freqdat':freqdat,'video':video.video,'audioctx':audioctx,'dest':master.out,'senddest':delay.Dly})");
+	InitPlugin(plug,layer);
+	return plug;
 }
-function InitPlugin(plug) {
+function NamePlugin(name) {
+	var n=name.split("=");
+	if(n.length!=2)
+		return "usage: name oldName=newName\n";
+	for(i=0;i<plugins.length;++i) {
+		if(plugins[i].name==n[0]) {
+			plugins[i].name=n[1];
+			return "'"+n[0]+"' is named '"+n[1]+"'\n";
+		}
+	}
+	return "plugin '"+n[0]+"' is not found.\n";
+}
+function LoadPlugin(name) {
+	var n=name.split("=");
+	if(n.length!=2)
+		return "usage; load Name=ScriptName\n";
+	_LoadPlugin(n[1],n[0],"base");
+	return "plugin '"+n[1]+"' is loaded as '"+n[0]+"'\n";
+}
+function DeletePlugin(name) {
+	var i;
+	for(i=0;i<plugins.length;++i) {
+		if(plugins[i].name==name)
+			break;
+	}
+	if(i==plugins.length) {
+		return "plugin '"+name+"' is not found.\n";
+	}
+	var plug=plugins[i];
+	document.getElementById("base").removeChild(plug.obj.elem);
+	plugins.splice(i,1);
+	pluginsparam.splice(i,1);
+	return "plugin '"+name+"' is deleted.\n";
+}
+function InitPlugin(plug,layer) {
 	plug.obj.elem.style.position="absolute";
 	plug.obj.elem.style.left="0px";
 	plug.obj.elem.style.top="0px";
@@ -126,6 +161,7 @@ function InitPlugin(plug) {
 		"a":{"value":1,"min":0,"max":1},
 		"blur":{"value":0,"min":0,"max":10},
 		"rot":{"value":0,"min":-360,"max":360},
+		"hue":{"value":0,"min":-360,"max":360},
 		"w":{"value":1,"min":0,"max":1},
 		"h":{"value":1,"min":0,"max":1},
 		"x":{"value":.5,"min":0,"max":1},
@@ -135,7 +171,7 @@ function InitPlugin(plug) {
 	for(var j in plug.obj.param)
 		p[j]=plug.obj.param[j];
 	plug.obj.param=p;
-	document.getElementById("base").appendChild(plug.obj.elem);
+	document.getElementById(layer).appendChild(plug.obj.elem);
 	cmds.message("plugin '"+plug.script+"' is loaded as:"+plug.name);
 }
 function FileDrop(ev) {
@@ -147,7 +183,8 @@ function FileDrop(ev) {
 		name=name.substr(0,name.length-3);
 		var reader=new FileReader();
 		reader.onload=function(ev) {
-			LoadPlugin(ev.target.result,this.name,"plug"+plugins.length);
+			eval(ev.target.result);
+			_LoadPlugin(this.name,"plug"+plugins.length,"base");
 		};
 		reader.name=name;
 		reader.readAsText(files[0]);
@@ -199,6 +236,7 @@ function animInterval(timestamp) {
 			plug.elem.style.height=((scrHeight*h)|0)+"px";
 			plug.elem.style.opacity=plug.param.a.value;
 			plug.elem.style.WebkitFilter="blur("+(plug.param.blur.value|0)+"px)";
+			plug.elem.style.WebkitFilter="hue-rotate("+plug.param.hue.value+"deg)";
 			plug.elem.style.WebkitTransform="rotate("+plug.param.rot.value+"deg)";
 		}
 	}
@@ -206,7 +244,7 @@ function animInterval(timestamp) {
 }
 function Init() {
 	window.AudioContext=window.webkitAudioContext||window.AudioContext;
-	audio=new AudioContext();
+	audioctx=new AudioContext();
 	midi=new Midi();
 	master=new Master();
 	out=master.out;
@@ -226,11 +264,14 @@ function Init() {
 	hho=new FMO(2200,.4,.02,0, 423,3120,.5,0, 552,1800,.1,1,.7);
 	cyo=new FMO(2612,.2,.4,0, 1826,4219,5,2, 3897,1401,1,2,.4);
 	cmds=new Cmds();
-	cam=new Cam();
+	video=new Video();
 	Resize();
 	window.addEventListener("resize",Resize);
 	window.document.addEventListener("keypress",KeyPress);
 	window.document.addEventListener("keydown",KeyDown);
+	window.document.addEventListener("mousemove",MouseEvent);
+	window.document.addEventListener("mousedown",MouseEvent);
+	window.document.addEventListener("mouseup",MouseEvent);
 	Reset();
 	cmds.message("LiveBeats initialized.");
 	cmds.message("");
@@ -243,13 +284,12 @@ function Init() {
 	window.requestAnimationFrame(animInterval);
 	document.addEventListener("dragover",DragOver,false);
 	document.addEventListener("drop",FileDrop,false);
-	var plug;
-	plug={"script":"vj_matrix","name":"mat","obj":new vj_matrix({"w":internalResoX,"h":internalResoY,"wavedat":wavdat,"freqdat":freqdat})};
-	InitPlugin(plug);
-	plug={"script":"vj_wave","name":"wav","obj":new vj_wave({"w":internalResoX,"h":internalResoY,"wavedat":wavdat,"freqdat":freqdat})};
-	InitPlugin(plug);
-	plug={"script":"vj_txt","name":"txt","obj":new vj_txt({"w":internalResoX,"h":internalResoY,"txt":cmds.log,"wavedat":wavdat,"freqdat":freqdat})};
-	InitPlugin(plug);
+	cam=_LoadPlugin("vj_cam","cam","base");
+	cam.obj.param.a.value=0;
+	mat=_LoadPlugin("vj_matrix","mat","base");
+	mat.obj.param.a.value=0;
+	_LoadPlugin("vj_wave","wav","base");
+	_LoadPlugin("vj_txt","txt","topmost");
 }
 function Resize() {
 	scrWidth=document.body.clientWidth;
@@ -257,10 +297,15 @@ function Resize() {
 	var b=document.getElementById("base");
 	b.style.width=scrWidth+"px";
 	b.style.height=scrHeight+"px";
-	b=document.getElementById("base2");
+	b=document.getElementById("topmost");
 	b.style.width=scrWidth+"px";
 	b.style.height=scrHeight+"px";
-	cam.layout();
+//	cam.layout();
+}
+function MouseEvent(ev) {
+	mouse.x=ev.x/scrWidth;
+	mouse.y=ev.y/scrHeight;
+	mouse.z=ev.which;
 }
 function KeyDown(ev) {
 	switch(ev.keyCode) {
@@ -333,9 +378,7 @@ function KeyDown(ev) {
 		ev.preventDefault();
 		return false;
 	case 123:  //f12
-		cmds.key("f12");
-		ev.preventDefault();
-		return false;
+		break;
 	}
 }
 function KeyPress(ev) {
@@ -351,8 +394,6 @@ function Reset() {
 }
 function Enter(s) {
 	var r="";
-//	cmds.log.unshift("> "+s);
-//	cmds.log.length=cmds.rows;
 	if(s.indexOf("//")==0)
 		return "";
 	var n=0;
@@ -395,18 +436,9 @@ function Parse0(s) {
 		for(var i=0;i<plugins.length;++i) {
 			var p=plugins[i];
 			var pparam=pluginsparam[i];
-			var pparamval=pluginsparamval[i];
 			if(l.indexOf(p.name+".")==0) {
 				var pname=l.substr(p.name.length+1);
-				if(pname.length==1) {
-					pparam[pname]=r;
-				}
-				else {
-					for(var j in p.obj.param) {
-						if(l==p.name+"."+j)
-							pparam[j]=r;
-					}
-				}
+				pparam[pname]=r;
 			}
 		}
 		if(l.indexOf("bdo.")==0)
@@ -476,10 +508,11 @@ function Parse0(s) {
 		case "txt.y": cmds.y=r; break;
 		case "txt.z": cmds.z=r; break;
 		case "txt.rot": cmds.rot=r; break;
+		case "txt.hue": cmds.hue=r; break;
 		case "txt.eff": cmds.eff=r; break;
 		case "txt.col": cmds.col=r; break;
 		case "txt.bcol": cmds.bcol=r; break;
-		case "cam.v": cam.v=r; break;
+/*		case "cam.v": cam.v=r; break;
 		case "cam.q": cam.q=r; break;
 		case "cam.c": cam.c=r; break;
 		case "cam.f": cam.f=r; break;
@@ -489,16 +522,19 @@ function Parse0(s) {
 		case "cam.scale": cam.scale=r; cam.notes=Mml(cam.scale); break;
 		case "cam.midi": cam.midi=r; break;
 		case "cam.a": cam.a=r; break;
-		case "cam.type": cam.type=r; break;
 		case "cam.w": cam.w=r; break;
 		case "cam.h": cam.h=r; break;
 		case "cam.x": cam.x=r; break;
 		case "cam.y": cam.y=r; break;
 		case "cam.z": cam.z=r; break;
 		case "cam.rot": cam.rot=r; break;
-		case "cam.eff": cam.eff=r; break;
+		case "cam.hue": cam.hue=r; break;
+		case "cam.effv": cam.effv=r; break;
+		case "cam.effk": cam.effk=r; break;
 		case "cam.effb": cam.effb=r; break;
-		default: return "Object not found";
+		case "cam.effl": cam.effl=r; break;
+		case "cam.effm": cam.effm=r; break;
+*/		default: return "Object not found";
 		}
 		return null;
 	}
@@ -534,17 +570,29 @@ function Parse(str) {
 	var p=0;
 	p=skip(p);
 	if(test(p,"clear")) {
-		cmds.log=["> "];
+		cmds.log.length=0;
 		return "";
 	}
 	if(test(p,"print")) {
 		var s;
 		p=skip(p+5);
-		s=str.substr(p);
+		s=replaceplugin(str.substr(p));
 		try {
 			s=eval(s)+"\n";
 		} catch(e) {s="Undefined\n";}
 		return s;
+	}
+	if(test(p,"name")) {
+		p=skip(p+4);
+		return NamePlugin(str.substr(p));
+	}
+	if(test(p,"del")) {
+		p=skip(p+3);
+		return DeletePlugin(str.substr(p));
+	}
+	if(test(p,"load")) {
+		p=skip(p+4);
+		return LoadPlugin(str.substr(p));
 	}
 	if(test(p,"list")) {
 		var r="";
@@ -607,19 +655,7 @@ function Parse(str) {
 			r+="delay.fb (feedback):"+delay.fb+"\n";
 			return r;
 		}
-		if(test(p,"txt")) {
-			r="txt.a (alpha):"+cmds.a+"\n";
-			r+="txt.w (width):"+cmds.w+"\n";
-			r+="txt.h (height):"+cmds.h+"\n";
-			r+="txt.x (pos x):"+cmds.x+"\n";
-			r+="txt.y (pos y):"+cmds.y+"\n";
-			r+="txt.z (zoom):"+cmds.z+"\n";
-			r+="txt.rot (rotate):"+cmds.rot+"\n";
-			r+="txt.eff (effect):"+cmds.eff+"\n";
-			r+="txt.col (color):"+cmds.col+"\n";
-			return r;
-		}
-		if(test(p,"cam")) {
+/*		if(test(p,"cam")) {
 			r="cam.v (volume):"+cam.v+"\n";
 			r+="cam.q:"+cam.q+"\n";
 			r+="cam.delay (delay):"+cam.delay+"\n";
@@ -627,17 +663,21 @@ function Parse(str) {
 			r+="cam.scale:"+cam.scale+"\n";
 			r+="cam.midi (midiport):"+cam.midi+"\n";
 			r+="cam.a (alpha):"+cam.a+"\n";
-			r+="cam.type (video-type):"+cam.type+"\n";
 			r+="cam.w (width):"+cam.w+"\n";
 			r+="cam.h (height):"+cam.h+"\n";
 			r+="cam.x (pos x):"+cam.x+"\n";
 			r+="cam.y (pos y):"+cam.y+"\n";
 			r+="cam.z (zoom):"+cam.z+"\n";
 			r+="cam.rot (rotate):"+cam.rot+"\n";
-			r+="cam.eff (effect):"+cam.eff+"\n";
+			r+="cam.hue (hue):"+cam.hue+"\n";
+			r+="cam.effl (scanline):"+cam.effl+"\n";
+			r+="cam.effb (blur):"+cam.effb+"\n";
+			r+="cam.effm (motion):"+cam.effm+"\n";
+			r+="cam.effk (kaleidoscope):"+cam.effk+"\n";
+			r+="cam.effv (video):"+cam.effv+"\n";
 			return r;
 		}
-		if(test(p,"o1"))
+*/		if(test(p,"o1"))
 			return oscdesc(o1,"o1");
 		if(test(p,"o2"))
 			return oscdesc(o2,"o2");
@@ -663,13 +703,13 @@ function Parse(str) {
 			return fmodesc(cyo,"cyo");
 		r="";
 		r+="--builtin--\n";
-		r+="master, delay, txt, cam\n";
+		r+="master, delay\n";
 		r+="osc:o1 o2 o3 o4 o5 o6 o7 o8\n";
 		r+="fmo:bdo sdo hho cyo\n";
 		r+="--variables--\ns0-s24:pre-defined sequence\ntick:currentTick\nlev:currentLevel\nsh8/16/32/64: S&H/(n)tick\n";
 		r+="lfo8/16/32/64: LFO (n)tick\n";
-		r+="--functions--\nhue(): for colorString\nlfo(n): (n)tickLFO\n";
-		r+="--plugins--\nwav,mat\n";
+		r+="--functions--\nhue(h), hsv(h,s,v): for colorString\nlfo(n): (n)tickLFO\n";
+		r+="--plugins--\ncam,wav,mat,txt\n";
 		return r;
 	}
 	return null;
@@ -802,7 +842,7 @@ function Timecode(t) {
 	return ("00"+hh).substr(-2)+":"+("00"+mm).substr(-2)+":"+("00"+ss).substr(-2)+":"+("00"+ff).substr(-2);
 }
 function Interval() {
-	var current=audio.currentTime;
+	var current=audioctx.currentTime;
 	var err;
 	if(current>=nextTime-.1) {
 		document.getElementById("timecode").innerHTML=Timecode(current);
@@ -850,9 +890,9 @@ function Interval() {
 			a+=t*t;
 		}
 		lev=Math.sqrt(a/512)/256;
-		cam.next();
-		cam.layout();
-		cam.draw();
+//		cam.next();
+//		cam.layout();
+//		cam.draw();
 		if(nextTime==0)
 			nextTime=current;
 		do {
@@ -942,6 +982,14 @@ function hue(h) {
 	}
 	return "rgb("+r+","+g+","+b+")";
 }
+function replaceplugin(s) {
+	if(typeof(s)=="string") {
+		for(var i=0;i<plugins.length;++i) {
+			s=s.replace(new RegExp(plugins[i].name,"g"),"plugins["+i+"].obj.param");
+		}
+	}
+	return s;
+}
 function streval(s) {
 	if(s=="s") return s;
 	if(s=="l") return s;
@@ -980,7 +1028,7 @@ function Note2Vol(n) {
 	return 2/(n+2); 
 }
 function Noise() {
-	this.scr=audio.createScriptProcessor(1024,1,1);
+	this.scr=audioctx.createScriptProcessor(1024,1,1);
 	this.Process=function(ev) {
 		Interval();
 //		var buf=ev.getChannelData(0);
@@ -993,12 +1041,12 @@ function Noise() {
 function OSC(f,v,t,to) {
 	this.ena=0;
 	this.form={0:"sine",1:"sawtooth",2:"square"};
-	this.Osc=audio.createOscillator();
-	this.Fil=audio.createBiquadFilter();
-	this.Gain=audio.createGain();
-	this.Mod=audio.createGain();
-	this.Send=audio.createGain();
-	this.Pan=audio.createPanner();
+	this.Osc=audioctx.createOscillator();
+	this.Fil=audioctx.createBiquadFilter();
+	this.Gain=audioctx.createGain();
+	this.Mod=audioctx.createGain();
+	this.Send=audioctx.createGain();
+	this.Pan=audioctx.createPanner();
 	this.Osc.connect(this.Fil);
 	this.Fil.connect(this.Gain);
 	this.Gain.connect(this.Mod);
@@ -1067,13 +1115,13 @@ function OSC(f,v,t,to) {
 	}
 }
 function FMO(f1,v1,r1,t1,f2,v2,r2,t2,f3,v3,r3,t3,p) {
-	this.Op1=audio.createOscillator();
-	this.Op1gain=audio.createGain();
-	this.Op2=audio.createOscillator();
-	this.Op2gain=audio.createGain();
-	this.Op3=audio.createOscillator();
-	this.Op3gain=audio.createGain();
-	this.Pan=audio.createPanner();
+	this.Op1=audioctx.createOscillator();
+	this.Op1gain=audioctx.createGain();
+	this.Op2=audioctx.createOscillator();
+	this.Op2gain=audioctx.createGain();
+	this.Op3=audioctx.createOscillator();
+	this.Op3gain=audioctx.createGain();
+	this.Pan=audioctx.createPanner();
 	this.Pan.panningModel="equalpower";
 	this.form={0:"sine",1:"sawtooth",2:"square"};
 
@@ -1140,7 +1188,7 @@ function Master() {
 		req.nam=GetName(url);
 		req.onload = function() {
 			if(req.response) {
-				audio.decodeAudioData(req.response,function(b){ir[n]={"name":req.nam,"data":b};},function(){});
+				audioctx.decodeAudioData(req.response,function(b){ir[n]={"name":req.nam,"data":b};},function(){});
 			}
 		}
 		req.onerror=function() {
@@ -1161,17 +1209,17 @@ function Master() {
 
 	this.v=this._v=1.0;
 	this.fade=.1;
-	this.conv=audio.createConvolver();
-	this.convgain=audio.createGain();
-	this.comp=audio.createDynamicsCompressor();
-	this.out=audio.createGain();
-	this.ana=audio.createAnalyser();
+	this.conv=audioctx.createConvolver();
+	this.convgain=audioctx.createGain();
+	this.comp=audioctx.createDynamicsCompressor();
+	this.out=audioctx.createGain();
+	this.ana=audioctx.createAnalyser();
 	this.ana.fftSize=1024;
 	this.out.connect(this.conv);
 	this.out.connect(this.comp);
 	this.conv.connect(this.convgain);
 	this.convgain.connect(this.comp);
-	this.comp.connect(audio.destination);
+	this.comp.connect(audioctx.destination);
 	this.comp.connect(this.ana);
 	this.g="c";
 	this.ir=0;
@@ -1191,9 +1239,9 @@ function Master() {
 	}
 }
 function Delay() {
-	this.Dly=audio.createDelay();
+	this.Dly=audioctx.createDelay();
 	this.Dly.delayTime.value=60/master._tempo;
-	this.Fb=audio.createGain();
+	this.Fb=audioctx.createGain();
 	this.Fb.gain.value=.5;
 	this.Dly.connect(this.Fb);
 	this.Dly.connect(out);
@@ -1236,6 +1284,11 @@ function Cmds() {
 			this.log.length=this.rows;
 	}
 	this.key=function(k) {
+		if(k[0]=="f") {
+			this.log[0]="> "+fn[k[1]-1];
+			this.cursor=this.log[0].length;
+			return;
+		}
 		switch(k) {
 		case "l":
 			return;
@@ -1261,54 +1314,6 @@ function Cmds() {
 				}
 
 			}
-			return;
-		case "f1":
-			this.cmdline=fn[0];
-			this.cursor=this.cmdline.length;
-			return;
-		case "f2":
-			this.cmdline=fn[1];
-			this.cursor=this.cmdline.length;
-			return;
-		case "f3":
-			this.cmdline=fn[2];
-			this.cursor=this.cmdline.length;
-			return;
-		case "f4":
-			this.cmdline=fn[3];
-			this.cursor=this.cmdline.length;
-			return;
-		case "f5":
-			this.cmdline=fn[4];
-			this.cursor=this.cmdline.length;
-			return;
-		case "f6":
-			this.cmdline=fn[5];
-			this.cursor=this.cmdline.length;
-			return;
-		case "f7":
-			this.cmdline=fn[6];
-			this.cursor=this.cmdline.length;
-			return;
-		case "f8":
-			this.cmdline=fn[7];
-			this.cursor=this.cmdline.length;
-			return;
-		case "f9":
-			this.cmdline=fn[8];
-			this.cursor=this.cmdline.length;
-			return;
-		case "f10":
-			this.cmdline=fn[9];
-			this.cursor=this.cmdline.length;
-			return;
-		case "f11":
-			this.cmdline=fn[10];
-			this.cursor=this.cmdline.length;
-			return;
-		case "f12":
-			this.cmdline=fn[11];
-			this.cursor=this.cmdline.length;
 			return;
 		case 8:
 			if(this.cursor>2) {
@@ -1339,6 +1344,23 @@ function Cmds() {
 		this.histcur=-1;
 	}
 }
+function Video() {
+	this.video=document.getElementById("video");
+	function err(err) {
+		cmds.message("'cam' object is not available.");
+	}
+	function success(stream) {
+		console.log("getUserMedia:success");
+		var v=document.getElementById("video");
+		v.src= window.URL.createObjectURL(stream);
+		v.play();
+	}
+	navigator.getUserMedia=navigator.getUserMedia||navigator.webkitGetUserMedia||navigator.mozGetUserMedia;
+	if(typeof(navigator.getUserMedia)=="function") {
+		navigator.getUserMedia( {video: true},success,err);
+	}
+}
+/*
 function Cam() {
 	this.imgdatframe=[null,null];
 	this.imgdatcam=null;
@@ -1346,7 +1368,6 @@ function Cam() {
 	this.levx=new Array(320);
 	this.levy=new Array(240);
 	this.scrdiff=new Array(320*240);
-	this.eff=1;
 	this.curvol=0;
 	this._q=this.q=5;
 	this._f=this.f=440;
@@ -1360,6 +1381,12 @@ function Cam() {
 	this.y=this._y=0.5;
 	this.z=this._z=1.0;
 	this.rot=this._rot=0;
+	this.hue=this._hue=0;
+	this.effv=this._effv=0;
+	this.effk=this._effk=0;
+	this.effb=this._effb=0;
+	this.effl=this._effl=0;
+	this.effm=this._effm=1;
 	this.delay=0;
 	this.fade=0.5;
 	this.video=document.getElementById("video");
@@ -1367,12 +1394,12 @@ function Cam() {
 	this.cvcamwork=document.getElementById("cvcamwork");
 	this.ctxcam=cvcam.getContext("2d");
 	this.ctxcamwork=cvcamwork.getContext("2d");
-	this.Osc=audio.createOscillator();
-	this.Fil=audio.createBiquadFilter();
-	this.Lfo=audio.createOscillator();
-	this.LfoGain=audio.createGain();
-	this.Gain=audio.createGain();
-	this.Send=audio.createGain();
+	this.Osc=audioctx.createOscillator();
+	this.Fil=audioctx.createBiquadFilter();
+	this.Lfo=audioctx.createOscillator();
+	this.LfoGain=audioctx.createGain();
+	this.Gain=audioctx.createGain();
+	this.Send=audioctx.createGain();
 	this.Send.gain.value=0;
 	this.Gain.gain.value=0;
 	this.Osc.connect(this.Fil);
@@ -1393,7 +1420,6 @@ function Cam() {
 	this.Osc.start(0);
 	this.midi=0;
 	this._midi=0;
-	this.effb=this._effb=0;
 	this.porta=0.05;
 	this.px=0;
 	this.midipitch=0;
@@ -1412,6 +1438,7 @@ function Cam() {
 		this.cvcam.style.top=y+"px";
 		cvcam.style.WebkitTransform="rotate("+this._rot+"deg)";
 		cvcam.style.WebkitFilter="blur("+this._effb+"px)";
+		cvcam.style.WebkitFilter="hue-rotate("+this._hue+"deg)";
 	}
 	this.next=function() {
 		this._g=Mml(streval(this.g));
@@ -1424,12 +1451,15 @@ function Cam() {
 		this._y+=(numeval(this.y)-this._y)*this.fade;
 		this._z+=(numeval(this.z)-this._z)*this.fade;
 		this._rot+=(numeval(this.rot)-this._rot)*this.fade;
+		this._hue+=(numeval(this.hue)-this._hue)*this.fade;
 		this._f=numeval(this.f);
 		this._q=numeval(this.q);
 		this._c=numeval(this.c);
-		this._eff=numeval(this.eff);
-		this._effb=numeval(this.effb);
-		this._type=numeval(this.type);
+		this._effv+=(numeval(this.effv)-this._effv)*this.fade;
+		this._effb+=(numeval(this.effb)-this._effb)*this.fade;
+		this._effl+=(numeval(this.effl)-this._effl)*this.fade;
+		this._effm+=(numeval(this.effm)-this._effm)*this.fade;
+		this._effk=numeval(this.effk)|0;
 	}
 	this.draw=function() {
 		var oframe=this.frame^1;
@@ -1452,8 +1482,11 @@ function Cam() {
 		if(this.imgdatframe[this.frame]&&this.imgdatframe[oframe]) {
 			var cpix=this.imgdatframe[this.frame].data;
 			var opix=this.imgdatframe[oframe].data;
+			var wpix=this.imgdatcamwork.data;
 			var dpix=this.imgdatcam.data;
-			var t=this._type;
+			var t=this._effv;
+			var l=1-this._effl;
+			var m=this._effm;
 			for(i=0;i<320;++i)
 				this.levx[i]=0;
 			for(i=0;i<240;++i)
@@ -1462,62 +1495,77 @@ function Cam() {
 				var offs=y*320;
 				var offs4=offs*4;
 				var roffs4=(offs+320-1)*4;
-				var soffs4;
 				var cr,cg,cb,r,g,b,diff,v;
 				for(var x=0;x<320;++x) {
-					soffs4=roffs4;
-					cr=cpix[soffs4];
-					cg=cpix[soffs4+1];
-					cb=cpix[soffs4+2];
-					diff=Math.min(255,(Math.abs(cr-opix[soffs4])+Math.abs(cg-opix[soffs4+1])+Math.abs(cb-opix[soffs4+2])));
+					cr=cpix[roffs4];
+					cg=cpix[roffs4+1];
+					cb=cpix[roffs4+2];
+					diff=Math.min(255,(Math.abs(cr-opix[roffs4])+Math.abs(cg-opix[roffs4+1])+Math.abs(cb-opix[roffs4+2])));
 					v=Math.max(this.scrdiff[offs]*0.9,diff);
 					this.scrdiff[offs]=v;
 					this.levx[x]+=v;
 					this.levy[y]+=v;
-
 					r=cr*t;
 					g=cg*t;
 					b=cb*t+((cg>128)?255:0)*(1-t);
-
-					switch(this._eff) {
-					case 1:
-						r+=v;
-						break;
-					case 2:
-						r+=v;
-						g+=v;
-						b+=v;
-						break;
-					case 3:
-						if(v<20) {
-						}
-						else if(v<50) {
-							b+=v;
-						}
-						else if(v<100) {
-							r+=v;
-						}
-						else if(v<150) {
-							r+=v;
-						}
-						else if(v<200) {
-							r+=v;
-							g+=v;
-						}
-						else {
-							r+=v;
-							g+=v;
-							b+=v;
-						}
-						break;
+					if(v>=192) {
+						r+=(255-r)*m;
+						g+=(255-g)*m;
+						b+=(255-b)*(v-192)/64*m;
 					}
-					dpix[offs4]=r;
-					dpix[offs4+1]=g;
-					dpix[offs4+2]=b;
-					dpix[offs4+3]=200;
+					else if(v>=128) {
+						r+=(255-r)*m;
+						g+=(255-g)*(v-128)/64*m;
+					}
+					else if(v>=64)
+						r+=(255-r)*(v-64)/64*m;
+					if(y&2) {
+						r*=l;
+						g*=l;
+						b*=l;
+					}
+					wpix[offs4]=r;
+					wpix[offs4+1]=g;
+					wpix[offs4+2]=b;
+					wpix[offs4+3]=255;
 					++offs;
 					offs4+=4;
 					roffs4-=4;
+				}
+			}
+			for(y=0;y<240;++y) {
+				for(x=0;x<320;++x) {
+					var px=x-160;
+					var py=y-120;
+					switch(this._effk) {
+					case 1:
+						sx=Math.abs(px);
+						sy=py;
+						break;
+					case 2:
+						sx=Math.abs(px);
+						sy=Math.abs(py);
+						break;
+					case 3:
+					case 4:
+						sx=Math.abs(px);
+						sy=Math.abs(py);
+						if(sy>=sx) {
+							var t=sx;
+							sx=sy;sy=t;
+						}
+						break;
+					case 0:
+					default:
+						sx=px;
+						sy=py;
+						break;
+					}
+					var dp=(y*320+x)*4;
+					var sp=((sy+120)*320+sx+160)*4;
+					dpix[dp]=wpix[sp];
+					dpix[dp+1]=wpix[sp+1];
+					dpix[dp+2]=wpix[sp+2];
 				}
 			}
 			for(x=0;x<320;++x)
@@ -1608,28 +1656,15 @@ function Cam() {
 	function success(stream) {
 		console.log("getUserMedia:success");
 		var v=document.getElementById("video");
-		v.src= stream;
-		v.play();
-	}
-	function success2(stream) {
-		console.log("getUserMedia:success");
-		var v=document.getElementById("video");
 		v.src= window.URL.createObjectURL(stream);
 		v.play();
 	}
+	navigator.getUserMedia=navigator.getUserMedia||navigator.webkitGetUserMedia||navigator.mozGetUserMedia;
 	if(typeof(navigator.getUserMedia)=="function") {
-		console.log("getUserMedia");
 		navigator.getUserMedia( {video: true},success,err);
 	}
-	else if(typeof(navigator.webkitGetUserMedia)=="function") {
-		console.log("webkitGetUserMedia");
-		navigator.webkitGetUserMedia( {video: true},success2,err);
-	}
-	else if(typeof(navigator.mozGetUserMedia)=="function") {
-		console.log("mozGetUserMedia");
-		navigator.mozGetUserMedia( {video: true},success2,err);
-	}
 	this.imgdatcam=this.ctxcam.createImageData(320,240);
+	this.imgdatcamwork=this.ctxcam.createImageData(320,240);
 	for(var y=0;y<240;++y) {
 		for(var x=0;x<320;++x) {
 			this.scrdiff[y*320+x]=0;
@@ -1644,15 +1679,16 @@ function Cam() {
 		}
 	}
 }
+*/
 </script>
 <div id="base" style="position:absolute;left:0px;top:0px;background:#000;overflow:hidden">
 <canvas id="cvcam" width="320" height="240" style="position:absolute;left:0px;top:0px;height:0px;background:#000"></canvas>
 <canvas id="cvwav" width="0" height="0" style="position:absolute;left:0px;top:0px;height:0px"></canvas>
 <canvas id="cvwavwork" width="0" height="0" style="position:absolute;left:0px;top:0px;height:0px"></canvas>
 </div>
-<div id="base2" style="position:absolute;left:0px;top:0px;overflow:hidden">
+<div id="topmost" style="position:absolute;left:0px;top:0px;overflow:hidden">
 </div>
-<div id="timecode" style="position:absolute;right:0px;top:0px;width:150px;height:20px;color:#aaa;font-size:20px;font-family:courier">00:00:00:00</div>
+<div id="timecode" style="position:absolute;right:0px;bottom:0px;width:150px;height:20px;color:#aaa;font-size:20px;font-family:courier">00:00:00:00</div>
 <div style="display:none">
 	<video id="video" width="320" height="240"></video>
 	<canvas id="cvcamwork" width="320" height="240"></canvas>

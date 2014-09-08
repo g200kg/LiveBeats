@@ -51,8 +51,8 @@ vj_matrix=function(param) {
 		var rz=this.param.effz.value;
 		var sx=(this.w*rz)|0;
 		var sy=(this.h*rz)|0;
-		var sxoff=((this.w-sx)*.5)|0+this.param.effx.value;
-		var syoff=((this.h-sy)*.5)|0+this.param.effy.value;
+		var sxoff=(this.w*this.param.cx.value-sx*.5)|0+this.param.effx.value;
+		var syoff=(this.h*this.param.cy.value-sy*.5)|0+this.param.effy.value;
 		this.ctx.shadowBlur=0;
 		this.ctxwork.clearRect(0,0,this.w,this.h);
 		this.ctxwork.drawImage(this.elem,sxoff,syoff,sx,sy);
@@ -86,5 +86,7 @@ vj_matrix=function(param) {
 		"effz":{"value":1,		"type":"double",	"min":0.5,	"max":2},
 		"col":{"value":"#0f0",	"type":"string"},
 		"bcol":{"value":"#fff",	"type":"string"},
+		"cx":{"value":.5,		"type":"double",	"min":0,	"max":1},
+		"cy":{"value":.5,		"type":"double",	"min":0,	"max":1},
 	};
 }

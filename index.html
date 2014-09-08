@@ -150,76 +150,13 @@ Chrome の使用を推奨します。またWebカメラが必要です。
 <tr><td>list ir</td><td>使用可能なインパルスレスポンスファイルの一覧を表示します。この値はmaster.irの設定で使用できます。</td></tr>
 <tr><td>list plugins</td><td>現在組み込まれているビジュアライザー・プラグインの一覧を表示します。</td></tr>
 <tr><td>print &lt;formula&gt;</td><td>formulaを評価し、表示します。</td></tr>
+<tr><td>load name=scriptName</td><td>scriptNameで指定される定義済みプラグインのインスタンスをnameという名前で作成します。</td></tr>
+<tr><td>del name</td><td>nameで示されるプラグインを削除します。</td></tr>
 </table>
 </div>
 <br/><br/>
 <h2>Objects:</h2>
 
-<div class="doc_en">
-<table>
-<tr><th colspan="2">cam</th><td>Dipslay WebCam image and generate sound from motion detect.</td></tr>
-<tr><td>cam.a</td><td>number</td><td>alpha value of cam image (0.0 - 1.0)</td></tr>
-<tr><td>cam.w</td><td>number</td><td>width of cam image (0.0 - 1.0)</td></tr>
-<tr><td>cam.h</td><td>number</td><td>height of cam image (0.0 - 1.0)</td></tr>
-<tr><td>cam.x</td><td>number</td><td>x pos of cam image. (0:far left - 0.5:center - 1.0:far right)</td></tr>
-<tr><td>cam.y</td><td>number</td><td>y pos of cam image. (0:top - 0.5:center - 1.0:bottom)</td></tr>
-<tr><td>cam.z</td><td>number</td><td>zoom factor of cam image. fit to window size if 1.0</td></tr>
-<tr><td>cam.rot</td><td>number</td><td>rotation of cam image in degree.</td></tr>
-<tr><td>cam.type</td><td>number</td><td>cam image type. 0: solarize to blue plane. 1: normal video image. can be set to intermediate value.</td></tr>
-<tr><td>cam.eff</td><td>number</td><td>motion effect. 0:none, 1:motion to red, 2:motion to white, 3:motion to fire effect</tr>
-<tr><td>cam.scale</td><td>string</td><td>Specify scale of cam sound with MML-style string. In default, 2 octave pentatonic scale, 'cdega>cdega>c'</td></tr>
-<tr><td>cam.midi</td><td>number</td><td>Use MIDI message instead of built-in oscillator sound. 0:build-in oscillator(Non-MIDI), otherwise specify midi port number that is listed in 'list midi' command. Note that the Web MIDI API should be available. defalut=0.</td></tr>
-<tr><td>cam.v</td><td>number</td><td>Sound volume</td></tr>
-<tr><td>cam.delay</td><td>number</td><td>Sound send level to delay object</td></tr>
-</table>
-</div>
-<div class="doc_ja">
-<table>
-<tr><th colspan="2">cam</th><td>Webカメラの映像を表示し、モーション検出の結果から音を生成します。</td></tr>
-<tr><td>cam.a</td><td>number</td><td>映像のアルファ (0.0 - 1.0)</td></tr>
-<tr><td>cam.w</td><td>number</td><td>映像の幅 (0.0 - 1.0)</td></tr>
-<tr><td>cam.h</td><td>number</td><td>映像の高さ(0.0 - 1.0)</td></tr>
-<tr><td>cam.x</td><td>number</td><td>映像のx座標 (0:左端 - 0.5:中央 - 1.0:右端)</td></tr>
-<tr><td>cam.y</td><td>number</td><td>映像のy座標 (0:上端 - 0.5:中央 - 1.0:下端)</td></tr>
-<tr><td>cam.z</td><td>number</td><td>映像のズーム 1.0でウインドウサイズに一致</td></tr>
-<tr><td>cam.rot</td><td>number</td><td>映像の回転。単位は度</td></tr>
-<tr><td>cam.type</td><td>number</td><td>映像のタイプ 0:青プレーンにソラリゼーション効果 1:通常映像 中間の値も設定可能</td></tr>
-<tr><td>cam.eff</td><td>number</td><td>モーションエフェクト 0:エフェクトなし、 1:モーションを赤で表示、 2:モーションを白で表示、 3:モーションを黄色⇒赤で表示</tr>
-<tr><td>cam.scale</td><td>string</td><td>'cam'オブジェクトからの音声の音階をMML文字列で指定。 デフォルトでは、2オクターブのペンタトニックスケール。 'cdega>cdega>c'</td></tr>
-<tr><td>cam.midi</td><td>number</td><td>'cam'オブジェクト音声に内蔵オシレータの代わりにMIDI出力を使用。 0:内蔵オシレータ(MIDIを使用しない)、 0以外:MIDIポート番号を指定。ポート番号は 'list midi'コマンドで表示される番号。 注) ブラウザのWeb MIDI APIが有効になっている必要があります。デフォルトは0。</td></tr>
-<tr><td>cam.v</td><td>number</td><td>音量。</td></tr>
-<tr><td>cam.delay</td><td>number</td><td>delayオブジェクトへのセンドレベル。</td></tr>
-</table>
-</div>
-<br/>
-<div class="doc_en">
-<table>
-<tr><th colspan="2">txt</th><td>Command inputs.</td></tr>
-<tr><td>txt.a</td><td>number</td><td>alpha value of txt object (0.0 - 1.0)</td></tr>
-<tr><td>txt.w</td><td>number</td><td>width of txt object (0.0 - 1.0)</td></tr>
-<tr><td>txt.h</td><td>number</td><td>height of txt object (0,0 - 1.0)</td></tr>
-<tr><td>txt.x</td><td>number</td><td>x pos of txt object. (0:far left - 0.5:center - 1.0:far right)</td></tr>
-<tr><td>txt.y</td><td>number</td><td>y pos of txt object. (0:top - 0.5:center - 1.0:bottom)</td></tr>
-<tr><td>txt.z</td><td>number</td><td>zoom factor of txt object. fit to window size if 1.0</td></tr>
-<tr><td>txt.rot</td><td>number</td><td>rotation of txt object in degree.</td></tr>
-<tr><td>txt.eff</td><td>number</td><td>txt distortion effect (0.0 - 1.0)</td></tr>
-<tr><td>txt.col</td><td>string</td><td>text color. e.g. '#fff'. hue(value) function is also available.</td></tr>
-</table>
-</div>
-<div class="doc_ja">
-<table>
-<tr><th colspan="2">txt</th><td>コマンド入力。キーボード入力を受け付け、コマンドを実行します。</td></tr>
-<tr><td>txt.a</td><td>number</td><td>txtオブジェクトのアルファ (0.0 - 1.0)</td></tr>
-<tr><td>txt.w</td><td>number</td><td>txtオブジェクトの幅 (0.0 - 1.0)</td></tr>
-<tr><td>txt.h</td><td>number</td><td>txtオブジェクトの高さ (0,0 - 1.0)</td></tr>
-<tr><td>txt.x</td><td>number</td><td>txtオブジェクトのx座標 (0:左端 - 0.5:中央 - 1.0:右端)</td></tr>
-<tr><td>txt.y</td><td>number</td><td>txtオブジェクトのy座標 (0:上端 - 0.5:中央 - 1.0:下端)</td></tr>
-<tr><td>txt.z</td><td>number</td><td>txtオブジェクトのズーム。1.0でウインドウサイズに一致</td></tr>
-<tr><td>txt.rot</td><td>number</td><td>txtオブジェクトの回転。単位は度。</td></tr>
-<tr><td>txt.eff</td><td>number</td><td>txt表示の歪みエフェクト (0.0 - 1.0)</td></tr>
-<tr><td>txt.col</td><td>string</td><td>txt表示の色。例えば'#fff'のように指定。また、hue(value)関数も使用可能。</td></tr>
-</table>
-</div>
 <br/>
 <div class="doc_en">
 <table>
@@ -311,7 +248,98 @@ Chrome の使用を推奨します。またWebカメラが必要です。
 <p>Visualizer effects are modules that visualize output sounds.	Visualizers are implemented as plugin modules. Currentry, 'vj_wave' and 'vj_matrix' are available and defaultly be loaded. Plugin codes is just a JavaScript function that create a dom-element and draw. 'vj_simplewave.js' is a simple sample code. If you make your own plugin, that can be loaded by drop to LiveBeats.
 </p>
 <p>Detail spec is here : <b><a href="vjpluginspec.html">vjpluginspec.html</a></b></p>
-<p>Followings are default loaded visualizers.</p>
+<p>Followings are default loaded visualizers. Especially txt plugin and cam plugin has special functions not only for visual effects.
+</p>
+</div>
+<div class="doc_ja">
+<p>ビジュアライザーエフェクトは出力される音をもとに映像効果を発生させるモジュールです。ビジュアライザーはプラグイン・モジュールとして実装されています。
+	その実体はcanvas等のエレメントを作成して描画を行うJavaScriptの関数になっており、シンプルなサンプルコードとして 'vj_simplewave' が付属しています。 幾つかのルールがありますが、それに沿ってjsファイルを作成し、LiveBeatsにドロップする事で読み込む事ができます。
+</p>
+<p>詳細は<b><a href="vjpluginspec.html">vjプラグインスペック</a></b>を参照してください。
+</p>
+<p>以下はデフォルトで読み込まれているビジュアライザーです。特にtxtプラグインとcamプラグインは単に映像エフェクトを表示するのではなく、少し特殊な機能を持っています。</p>
+</div>
+
+<div class="doc_en">
+<p>txt plugin is a command-line display plugin. this plugin displays the texts from keyboard input and always placed on top of other plugins.
+</p>
+<table>
+<tr><th colspan="2">txt</th><td>Command inputs.</td></tr>
+<tr><td>txt.a</td><td>number</td><td>alpha value of txt object (0.0 - 1.0)</td></tr>
+<tr><td>txt.w</td><td>number</td><td>width of txt object (0.0 - 1.0)</td></tr>
+<tr><td>txt.h</td><td>number</td><td>height of txt object (0,0 - 1.0)</td></tr>
+<tr><td>txt.x</td><td>number</td><td>x pos of txt object. (0:far left - 0.5:center - 1.0:far right)</td></tr>
+<tr><td>txt.y</td><td>number</td><td>y pos of txt object. (0:top - 0.5:center - 1.0:bottom)</td></tr>
+<tr><td>txt.z</td><td>number</td><td>zoom factor of txt object. fit to window size if 1.0</td></tr>
+<tr><td>txt.rot</td><td>number</td><td>rotation of txt object in degree.</td></tr>
+<tr><td>txt.col</td><td>string</td><td>text color. e.g. '#fff'. hue(value) function is also available.</td></tr>
+</table>
+</div>
+<div class="doc_ja">
+<p>txtプラグインはコマンドライン表示プラグインです。このプラグインはキーボードから入力されたテキストを表示し、他のプラグインよりも常に前面に配置されます。
+</p>
+<table>
+<tr><th colspan="2">txt</th><td>コマンド入力。キーボード入力を受け付け、コマンドを実行します。</td></tr>
+<tr><td>txt.a</td><td>number</td><td>txtオブジェクトのアルファ (0.0 - 1.0)</td></tr>
+<tr><td>txt.w</td><td>number</td><td>txtオブジェクトの幅 (0.0 - 1.0)</td></tr>
+<tr><td>txt.h</td><td>number</td><td>txtオブジェクトの高さ (0,0 - 1.0)</td></tr>
+<tr><td>txt.x</td><td>number</td><td>txtオブジェクトのx座標 (0:左端 - 0.5:中央 - 1.0:右端)</td></tr>
+<tr><td>txt.y</td><td>number</td><td>txtオブジェクトのy座標 (0:上端 - 0.5:中央 - 1.0:下端)</td></tr>
+<tr><td>txt.z</td><td>number</td><td>txtオブジェクトのズーム。1.0でウインドウサイズに一致</td></tr>
+<tr><td>txt.rot</td><td>number</td><td>txtオブジェクトの回転。単位は度。</td></tr>
+<tr><td>txt.col</td><td>string</td><td>txt表示の色。例えば'#fff'のように指定。また、hue(value)関数も使用可能。</td></tr>
+</table>
+</div>
+<br/>
+<div class="doc_en">
+<p>cam plugin displays image from WebCam, detect mootions, and output audio/MIDI signals.
+</p>
+<table>
+<tr><th colspan="2">cam</th><td>Dipslay WebCam image and generate sound from motion detect.</td></tr>
+<tr><td>cam.a</td><td>number</td><td>alpha value of cam image (0.0 - 1.0)</td></tr>
+<tr><td>cam.w</td><td>number</td><td>width of cam image (0.0 - 1.0)</td></tr>
+<tr><td>cam.h</td><td>number</td><td>height of cam image (0.0 - 1.0)</td></tr>
+<tr><td>cam.x</td><td>number</td><td>x pos of cam image. (0:far left - 0.5:center - 1.0:far right)</td></tr>
+<tr><td>cam.y</td><td>number</td><td>y pos of cam image. (0:top - 0.5:center - 1.0:bottom)</td></tr>
+<tr><td>cam.z</td><td>number</td><td>zoom factor of cam image. fit to window size if 1.0</td></tr>
+<tr><td>cam.rot</td><td>number</td><td>rotation of cam image in degree.</td></tr>
+<tr><td>cam.hue</td><td>number</td><td>hue rotation of cam image in degree.</td></tr>
+<tr><td>cam.effv</td><td>number</td><td>cam image type. 0: solarize to blue plane. 1: normal video image. can be set to intermediate value.</td></tr>
+<tr><td>cam.effm</td><td>number</td><td>motion effect. 0:none, 1:motion to red, 2:motion to white, 3:motion to fire effect</td></tr>
+<tr><td>cam.effl</td><td>number</td><td>scanline effect.</td></tr>
+<tr><td>cam.effk</td><td>number</td><td>kaleidscope effect. 0:none, 1:dual, 2:quad, 3:octa</td></tr>
+<tr><td>cam.scale</td><td>string</td><td>Specify scale of cam sound with MML-style string. In default, 2 octave pentatonic scale, 'cdega>cdega>c'</td></tr>
+<tr><td>cam.midi</td><td>number</td><td>Use MIDI message instead of built-in oscillator sound. 0:build-in oscillator(Non-MIDI), otherwise specify midi port number that is listed in 'list midi' command. Note that the Web MIDI API should be available. defalut=0.</td></tr>
+<tr><td>cam.v</td><td>number</td><td>Sound volume</td></tr>
+<tr><td>cam.delay</td><td>number</td><td>Sound send level to delay object</td></tr>
+</table>
+</div>
+<div class="doc_ja">
+<p>camプラグインは、Webカメラからの入力を表示し、モーション検出から音声またはMIDI信号の出力を行います。
+</p>
+<table>
+<tr><th colspan="2">cam</th><td>Webカメラの映像を表示し、モーション検出の結果から音を生成します。</td></tr>
+<tr><td>cam.a</td><td>number</td><td>映像のアルファ (0.0 - 1.0)</td></tr>
+<tr><td>cam.w</td><td>number</td><td>映像の幅 (0.0 - 1.0)</td></tr>
+<tr><td>cam.h</td><td>number</td><td>映像の高さ(0.0 - 1.0)</td></tr>
+<tr><td>cam.x</td><td>number</td><td>映像のx座標 (0:左端 - 0.5:中央 - 1.0:右端)</td></tr>
+<tr><td>cam.y</td><td>number</td><td>映像のy座標 (0:上端 - 0.5:中央 - 1.0:下端)</td></tr>
+<tr><td>cam.z</td><td>number</td><td>映像のズーム 1.0でウインドウサイズに一致</td></tr>
+<tr><td>cam.rot</td><td>number</td><td>映像の回転。単位は度</td></tr>
+<tr><td>cam.hue</td><td>number</td><td>色相の回転。単位は度</td></tr>
+<tr><td>cam.effv</td><td>number</td><td>映像のタイプ 0:青プレーンにソラリゼーション効果 1:通常映像 中間の値も設定可能</td></tr>
+<tr><td>cam.effm</td><td>number</td><td>モーションエフェクト 0:エフェクトなし、 1:モーションを赤で表示、 2:モーションを白で表示、 3:モーションを黄色⇒赤で表示</td></tr>
+<tr><td>cam.effl</td><td>number</td><td>スキャンラインエフェクト</td></tr>
+<tr><td>cam.effk</td><td>number</td><td>カレイドスコープ・エフェクト。0:なし、 1:2方向、 2:4方向、 3:8方向</td></tr>
+<tr><td>cam.scale</td><td>string</td><td>'cam'オブジェクトからの音声の音階をMML文字列で指定。 デフォルトでは、2オクターブのペンタトニックスケール。 'cdega>cdega>c'</td></tr>
+<tr><td>cam.midi</td><td>number</td><td>'cam'オブジェクト音声に内蔵オシレータの代わりにMIDI出力を使用。 0:内蔵オシレータ(MIDIを使用しない)、 0以外:MIDIポート番号を指定。ポート番号は 'list midi'コマンドで表示される番号。 注) ブラウザのWeb MIDI APIが有効になっている必要があります。デフォルトは0。</td></tr>
+<tr><td>cam.v</td><td>number</td><td>音量。</td></tr>
+<tr><td>cam.delay</td><td>number</td><td>delayオブジェクトへのセンドレベル。</td></tr>
+</table>
+</div>
+<br/>
+
+<div class="doc_en">
 <p>'wav' module displays waveform or spectrums.</p>
 <table>
 <tr><th colspan="2">wav</th><td>Wave form display.</td></tr>
@@ -356,12 +384,6 @@ Chrome の使用を推奨します。またWebカメラが必要です。
 </table>
 </div>
 <div class="doc_ja">
-<p>ビジュアライザーエフェクトは出力される音をもとに映像効果を発生させるモジュールです。ビジュアライザーはプラグイン・モジュールとして実装されており、現在 'vj_wave' と 'vj_matrix' がデフォルトで読み込まれ、使用可能になっています。
-	その実体はcanvas等のエレメントを作成して描画を行うJavaScriptの関数になっており、シンプルなサンプルコードとして 'vj_simplewave' が付属しています。 幾つかのルールがありますが、それに沿ってjsファイルを作成し、LiveBeatsにドロップする事で読み込む事ができます。
-</p>
-<p>詳細は<b><a href="vjpluginspec.html">vjプラグインスペック</a></b>を参照してください。
-</p>
-<p>以下はデフォルトで読み込まれているビジュアライザーです</p>
 <p>wavオブジェクトは音の波形とスペクトラム表示を行います。
 </p>
 <table>
