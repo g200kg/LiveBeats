@@ -1258,7 +1258,12 @@ function Midi() {
 	console.log("---MIDI---");
 	this.onMIDIFailure=function(msg) {console.log(msg);};
 	this.onMIDISuccess=function(ac) {
-		midioutputs=ac.outputs();
+		console.log("requestMIDIAccess:success");
+		var i=ac.outputs.values();
+		midioutputs=[];
+		for (var o=i.next(); !o.done; o=i.next()) {
+			midioutputs.push(o.value);
+		}
 		console.log("number of midi ports:"+midioutputs.length);
 	};
 	if(navigator.requestMIDIAccess) {

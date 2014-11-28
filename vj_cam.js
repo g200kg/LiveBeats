@@ -248,7 +248,8 @@ vj_cam=function(param) {
 						this.midi=this.param.midi.value;
 					}
 					this.midipitch+=(c-this.midipitch)*(1-this.param.porta.value);
-					var vol=(this.pos.z*this.param.v.value*127)|0;
+//					var vol=(this.pos.z*this.param.v.value*127)|0;
+					var vol=(this.pos.z*127)|0;
 					if(vol>1) {
 						if(this.midion==0)
 							midiout.send([0x90,69,127]);
@@ -270,7 +271,7 @@ vj_cam=function(param) {
 					midiout.send([0xb0,1,(m*16)|0]);
 				}
 			}
-			else {
+			{
 				var f=Math.pow(this.param.c.value,1-this.pos.y);
 				this.Osc.frequency.value=this.param.f.value;
 				this.Osc.detune.setTargetAtTime(c,0,this.param.porta.value*.1);
