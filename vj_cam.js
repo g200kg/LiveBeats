@@ -81,7 +81,7 @@ vj_cam=function(param) {
 	this.Osc.frequency.value=440;
 	this.Lfo.frequency.value=6;
 	this.Fil.frequency.value=4400;
-	this.Fil.Q.value=this.q;
+	this.Fil.Q.value=1;
 	this.LfoGain.gain.value=0;
 	this.Lfo.start(0);
 	this.Osc.start(0);

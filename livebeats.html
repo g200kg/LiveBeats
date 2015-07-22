@@ -1155,12 +1155,22 @@ function FMO(f1,v1,r1,t1,f2,v2,r2,t2,f3,v3,r3,t3,p) {
 	this.Op2.type=this.form[t2];
 	this.Op3.type=this.form[t3];
 	this.trig=function(t) {
+		this.Op1gain.gain.cancelScheduledValues(t);
+//		this.Op1gain.gain.setValueAtTime(0,t);
+//		this.Op1gain.linearRampToValueAtTime(this.v[i],t+0.005);
+		this.Op1gain.setValueAtTime(this.v[i],t);
+		this.Op1gain.gain.linearRampToValueAtTime(0,t+0.006+this.h*0.075);
+	}
+	this.trig=function(t) {
 		this.Op1gain.gain.setValueAtTime(this._v,t);
 		this.Op2gain.gain.setValueAtTime(this.v2,t);
 		this.Op3gain.gain.setValueAtTime(this.v3,t);
 		this.Op1gain.gain.setTargetAtTime(0,t+0.01,this.r1);
-		this.Op2gain.gain.setTargetAtTime(0,t+0.01,this.r2);
-		this.Op3gain.gain.setTargetAtTime(0,t+0.01,this.r3);
+//		this.Op2gain.gain.setTargetAtTime(0,t+0.01,this.r2);
+//		this.Op3gain.gain.setTargetAtTime(0,t+0.01,this.r3);
+//		this.Op1gain.gain.linearRampToValueAtTime(0,t+0.06+this.r1);
+		this.Op2gain.gain.linearRampToValueAtTime(0,t+0.06+this.r2);
+		this.Op3gain.gain.linearRampToValueAtTime(0,t+0.06+this.r3);
 	}
 	this.next=function(t) {
 		var s=Mml(streval(this.s));
