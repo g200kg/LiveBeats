@@ -9,6 +9,7 @@
 <script type="text/javascript" src="./vj_wave.js"></script>
 <script type="text/javascript" src="./vj_matrix.js"></script>
 <script type="text/javascript" src="./vj_cam.js"></script>
+<script type="text/javascript" src="./vj_beatstep.js"></script>
 <script type="text/javascript">
 
 var internalResoX=800;
@@ -79,6 +80,7 @@ var list=[];
 var ir=[];
 var plugins=[];
 var pluginsparam=[];
+var midicb=[];
 
 var fn=[
 	"wav.type=0;wav.fill=0;wav.effr=.9;wav.effx=0;wav.effy=0;wav.effz=1.05",
@@ -132,7 +134,7 @@ function NamePlugin(name) {
 function LoadPlugin(name) {
 	var n=name.split("=");
 	if(n.length!=2)
-		return "usage; load Name=ScriptName\n";
+		return "usage: load Name=ScriptName\n";
 	_LoadPlugin(n[1],n[0],"base");
 	return "plugin '"+n[1]+"' is loaded as '"+n[0]+"'\n";
 }
@@ -173,6 +175,9 @@ function InitPlugin(plug,layer) {
 	plug.obj.param=p;
 	document.getElementById(layer).appendChild(plug.obj.elem);
 	cmds.message("plugin '"+plug.script+"' is loaded as:"+plug.name);
+	if(plug.obj.onmidimessage){
+		midicb.push({func:plug.obj.onmidimessage,plug:plug.obj});
+	}
 }
 function FileDrop(ev) {
 	ev.stopPropagation();
@@ -333,7 +338,7 @@ function KeyDown(ev) {
 		cmds.key("d");
 		ev.preventDefault();
 		return false;
-	case 112:  //f1 
+	case 112:  //f1
 		cmds.key("f1");
 		ev.preventDefault();
 		return false;
@@ -1025,7 +1030,7 @@ function Note2Vol(n) {
 	n-=48;
 	if(n<0)
 		return 0;
-	return 2/(n+2); 
+	return 2/(n+2);
 }
 function Noise() {
 	this.scr=audioctx.createScriptProcessor(1024,1,1);
@@ -1264,6 +1269,10 @@ function Delay() {
 		this.Dly.delayTime.value=60*n/master._tempo+0.02;
 	}
 }
+function MidiIn(e){
+	for(var i=midicb.length-1;i>=0;--i)
+		midicb[i].func.bind(midicb[i].plug)(e);
+}
 function Midi() {
 	console.log("---MIDI---");
 	this.onMIDIFailure=function(msg) {console.log(msg);};
@@ -1274,7 +1283,13 @@ function Midi() {
 		for (var o=i.next(); !o.done; o=i.next()) {
 			midioutputs.push(o.value);
 		}
-		console.log("number of midi ports:"+midioutputs.length);
+		console.log("number of midiout ports:"+midioutputs.length);
+		i=ac.inputs.values();
+		midiinputs=[];
+		for(o=i.next();!o.done;o=i.next()){
+			midiinputs.push(o.value);
+			o.value.onmidimessage=MidiIn;
+		}
 	};
 	if(navigator.requestMIDIAccess) {
 		navigator.requestMIDIAccess().then(this.onMIDISuccess,this.onMIDIFailure);
