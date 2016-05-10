@@ -37,8 +37,8 @@ vj_cam=function(param) {
 	this.senddest=param.senddest;
 	this.video=param.video;
 	this.elem=document.createElement("canvas");
-	this.resox=320;
-	this.resoy=240;
+	this.resox=420;
+	this.resoy=340;
 	this.resox2=(this.resox/2)|0;
 	this.resoy2=(this.resoy/2)|0;
 	this.elem.width=this.resox;
@@ -53,8 +53,8 @@ vj_cam=function(param) {
 	this.imgdatcamwork=this.ctx.createImageData(this.resox,this.resoy);
 	this.frame=0;
 	this.scrdiff=new Array(this.resox*this.resoy);
-	this.levx=new Array(320);
-	this.levy=new Array(240);
+	this.levx=new Array(this.resox);
+	this.levy=new Array(this.resoy);
 	this.pos={"x":0,"y":0,"z":0};
 	for(var i=this.resox*this.resoy-1;i>=0;--i)
 		this.scrdiff[i]=0;
@@ -113,13 +113,17 @@ vj_cam=function(param) {
 			var cntpx=0;
 			var resox=this.resox,resoy=this.resoy;
 			var resox2=this.resox2,resoy2=this.resoy2;
+			var destpix;
+			if(k==0)
+				destpix=dpix;
+			else
+				destpix=wpix;
 			for(i=0;i<resox;++i)
 				this.levx[i]=0;
-			for(i=0;i<resoy;++i)
-				this.levy[i]=0;
 			for(y=0;y<resoy;++y) {
 				var p=y*this.resox;
 				var p4=p<<2,rp4=(p+this.resox-1)<<2;
+				this.levy[y]=0;
 				for(x=0;x<resox;++x,++p,p4+=4,rp4-=4) {
 					cr=cpix[rp4];
 					cg=cpix[rp4+1];
@@ -143,49 +147,51 @@ vj_cam=function(param) {
 					}
 					else if(v>=64)
 						r+=(255-r)*(v-64)*m64;
-					if(y&2) {
+/*					if(y&2) {
 						r*=l;
 						g*=l;
 						b*=l;
 					}
-					wpix[p4]=r;
-					wpix[p4+1]=g;
-					wpix[p4+2]=b;
-					wpix[p4+3]=Math.max(v,a);
+*/					destpix[p4]=r;
+					destpix[p4+1]=g;
+					destpix[p4+2]=b;
+					destpix[p4+3]=Math.max(v,a);
 				}
 			}
-			for(y=0;y<this.resoy;++y) {
-				var dp=y*this.resox*4;
-				var sp=0;
-				for(x=0;x<this.resox;++x,dp+=4) {
-					var cx=x-this.resox2;
-					var cy=y-this.resoy2;
-					switch(k) {
-					case 1:
-						sp=((cy+this.resoy2)*this.resox+Math.abs(cx)+this.resox2)*4;
-						break;
-					case 2:
-						sp=((Math.abs(cy)+this.resoy2)*this.resox+Math.abs(cx)+this.resox2)*4;
-						break;
-					case 3:
-					case 4:
-						sx=Math.abs(cx);
-						sy=Math.abs(cy);
-						if(sy>=sx) {
-							var t=sx;
-							sx=sy;sy=t;
+			if(k){
+				for(y=0;y<this.resoy;++y) {
+					var dp=y*this.resox*4;
+					var sp=0;
+					for(x=0;x<this.resox;++x,dp+=4) {
+						var cx=x-this.resox2;
+						var cy=y-this.resoy2;
+						switch(k) {
+						case 1:
+							sp=((cy+this.resoy2)*this.resox+Math.abs(cx)+this.resox2)*4;
+							break;
+						case 2:
+							sp=((Math.abs(cy)+this.resoy2)*this.resox+Math.abs(cx)+this.resox2)*4;
+							break;
+						case 3:
+						case 4:
+							sx=Math.abs(cx);
+							sy=Math.abs(cy);
+							if(sy>=sx) {
+								var t=sx;
+								sx=sy;sy=t;
+							}
+							sp=((sy+this.resoy2)*this.resox+sx+this.resox2)*4;
+							break;
+						case 0:
+						default:
+							sp=dp;
+							break;
 						}
-						sp=((sy+this.resoy2)*this.resox+sx+this.resox2)*4;
-						break;
-					case 0:
-					default:
-						sp=dp;
-						break;
+						dpix[dp]=wpix[sp];
+						dpix[dp+1]=wpix[sp+1];
+						dpix[dp+2]=wpix[sp+2];
+						dpix[dp+3]=wpix[sp+3];
 					}
-					dpix[dp]=wpix[sp];
-					dpix[dp+1]=wpix[sp+1];
-					dpix[dp+2]=wpix[sp+2];
-					dpix[dp+3]=wpix[sp+3];
 				}
 			}
 			for(x=0;x<resox;++x)
@@ -221,11 +227,17 @@ vj_cam=function(param) {
 				this.pos.z=this.pos.z*0.8+vol*0.2;
 			this.pos.x=px/resox;
 			this.pos.y=py/resoy;
-			var r=(this.pos.z*15+5);
+			var r=(this.pos.z*7+1)*resox/100;
 			var grad=this.ctx.createRadialGradient(px|0,(py-r/4)|0,1,px|0,py|0,r|0);
+			var t=((timestamp*.12)|0)&0x1ff;
+			var t2=((timestamp*.7)|0)&0x1ff;
+			var t3=((timestamp*.34)|0)&0x1ff;
+			var colr=(t>255)?511-t:t;
+			var colg=(t2>255)?511-t2:t2;
+			var colb=(t3>255)?511-t3:t3;
 			grad.addColorStop(0,"#fff");
-			grad.addColorStop(0.4,"#ff0");
-			grad.addColorStop(0.6,"#aa0");
+			grad.addColorStop(0.4,"rgb("+colr+","+(255-colg)+","+colb+")");
+//			grad.addColorStop(0.6,"rgb(128,128,0)");
 			grad.addColorStop(1,"#000");
 			this.ctx.putImageData(this.imgdatcam,0,0);
 			this.ctx.fillStyle=grad;
@@ -290,7 +302,7 @@ vj_cam=function(param) {
 	"v":{"value":0,"type":"double","min":0,"max":1},
 	"q":{"value":5,"type":"double","min":0,"max":100},
 	"porta":{"value":0.5,"type":"double","min":0,"max":1},
-	"delay":{"value":0,"type":"double","min":0,"max":1},
+	"delay":{"value":0.4,"type":"double","min":0,"max":1},
 	"midi":{"value":0,"type":"int","min":0,"max":1},
 	"col":{"value":"#0f0","type":"string"},
 	"effa":{"value":1,"type":"double","min":0,"max":1},

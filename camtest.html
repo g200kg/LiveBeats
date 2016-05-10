@@ -303,14 +303,8 @@ function Init() {
 	document.addEventListener("dragover",DragOver,false);
 	document.addEventListener("drop",FileDrop,false);
 
-	drop=_LoadPlugin("vj_drop","drop","base");
-	drop.obj.param.a.value=0;
 	cam=_LoadPlugin("vj_cam","cam","base");
-	cam.obj.param.a.value=0;
-	mat=_LoadPlugin("vj_matrix","mat","base");
-	mat.obj.param.a.value=0;
-	_LoadPlugin("vj_wave","wav","base");
-	_LoadPlugin("vj_txt","txt","topmost");
+	cam.obj.param.a.value=1;
 }
 function Resize() {
 	scrWidth=document.body.clientWidth;
@@ -536,29 +530,7 @@ function Parse0(s) {
 		case "txt.eff": cmds.eff=r; break;
 		case "txt.col": cmds.col=r; break;
 		case "txt.bcol": cmds.bcol=r; break;
-/*		case "cam.v": cam.v=r; break;
-		case "cam.q": cam.q=r; break;
-		case "cam.c": cam.c=r; break;
-		case "cam.f": cam.f=r; break;
-		case "cam.g": cam.g=r; break;
-		case "cam.delay": cam.delay=r; break;
-		case "cam.porta": cam.porta=r; break;
-		case "cam.scale": cam.scale=r; cam.notes=Mml(cam.scale); break;
-		case "cam.midi": cam.midi=r; break;
-		case "cam.a": cam.a=r; break;
-		case "cam.w": cam.w=r; break;
-		case "cam.h": cam.h=r; break;
-		case "cam.x": cam.x=r; break;
-		case "cam.y": cam.y=r; break;
-		case "cam.z": cam.z=r; break;
-		case "cam.rot": cam.rot=r; break;
-		case "cam.hue": cam.hue=r; break;
-		case "cam.effv": cam.effv=r; break;
-		case "cam.effk": cam.effk=r; break;
-		case "cam.effb": cam.effb=r; break;
-		case "cam.effl": cam.effl=r; break;
-		case "cam.effm": cam.effm=r; break;
-*/		default: return "Object not found";
+		default: return "Object not found";
 		}
 		return null;
 	}
@@ -1467,10 +1439,28 @@ function Video() {
 		navigator.getUserMedia( {video: true},success.bind(this),err);
 	}
 }
+function Setup(ctl){
+	cam.obj.param[ctl.id].value=parseFloat(ctl.value);
+}
 </script>
 <div id="base" style="position:absolute;left:0px;top:0px;background:#000;overflow:hidden">
 </div>
 <div id="topmost" style="position:absolute;left:0px;top:0px;overflow:hidden">
+</div>
+<div id="control" style="position:absolute;right:10px;top:0px;width:200px;height:100%;background:rgba(0,0,0,.5)">
+	<table style="color:#fff">
+		<tr><td>Div</td><td><input id="effdiv" type="range" value="0" min="0" max="10" oninput="Setup(this)"></input></td></tr>
+		<tr><td>Motion</td><td><input id="effmotion" type="range" value="1" min="0" max="1" step=".1" oninput="Setup(this)"></input></td></tr>
+		<tr><td>Kaleido</td><td><input id="effkaleido" type="range" value="0" min="0" max="4" oninput="Setup(this)"></input></td></tr>
+		<tr><td>Posterize</td><td><input id="effposter" type="range" value="0" min="0" max="1" step=".1" oninput="Setup(this)"></input></td></tr>
+		<tr><td>Sat</td><td><input id="effsat" type="range" value="1" min="0" max="4" step=".1" oninput="Setup(this)"></input></td></tr>
+		<tr><td>Cont</td><td><input id="effcont" type="range" value="1" min="-1" max="10" step=".1" oninput="Setup(this)"></input></td></tr>
+		<tr><td>Hue</td><td><input id="effhue" type="range" value="0" min="-1" max="1" step=".1" oninput="Setup(this)"></input></td></tr>
+		<tr><td>Mosaic</td><td><input id="effmosaic" type="range" value="0" min="0" max="1" step=".1" oninput="Setup(this)"></input></td></tr>
+		<tr><td>Wave</td><td><input id="effwave" type="range" value="0" min="0" max="1" step=".1" oninput="Setup(this)"></input></td></tr>
+		<tr><td>Melt</td><td><input id="effmelt" type="range" value="0" min="0" max="1" step=".1" oninput="Setup(this)"></input></td></tr>
+		<tr><td>OldFilm</td><td><input id="efffilm" type="range" value="0" min="0" max="1" step=".1" oninput="Setup(this)"></input></td></tr>
+	</table>
 </div>
 <div id="timecode" style="position:absolute;right:0px;bottom:0px;width:150px;height:20px;color:#aaa;font-size:20px;font-family:courier">00:00:00:00</div>
 <div style="display:none">

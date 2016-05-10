@@ -77,12 +77,13 @@ vj_beatstep=function(param) {
 	this.lfo.connect(this.lfogain);
 	this.lfo.start(0);
 	this.note=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-	this.detuneoffset=[16,14,12,9,7,4,2,0, 28,26,24,21,19,16,14,12];
+	this.detuneoffset=[17,15,12,10,7,5,3,0, 17+12,15+12,12+12,10+12,7+12,5+12,3+12,12];
 	this.filterval=64;
 	this.vibval=0;
 	this.volval=0.1;
 	this.bpmval=140;
 	this.bend=0;
+	this.relval=0.3;
 	for(i=0;i<16;++i){
 		this.osc[i]=this.audioctx.createOscillator();
 		this.osc[i].type="sawtooth";
@@ -101,26 +102,29 @@ vj_beatstep=function(param) {
 			var n=e.data[1]-36;
 			if(n>=0&&n<16){
 				this.note[n]=1;
-				this.gain[n].gain.value=1;
+				this.gain[n].gain.cancelScheduledValues(this.audioctx.currentTime);
+				this.gain[n].gain.setValueAtTime(1,this.audioctx.currentTime);
 			}
 			break;
 		case 0x80:
 			var n=e.data[1]-36;
 			if(n>=0&&n<16){
 				this.note[n]=0;
-				this.gain[n].gain.value=0;
+				this.gain[n].gain.setValueAtTime(1,this.audioctx.currentTime);
+				this.gain[n].gain.setTargetAtTime(0,this.audioctx.currentTime,this.relval);
 			}
 			break;
 		case 0xa0:
 	//		audioengine.lfogain.gain.value=200*Math.pow(e.data[2]/127,4);
 			break;
 		case 0xb0:
+			console.log(e.data);
 			switch(e.data[1]){
 			case 7:
 //			console.log(e.data);
-				this.bend=(e.data[2]/127-0.5)*2;
+				this.bend=(e.data[2]-64)*25;
 				for(var i=0;i<16;++i)
-					this.osc[i].detune.value=this.detuneoffset[i]*100+this.bend*1200*3;
+					this.osc[i].detune.value=this.detuneoffset[i]*100+this.bend;
 				break;
 			case 10:
 				this.filterval=e.data[2]/127;
@@ -129,6 +133,9 @@ vj_beatstep=function(param) {
 			case 72:
 				this.volval=e.data[2]/127;
 				this.vol.gain.value=this.volval;
+				break;
+			case 75:
+				this.relval=e.data[2]/127;
 				break;
 			case 114:
 				this.vibval=e.data[2]/127;
@@ -141,7 +148,7 @@ vj_beatstep=function(param) {
 		var width=this.resox*0.025;
 		var x,y,th;
 		this.ctx.clearRect(0,0,this.resox,this.resoy);
-		th=-Math.PI*2*this.bend*2;
+		th=-Math.PI*2*this.bend/1200;
 		x=this.resox2*Math.sin(th)*0.7;
 		y=this.resoy2*Math.cos(th)*0.7;
 		this.ctx.beginPath();
