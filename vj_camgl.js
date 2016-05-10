@@ -84,6 +84,8 @@ vj_cam = function(param){
 		uniform int effpointer;\
 		uniform float effmelt;\
 		uniform float efffilm;\
+		uniform float effunsync;\
+		uniform float effscan;\
 		float rand(vec2 p){\
 			return fract(sin(dot(p ,vec2(12.9898,78.233))) * 43758.5453);\
 		}\
@@ -146,13 +148,21 @@ vj_cam = function(param){
 			}\
 			uv.x+=sin(uv.y*50.0+time*.005)*effwave*0.05;\
 			uv=fract(uv*floor(1.5+effdiv));\
-			uv=floor(uv*mos)/mos;\
-			vec4 colDiff=texture2D(textureDiff,uv);\
-			float v=colDiff.x;\
+			vec2 uv2=uv=floor(uv*mos)/mos;\
 			float n1=max(0.,smoothrand(uv*12.+sin(floor(time*.024))*1231.21)-.95)*50.;\
 			float n2=pow(smoothrand(uv.xx*42.+floor(time*.01)*12.),20.);\
 			uv=uv+(vec2(smoothrand(uv*20.-time*.0011),smoothrand(uv*21.+time*.001))-vec2(.5))*effmelt*.1;\
-			vec4 colCur=texture2D(textureCur,uv);\
+			uv.y=mod(uv.y+(time/6000.)*effunsync,1.1);\
+			vec4 colCur,colDiff;\
+			if(uv.y>=1.0){\
+				colCur=colDiff=vec4(0.);\
+			}\
+			else{\
+				colCur=texture2D(textureCur,uv);\
+				colDiff=texture2D(textureDiff,uv);\
+			}\
+			float v=colDiff.x;\
+			colCur*=(sin(uv.y*525.)*effscan+1.);\
 			vec3 hsv=rgb2hsv(colCur.xyz);\
 			hsv.z-=(n1+n2)*efffilm;\
 			hsv.x+=effhue;\
@@ -289,6 +299,8 @@ vj_cam = function(param){
 	uniLocation.scr_cont = gl.getUniformLocation(this.prgscr,"effcont");
 	uniLocation.scr_film = gl.getUniformLocation(this.prgscr,"efffilm");
 	uniLocation.scr_melt = gl.getUniformLocation(this.prgscr,"effmelt");
+	uniLocation.scr_unsync = gl.getUniformLocation(this.prgscr,"effunsync");
+	uniLocation.scr_scan = gl.getUniformLocation(this.prgscr,"effscan");
 	gl.activeTexture(gl.TEXTURE0);
 	this.textureCur=this.createVideoTexture(this.video);
 	this.texturePre=this.createVideoTexture(this.video);
@@ -315,6 +327,8 @@ vj_cam = function(param){
 		"effcont":{"value":0, "type":"double","min":0, "max":1},
 		"effmelt":{"value":0, "type":"double","min":0, "max":1},
 		"efffilm":{"value":0, "type":"double","min":0, "max":1},
+		"effunsync":{"value":0, "type":"double","min":0, "max":1},
+		"effscan":{"value":0, "type":"double","min":0, "max":1},
 	};
 	this.starttime=0;
 	this.px=0;
@@ -436,6 +450,8 @@ vj_cam = function(param){
 		gl.uniform1f(uniLocation.scr_cont,this.param.effcont.value);
 		gl.uniform1f(uniLocation.scr_melt,this.param.effmelt.value);
 		gl.uniform1f(uniLocation.scr_film,this.param.efffilm.value);
+		gl.uniform1f(uniLocation.scr_unsync,this.param.effunsync.value);
+		gl.uniform1f(uniLocation.scr_scan,this.param.effscan.value);
 		gl.drawArrays(gl.TRIANGLE_STRIP, 0,4);
 		gl.flush();
 		var c=(this.notes[((this.sizex-1-px)*this.notes.length/this.sizex)|0]-57)*100;
