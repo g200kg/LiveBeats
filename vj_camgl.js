@@ -192,11 +192,14 @@ vj_cam = function(param){
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-		gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,video);
+//		gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,video);
 		gl.bindTexture(gl.TEXTURE_2D,null);
 		return tex;
 	};
 	this.updateTexture=function(video) {
+		if(!video.src){
+			return;
+		}
 		var t=this.texturePre;
 		this.texturePre=this.textureCur;
 		this.textureCur=t;
@@ -365,12 +368,15 @@ vj_cam = function(param){
 	this.midi=0;
 	this.midipitch=0;
 	this.notes=Mml(this.param.scale.value);
+	this.ready=false;
 
 	this.anim=function(timestamp) {
+		if(!this.ready || this.param.a.value==0)
+			return;
 		if(this.starttime==0)
 			this.startime=timestamp;
 		var dt=timestamp-this.lasttime;
-		if(dt<12)
+		if(dt<50)
 			return;
 		this.lasttime=timestamp;
 		this.frameidx^=1;
@@ -426,7 +432,7 @@ vj_cam = function(param){
 		if(vol>0)
 			this.pz=this.pz*0.8+vol*0.2;
 //		console.log(this.px,this.py,this.pz);
-
+		gl.bindFramebuffer(gl.FRAMEBUFFER,null);
 		gl.bindFramebuffer(gl.FRAMEBUFFER,null);
 		gl.useProgram(this.prgscr);
 		gl.uniform1f(uniLocation.scr_time,timestamp-this.starttime);
@@ -505,4 +511,5 @@ vj_cam = function(param){
 		}
 
 	};
+	this.ready=true;
 };

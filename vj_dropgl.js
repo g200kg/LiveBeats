@@ -193,6 +193,8 @@ vj_drop = function(param){
 	this.pz=0;
 
 	this.anim=function(timestamp) {
+		if(this.param.a.value==0)
+			return;
 		if(this.starttime==0)
 			this.startime=timestamp;
 		var dt=timestamp-this.lasttime;

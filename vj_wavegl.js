@@ -221,6 +221,8 @@ vj_wave = function(param){
 	gl.useProgram(this.prgscr);
 
 	this.anim=function(timestamp) {
+		if(this.param.a.value==0)
+			return;
 		if(this.starttime==0)
 			this.startime=timestamp;
 		var dt=timestamp-this.lasttime;

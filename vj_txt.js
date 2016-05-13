@@ -29,7 +29,7 @@ vj_txt=function(param) {
 	this.w=param.w;
 	this.h=param.h;
 	this.yheight=(this.h*.8)|0;
-	this.txt=param.txt;
+	this.cmds=param.cmds;
 	this.wavedat=param.wavedat;
 	this.freqdat=param.freqdat;
 	this.elem=document.createElement("canvas");
@@ -37,41 +37,45 @@ vj_txt=function(param) {
 	this.elem.height=this.h;
 	this.ctx=this.elem.getContext("2d");
 	this.ctx.lineJoin="round";
-	this.rows=25;
+	this.rows=23;
 	this.mry=(this.yheight/this.rows)|0;
-	this.ctx.lineWidth=6;
-	this.ctx.font="bold "+this.mry+"px Courier,monospace";
+	this.ctx.font="bold "+(this.mry-2)+"px Courier,monospace";
 	this.mrx=this.ctx.measureText("M").width;
+	this.starttime=this.lasttime=0;
+	this.curcnt=0;
 	this.anim=function(timestamp) {
-		if(this.param.fill.value>=.5) {
+		if(this.param.a.value==0)
+			return;
+		if(this.starttime==0)
+			this.startime=timestamp;
+		var dt=timestamp-this.lasttime;
+		if(dt<50)
+			return;
+		this.lasttime=timestamp;
+		if(this.cmds.dirty){
+			this.ctx.globalCompositeOperation="source-over";
+			this.cmds.dirty=0;
 			this.ctx.strokeStyle="#000";
 			this.ctx.fillStyle=this.param.col.value;
+			this.ctx.lineWidth=3;
+			this.ctx.clearRect(0,0,this.w,this.h);
+			var i;
+			for(i=0;i<this.rows;++i) {
+				var s=this.cmds.log[i];
+				if(!s)
+					s="";
+				this.ctx.strokeText(s,10,this.yheight-i*this.mry);
+				this.ctx.fillText(s,10,this.yheight-i*this.mry);
+			}
 		}
-		else {
-			this.ctx.strokeStyle=this.param.col.value;
-			this.ctx.fillStyle="#000";
-		}
-		this.ctx.lineWidth=this.param.line.value;
-		this.ctx.clearRect(0,0,this.w,this.h);
-		var i;
-		for(i=0;i<this.rows;++i) {
-			var s=this.txt[i];
-			if(!s)
-				s="";
-			this.ctx.strokeText(s,10,this.yheight-i*this.mry);
-			this.ctx.fillText(s,10,this.yheight-i*this.mry);
-		}
-		if(tick&1) {
-			var m=this.ctx.measureText(this.txt[0]);
-			this.ctx.beginPath();
-			this.ctx.rect(m.width+10,this.yheight-this.mry+4,this.mrx,this.mry);
-			this.ctx.stroke();
-			this.ctx.fillRect(m.width+10,this.yheight-this.mry+4,this.mrx,this.mry);
+		if(++this.curcnt>=3){
+			this.curcnt=0;
+			var m=this.ctx.measureText(this.cmds.log[0]).width|0;
+			this.ctx.globalCompositeOperation="xor";
+			this.ctx.fillRect(m+12,this.yheight-this.mry+4,this.mrx|0,this.mry);
 		}
 	};
 	this.param={
-	"line":{"value":3,"type":"double","min":1,"max":10},
 	"col":{"value":"#0f0","type":"string"},
-	"fill":{"value":1,"type":"int","min":0,"max":1},
 	};
 }
