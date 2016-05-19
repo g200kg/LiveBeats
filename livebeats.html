@@ -276,10 +276,10 @@ function Init() {
 	o6=new OSC(440,0.3,1,out);
 	o7=new OSC(440,0.3,1,out);
 	o8=new OSC(880,0.3,1,out);
-	bdo=new FMO(115,1,.2,0,  451,1670,.02,2,  131,1303,.1,0, .5);
-	sdo=new FMO(213,.4,.1,0, 723,1900,.6,0, 140,800,.1,0,.3);
-	hho=new FMO(2200,.4,.02,0, 423,3120,.5,0, 552,1800,.1,1,.7);
-	cyo=new FMO(2612,.2,.4,0, 1826,4219,5,2, 3897,1401,1,2,.4);
+	bdo=new FMO(115,.5,1,.2,0,  451,.5,2670,.02,0,  131,1,1303,.1,0, .5);
+	sdo=new FMO(213,1,.8,.1,0, 723,1,2912,.6,0, 140,1,800,.1,0,.3);
+	hho=new FMO(2233,1,.3,.03,0, 423,1,3120,.07,2, 552,1,1800,.02,1,.7);
+	cyo=new FMO(2612,1,.2,.4,0, 1826,1,4219,5,2, 3897,1,1401,1,2,.4);
 //	bdo=new BOSC(0,2.0);
 //	sdo=new BOSC(1,2.0);
 //	hho=new BOSC(2,0.8);
@@ -483,6 +483,18 @@ function Parse0(s) {
 			case "s+": fmo.s=streval(fmo.s)+streval(right); break;
 			case "v": fmo.v=right; break;
 			case "pan": fmo.pan=right; break;
+			case "f1": fmo.f1=right; break;
+			case "f2": fmo.f2=right; break;
+			case "f3": fmo.f3=right; break;
+			case "p1": fmo.p1=right; break;
+			case "p2": fmo.p2=right; break;
+			case "p3": fmo.p3=right; break;
+			case "v1": fmo.v1=right; break;
+			case "v2": fmo.v2=right; break;
+			case "v3": fmo.v3=right; break;
+			case "r1": fmo.r1=right; break;
+			case "r2": fmo.r2=right; break;
+			case "r3": fmo.r3=right; break;
 			default: return "Property not found";
 			}
 			return null;
@@ -881,7 +893,7 @@ function Automation(param,v,t){
 		}
 	};
 	this.cancelScheduledValues=function(t){
-		this.cancelScheduledValues(t);
+		this.param.cancelScheduledValues(t);
 	};
 	this.setValueAtTime=function(v,t){
 		this.Cancel();
@@ -1175,7 +1187,7 @@ function OSC(f,v,t,to) {
 		this.Pan.pan.value=(numeval(this.pan)-0.5)*2;
 	}
 }
-function FMO(f1,v1,r1,t1,f2,v2,r2,t2,f3,v3,r3,t3,p) {
+function FMO(f1,p1,v1,r1,t1,f2,p2,v2,r2,t2,f3,p3,v3,r3,t3,pan) {
 	this.Op1=audioctx.createOscillator();
 	this.Op1gain=audioctx.createGain();
 	this.Op2=audioctx.createOscillator();
@@ -1196,15 +1208,18 @@ function FMO(f1,v1,r1,t1,f2,v2,r2,t2,f3,v3,r3,t3,p) {
 	this.s="r";
 	this.step=0;
 	this.f1=f1;
+	this.p1=p1;
 	this._v=this.v=v1;
 	this.r1=r1;
 	this.f2=f2;
+	this.p2=p2;
 	this.v2=v2;
 	this.r2=r2;
 	this.f3=f3;
+	this.p3=p3;
 	this.v3=v3;
 	this.r3=r3;
-	this.pan=p;
+	this.pan=pan;
 	this.Op1.start(0);
 	this.Op2.start(0);
 	this.Op3.start(0);
@@ -1214,6 +1229,12 @@ function FMO(f1,v1,r1,t1,f2,v2,r2,t2,f3,v3,r3,t3,p) {
 	this.Op1.type=this.form[t1];
 	this.Op2.type=this.form[t2];
 	this.Op3.type=this.form[t3];
+	this.Op1gaingain=new Automation(this.Op1gain.gain);
+	this.Op2gaingain=new Automation(this.Op2gain.gain);
+	this.Op3gaingain=new Automation(this.Op3gain.gain);
+	this.Op1frequency=new Automation(this.Op1.frequency);
+	this.Op2frequency=new Automation(this.Op2.frequency);
+	this.Op3frequency=new Automation(this.Op3.frequency);
 /*	this.trig=function(t) {
 		this.Op1gain.gain.cancelScheduledValues(t);
 //		this.Op1gain.gain.setValueAtTime(0,t);
@@ -1222,25 +1243,26 @@ function FMO(f1,v1,r1,t1,f2,v2,r2,t2,f3,v3,r3,t3,p) {
 		this.Op1gain.gain.linearRampToValueAtTime(0,t+0.006+this.h*0.075);
 	}*/
 	this.trig=function(t) {
-		this.Op1gain.gain.cancelScheduledValues(t);
-		this.Op2gain.gain.cancelScheduledValues(t);
-		this.Op3gain.gain.cancelScheduledValues(t);
-		this.Op1.frequency.cancelScheduledValues(t);
-		this.Op2.frequency.cancelScheduledValues(t);
-		this.Op1gain.gain.setValueAtTime(0,t);
-		this.Op1gain.gain.linearRampToValueAtTime(this._v,t+0.001);
-		this.Op2gain.gain.setValueAtTime(this.v2,t);
-		this.Op3gain.gain.setValueAtTime(this.v3,t);
-		this.Op1.frequency.setValueAtTime(this.f1,t);
-		this.Op2.frequency.setValueAtTime(this.f2,t);
-		this.Op1gain.gain.setTargetAtTime(0,t+0.05,this.r1);
-		this.Op2gain.gain.setTargetAtTime(0,t+0.01,this.r2);
-		this.Op3gain.gain.setTargetAtTime(0,t+0.01,this.r3);
-		this.Op1.frequency.linearRampToValueAtTime(this.f1*.5,t+0.06+this.r1);
-		this.Op2.frequency.linearRampToValueAtTime(this.f2*.5,t+0.06+this.r1);
-//		this.Op1gain.gain.linearRampToValueAtTime(0,t+0.06+this.r1);
-//		this.Op2gain.gain.linearRampToValueAtTime(0,t+0.06+this.r2);
-//		this.Op3gain.gain.linearRampToValueAtTime(0,t+0.06+this.r3);
+		this.Op1gaingain.cancelScheduledValues(t);
+		this.Op2gaingain.cancelScheduledValues(t);
+		this.Op3gaingain.cancelScheduledValues(t);
+		this.Op1frequency.cancelScheduledValues(t);
+		this.Op2frequency.cancelScheduledValues(t);
+		this.Op1gaingain.setValueAtTime(0,t);
+		this.Op1gaingain.linearRampToValueAtTime(this._v,t+0.001);
+		this.Op2gaingain.setValueAtTime(this.v2,t);
+		this.Op3gaingain.setValueAtTime(this.v3,t);
+		this.Op1frequency.setValueAtTime(this.f1,t);
+		this.Op2frequency.setValueAtTime(this.f2,t);
+		this.Op1gaingain.setTargetAtTime(0,t+0.01,this.r1);
+		this.Op2gaingain.setTargetAtTime(0,t+0.01,this.r2);
+		this.Op3gaingain.setTargetAtTime(0,t+0.01,this.r3);
+		this.Op1frequency.setTargetAtTime(this.f1*this.p1,t+0.01,this.r1);
+		this.Op2frequency.setTargetAtTime(this.f2*this.p2,t+0.01,this.r2);
+		this.Op3frequency.setTargetAtTime(this.f3*this.p3,t+0.01,this.r3);
+//		this.Op1gaingain.linearRampToValueAtTime(0,t+0.06+this.r1);
+//		this.Op2gaingain.linearRampToValueAtTime(0,t+0.06+this.r2);
+//		this.Op3gaingain.linearRampToValueAtTime(0,t+0.06+this.r3);
 	}
 	this.next=function(t) {
 		var s=Mml(streval(this.s));
@@ -1492,6 +1514,19 @@ function Video() {
 		this.stream=stream;
 	}
 	this.cam=[];
+	navigator.mediaDevices.enumerateDevices().then(
+		function(devices){
+			for(var i=0,j=0,len=devices.length;i<len;++i){
+				var device=devices[i];
+				if(device.kind=="videoinput"){
+					cmds.message("video "+j+":"+device.deviceId);
+					this.cam.push(device.deviceId);
+					++j;
+				}
+			}
+		}.bind(this)
+	);
+/*
 	if(MediaStreamTrack.getSources){
 		MediaStreamTrack.getSources(function(data){
 			var len=data.length;
@@ -1504,6 +1539,7 @@ function Video() {
 			}
 		}.bind(this));
 	}
+	*/
 	this.Switch=function(n){
 		if(n<0||n>=this.cam.length)
 			return;
@@ -1519,7 +1555,7 @@ function Video() {
 </div>
 <div id="topmost" style="position:absolute;left:0px;top:0px;overflow:hidden">
 </div>
-<div id="timecode" style="position:absolute;right:0px;bottom:0px;width:150px;height:20px;color:#aaa;font-size:20px;font-family:courier"></div>
+<div id="timecode" style="position:absolute;border:none;margin:0px;padding:0px;right:2px;bottom:5px;width:120px;height:20px;color:#aaa;font-size:20px;font-family:courier"></div>
 <div style="display:none">
 	<video id="video" width="320" height="240"></video>
 <!--	<canvas id="cvcamwork" width="80" height="60"></canvas>-->

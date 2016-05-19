@@ -142,7 +142,7 @@ vj_wave = function(param){
 	this.sizex=param.w;
 	this.sizey=param.h;
 
-	var gl = this.elem.getContext("webgl");
+	var gl = this.elem.getContext("webgl") || this.elem.getContext("experimental-webgl");
 	this.v_shader=gl.createShader(gl.VERTEX_SHADER);
 	gl.shaderSource(this.v_shader, vj_video_vs);
 	gl.compileShader(this.v_shader);

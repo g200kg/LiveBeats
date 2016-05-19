@@ -244,7 +244,7 @@ vj_cam = function(param){
 
 
 
-	var gl = this.elem.getContext("webgl");
+	var gl = this.elem.getContext("webgl") || this.elem.getContext("experimental-webgl");
 	this.v_shader=gl.createShader(gl.VERTEX_SHADER);
 	gl.shaderSource(this.v_shader, vj_video_vs);
 	gl.compileShader(this.v_shader);
@@ -324,7 +324,7 @@ vj_cam = function(param){
 		"effmotion":{"value":1, "type":"double","min":0,"max":1},
 		"effmosaic":{"value":0, "type":"double","min":0,"max":1},
 		"effwave":{"value":0, "type":"double","min":0,"max":1},
-		"effdiv":{"value":0, "type":"double","min":0, "max":1},
+		"effdiv":{"value":0, "type":"int","min":0, "max":10},
 		"effhue":{"value":0, "type":"double","min":-4, "max":4},
 		"effsat":{"value":1, "type":"double","min":0, "max":1},
 		"effcont":{"value":0, "type":"double","min":0, "max":1},
