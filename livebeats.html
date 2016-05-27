@@ -276,10 +276,10 @@ function Init() {
 	o6=new OSC(440,0.3,1,out);
 	o7=new OSC(440,0.3,1,out);
 	o8=new OSC(880,0.3,1,out);
-	bdo=new FMO(115,.5,1,.2,0,  451,.5,2670,.02,0,  131,1,1303,.1,0, .5);
+	bdo=new FMO(115,.5,.8,.2,0,  451,.5,2670,.02,0,  131,1,1303,.1,0, .5);
 	sdo=new FMO(213,1,.8,.1,0, 723,1,2912,.6,0, 140,1,800,.1,0,.3);
-	hho=new FMO(2233,1,.3,.03,0, 423,1,3120,.07,2, 552,1,1800,.02,1,.7);
-	cyo=new FMO(2612,1,.2,.4,0, 1826,1,4219,5,2, 3897,1,1401,1,2,.4);
+	hho=new FMO(2233,1,.5,.03,0, 423,1,3120,.07,2, 552,1,1800,.02,1,.7);
+	cyo=new FMO(2612,1,.4,.4,0, 1826,1,4219,5,2, 3897,1,1401,1,2,.4);
 //	bdo=new BOSC(0,2.0);
 //	sdo=new BOSC(1,2.0);
 //	hho=new BOSC(2,0.8);
@@ -304,10 +304,10 @@ function Init() {
 	document.addEventListener("dragover",DragOver,false);
 	document.addEventListener("drop",FileDrop,false);
 
-	drop=_LoadPlugin("vj_drop","drop","base");
-	drop.obj.param.a.value=0;
 	cam=_LoadPlugin("vj_cam","cam","base");
 	cam.obj.param.a.value=0;
+	drop=_LoadPlugin("vj_drop","drop","base");
+	drop.obj.param.a.value=0;
 	mat=_LoadPlugin("vj_matrix","mat","base");
 	mat.obj.param.a.value=0;
 	_LoadPlugin("vj_wave","wav","base");
@@ -338,6 +338,7 @@ function KeyDown(ev) {
 	case 8:
 		cmds.key(8);
 		ev.preventDefault();
+		ev.stopPropagation();
 		return false;
 	case 13:
 		cmds.key(13);
@@ -410,6 +411,7 @@ function KeyDown(ev) {
 function KeyPress(ev) {
 	cmds.key(ev.charCode);
 	ev.preventDefault();
+	ev.stopPropagation();
 	return false;
 }
 function Reset() {
@@ -524,6 +526,7 @@ function Parse0(s) {
 				case "delay": o.delay=right; break;
 				case "pan": o.pan=right; break;
 				case "out": o.out=right; break;
+				case "d": o.d=right; break;
 				default: return "Property not found";
 				}
 				return null;
@@ -865,14 +868,34 @@ function Timecode(t) {
 	return ("00"+hh).substr(-2)+":"+("00"+mm).substr(-2)+":"+("00"+ss).substr(-2);
 //	return ("00"+hh).substr(-2)+":"+("00"+mm).substr(-2)+":"+("00"+ss).substr(-2)+":"+("00"+ff).substr(-2);
 }
-function Automation(param,v,t){
+function Automation_None(actx,param,v,t){
+	this.param=param;
+	this.cancelScheduledValues=function(t){
+		this.param.cancelScheduledValues(t);
+	};
+	this.setValueAtTime=function(v,t){
+		this.param.setValueAtTime(v,t);
+	};
+	this.linearRampToValueAtTime=function(v,t){
+		this.param.linearRampToValueAtTime(v,t);
+	};
+	this.setTargetAtTime=function(v,t,c){
+		this.param.setTargetAtTime(v,t,c);
+	};
+}
+function Automation(actx,param,v,t){
+	this.actx=actx;
 	this.param=param;
 	this.cmdbuf=[];
+	this.cnt=0;
 	this.Cancel=function(){
-		while(this.cmdbuf.length && audioctx.currentTime>this.cmdbuf[0][2])
+		while(this.cmdbuf.length && this.actx.currentTime>this.cmdbuf[0][2])
 			this.cmdbuf.shift();
 	};
 	this.Reque=function(){
+		if(this.cnt++<1000)
+			return;
+		this.cnt=0;
 		this.param.cancelScheduledValues(0);
 		for(var i=0,l=this.cmdbuf.length;i<l;++i){
 			var buf=this.cmdbuf[i];
@@ -898,21 +921,25 @@ function Automation(param,v,t){
 	this.setValueAtTime=function(v,t){
 		this.Cancel();
 		this.cmdbuf.push([0,v,t]);
+		this.param.setValueAtTime(v,t);
 		this.Reque();
 	};
 	this.linearRampToValueAtTime=function(v,t){
 		this.Cancel();
 		this.cmdbuf.push([1,v,t]);
+		this.param.linearRampToValueAtTime(v,t);
 		this.Reque();
 	};
 	this.exponentialRampToValueAtTime=function(v,t){
 		this.Cancel();
 		this.cmdbuf.push([2,v,t]);
+		this.exponentialRampToValueAtTime(v,t);
 		this.Reque();
 	};
 	this.setTargetAtTime=function(v,t,c){
 		this.Cancel();
 		this.cmdbuf.push([3,v,t,c]);
+		this.param.setTargetAtTime(v,t,c);
 		this.Reque();
 	};
 }
@@ -943,6 +970,7 @@ function Interval() {
 		var c64=tick&63;
 		var c96=tick%96;
 		var c128=tick&127;
+		++cnt;
 		lfo1=cnt&1;
 		lfo2=((c4>2)?4-c4:c4)*.5;
 		lfo4=((c8>4)?8-c8:c8)*.25;
@@ -1055,7 +1083,7 @@ function hue(h) {
 function replaceplugin(s) {
 	if(typeof(s)=="string") {
 		for(var i=0;i<plugins.length;++i) {
-			s=s.replace(new RegExp(plugins[i].name,"g"),"plugins["+i+"].obj.param");
+			s=s.replace(new RegExp(plugins[i].name+"\.([a-z]*)","g"),"plugins["+i+"].obj.param.$1.value");
 		}
 	}
 	return s;
@@ -1083,7 +1111,7 @@ function numeval(s) {
 			case "number":
 				return s;
 			case "string":
-				s=eval(s);
+				s=eval(replaceplugin(s));
 				break;
 			default:
 				return 0;
@@ -1112,13 +1140,13 @@ function OSC(f,v,t,to) {
 	this.ena=0;
 	this.form={0:"sine",1:"sawtooth",2:"square"};
 	this.Osc=audioctx.createOscillator();
-	this.OscDetune=new Automation(this.Osc.detune);
-	this.OscFrequency=new Automation(this.Osc.frequency);
+	this.OscDetune=new Automation(audioctx,this.Osc.detune);
+	this.OscFrequency=new Automation(audioctx,this.Osc.frequency);
 	this.Fil=audioctx.createBiquadFilter();
-	this.FilFrequency=new Automation(this.Fil.frequency);
-	this.FilDetune=new Automation(this.Fil.detune);
+	this.FilFrequency=new Automation(audioctx,this.Fil.frequency);
+	this.FilDetune=new Automation(audioctx,this.Fil.detune);
 	this.Gain=audioctx.createGain();
-	this.GainGain=new Automation(this.Gain.gain);
+	this.GainGain=new Automation(audioctx,this.Gain.gain);
 	this.Mod=audioctx.createGain();
 	this.Send=audioctx.createGain();
 	this.Pan=audioctx.createStereoPanner();
@@ -1148,7 +1176,9 @@ function OSC(f,v,t,to) {
 	this.freq="";
 	this.delay=0.0;
 	this.f=f;
+	this.d=1;
 	this.Osc.start(0);
+	this.tune=0;
 	this.next=function(t) {
 		this.Send.gain.value=this.delay;
 		this.Osc.type=this.form[numeval(this.type)];
@@ -1180,6 +1210,8 @@ function OSC(f,v,t,to) {
 			this.FilFrequency.setValueAtTime(_freq*_cutoff,t);
 			this.Fil.Q.value=numeval(this.q);
 			this.GainGain.setTargetAtTime(numeval(this.v)*v,t,0.001);
+			this.GainGain.setTargetAtTime(0,t+0.01,Math.max(.02,numeval(this.d)));
+			this.tune=tune;
 		}
 		else {
 			this.GainGain.setTargetAtTime(0,t,0.01);
@@ -1229,12 +1261,12 @@ function FMO(f1,p1,v1,r1,t1,f2,p2,v2,r2,t2,f3,p3,v3,r3,t3,pan) {
 	this.Op1.type=this.form[t1];
 	this.Op2.type=this.form[t2];
 	this.Op3.type=this.form[t3];
-	this.Op1gaingain=new Automation(this.Op1gain.gain);
-	this.Op2gaingain=new Automation(this.Op2gain.gain);
-	this.Op3gaingain=new Automation(this.Op3gain.gain);
-	this.Op1frequency=new Automation(this.Op1.frequency);
-	this.Op2frequency=new Automation(this.Op2.frequency);
-	this.Op3frequency=new Automation(this.Op3.frequency);
+	this.Op1gaingain=new Automation(audioctx,this.Op1gain.gain);
+	this.Op2gaingain=new Automation(audioctx,this.Op2gain.gain);
+	this.Op3gaingain=new Automation(audioctx,this.Op3gain.gain);
+	this.Op1frequency=new Automation(audioctx,this.Op1.frequency);
+	this.Op2frequency=new Automation(audioctx,this.Op2.frequency);
+	this.Op3frequency=new Automation(audioctx,this.Op3.frequency);
 /*	this.trig=function(t) {
 		this.Op1gain.gain.cancelScheduledValues(t);
 //		this.Op1gain.gain.setValueAtTime(0,t);
@@ -1243,11 +1275,11 @@ function FMO(f1,p1,v1,r1,t1,f2,p2,v2,r2,t2,f3,p3,v3,r3,t3,pan) {
 		this.Op1gain.gain.linearRampToValueAtTime(0,t+0.006+this.h*0.075);
 	}*/
 	this.trig=function(t) {
-		this.Op1gaingain.cancelScheduledValues(t);
-		this.Op2gaingain.cancelScheduledValues(t);
-		this.Op3gaingain.cancelScheduledValues(t);
-		this.Op1frequency.cancelScheduledValues(t);
-		this.Op2frequency.cancelScheduledValues(t);
+//		this.Op1gaingain.cancelScheduledValues(t);
+//		this.Op2gaingain.cancelScheduledValues(t);
+//		this.Op3gaingain.cancelScheduledValues(t);
+//		this.Op1frequency.cancelScheduledValues(t);
+//		this.Op2frequency.cancelScheduledValues(t);
 		this.Op1gaingain.setValueAtTime(0,t);
 		this.Op1gaingain.linearRampToValueAtTime(this._v,t+0.001);
 		this.Op2gaingain.setValueAtTime(this.v2,t);
@@ -1257,9 +1289,9 @@ function FMO(f1,p1,v1,r1,t1,f2,p2,v2,r2,t2,f3,p3,v3,r3,t3,pan) {
 		this.Op1gaingain.setTargetAtTime(0,t+0.01,this.r1);
 		this.Op2gaingain.setTargetAtTime(0,t+0.01,this.r2);
 		this.Op3gaingain.setTargetAtTime(0,t+0.01,this.r3);
-		this.Op1frequency.setTargetAtTime(this.f1*this.p1,t+0.01,this.r1);
-		this.Op2frequency.setTargetAtTime(this.f2*this.p2,t+0.01,this.r2);
-		this.Op3frequency.setTargetAtTime(this.f3*this.p3,t+0.01,this.r3);
+		this.Op1frequency.setTargetAtTime(this.f1*this.p1,t+0.011,this.r1);
+		this.Op2frequency.setTargetAtTime(this.f2*this.p2,t+0.011,this.r2);
+		this.Op3frequency.setTargetAtTime(this.f3*this.p3,t+0.011,this.r3);
 //		this.Op1gaingain.linearRampToValueAtTime(0,t+0.06+this.r1);
 //		this.Op2gaingain.linearRampToValueAtTime(0,t+0.06+this.r2);
 //		this.Op3gaingain.linearRampToValueAtTime(0,t+0.06+this.r3);
@@ -1282,7 +1314,7 @@ function BOSC(n,v){
 	this.step=0;
 	this.bufnum=n;
 	this.gain=audioctx.createGain();
-	this.gaingain=new Automation(this.gain.gain);
+	this.gaingain=new Automation(audioctx,this.gain.gain);
 	this.gain.connect(master.out);
 	this.gain.gain.value=this._v=this.v=v;
 	this.trig=function(t) {
@@ -1344,18 +1376,31 @@ function Master() {
 	this.conv=audioctx.createConvolver();
 	this.convgain=audioctx.createGain();
 	this.comp=audioctx.createDynamicsCompressor();
-	this.out=audioctx.createGain();
-	this.outgain=new Automation(this.out.gain);
+	this.out=audioctx.createDelay();
+	this.gain=audioctx.createGain();
+	this.gain.gain=1;
+	this.delaylfo=audioctx.createOscillator();
+	this.delaylfo.frequency.value=55;
+	this.delaylfofrequency=new Automation(audioctx,this.delaylfo.frequency);
+	this.delaylfo.start(0);
+	this.delaylfogain=audioctx.createGain();
+	this.delaylfogain.gain.value=0;
+	this.delaylfo.connect(this.delaylfogain);
+	this.delaylfogain.connect(this.out.delayTime);
+	this.delaylfogaingain=new Automation(audioctx,this.delaylfogain.gain);
+	this.outdelay=new Automation(audioctx,this.out.delayTime);
+	this.gaingain=new Automation(audioctx,this.gain.gain);
 	this.ana=audioctx.createAnalyser();
 	this.ana.fftSize=1024;
-	this.out.connect(this.conv);
-	this.out.connect(this.comp);
+	this.out.connect(this.gain);
+	this.gain.connect(this.conv);
+	this.gain.connect(this.comp);
 	this.conv.connect(this.convgain);
 	this.convgain.connect(this.comp);
 	this.comp.connect(audioctx.destination);
 	this.comp.connect(this.ana);
 	this.tccnt=0;
-	this.g="c";
+	this.g="0";
 	this.ir=0;
 	this._rev=this.rev=.5;
 	this._tempo=this.tempo=120;
@@ -1363,13 +1408,80 @@ function Master() {
 	this.run=1;
 	this.next=function(t) {
 		this._tempo=numeval(this.tempo);
-		var g=Mml(streval(this.g));
-		var v=Note2Vol(g[tick%g.length]);
+		var fsuparam=this.g[((tick/4)|0)%this.g.length]|0;
+//		var g=Mml(streval(this.g));
+	//	var v=Note2Vol(g[tick%g.length]);
 		var _v=numeval(this.v);
 		this._rev=numeval(this.rev);
 		this.convgain.gain.value=this._rev;
 		this._v+=(_v-this._v)*this.fade;
-		this.outgain.setValueAtTime(this._v*v,t);
+//		this.outgain.setValueAtTime(this._v*v,t);
+		var p0=15/this._tempo;
+		switch(fsuparam){
+		case 1:
+			this.delaylfogaingain.setValueAtTime(0,t);
+			this.outdelay.setValueAtTime((tick&3)*p0,t);
+			this.gaingain.setValueAtTime(this._v,t);
+			this.gaingain.setTargetAtTime(0,t+p0*.5,0.01);
+			break;
+		case 2:
+			this.delaylfogaingain.setValueAtTime(0,t);
+			this.outdelay.setValueAtTime(0,t);
+			this.gaingain.setValueAtTime(this._v,t);
+			this.gaingain.setTargetAtTime(0,t+p0*.5,0.01);
+			break;
+		case 3:
+			this.delaylfogaingain.setValueAtTime(0,t);
+			this.outdelay.setValueAtTime((tick&3)*p0,t);
+			this.outdelay.setValueAtTime((tick&3)*p0+p0*.5,t+p0*.5);
+			this.gaingain.setValueAtTime(this._v,t);
+			break;
+		case 4:
+			this.delaylfogaingain.setValueAtTime(0,t);
+			this.outdelay.setValueAtTime((3-(tick&3))*p0,t);
+			this.outdelay.setValueAtTime((3-(tick&3))*p0+p0*.5,t+p0*.5);
+			this.gaingain.setValueAtTime(this._v,t);
+			break;
+		case 5:
+			this.delaylfofrequency.setValueAtTime(55,t);
+			this.delaylfogaingain.setValueAtTime(.01,t);
+			this.outdelay.setValueAtTime(p0,t);
+			this.gaingain.setValueAtTime(this._v,t);
+			break;
+		case 6:
+			this.delaylfofrequency.setValueAtTime(880,t);
+			this.delaylfogaingain.setValueAtTime(.01,t);
+			this.outdelay.setValueAtTime(p0,t);
+			this.gaingain.setValueAtTime(this._v,t);
+			break;
+		case 7:
+			this.outdelay.setValueAtTime((tick&3)*p0,t);
+			this.delaylfofrequency.setValueAtTime(10,t);
+			this.delaylfogaingain.setValueAtTime(.01,t);
+			this.gaingain.setValueAtTime(this._v,t);
+			break;
+		case 8:
+			this.delaylfogaingain.setValueAtTime(0,t);
+			this.delaylfofrequency.setValueAtTime(10,t);
+			this.outdelay.setValueAtTime((tick&3)*p0,t);
+			this.gaingain.setValueAtTime(this._v,t);
+			this.gaingain.setTargetAtTime(0,t+p0*.5,0.01);
+			this.delaylfogaingain.setValueAtTime(.1*(tick&2),t);
+			break;
+		case 9:
+			this.delaylfogaingain.setValueAtTime(0,t);
+			this.delaylfofrequency.setValueAtTime(1,t);
+			this.outdelay.setValueAtTime((tick&3)*p0,t);
+			this.gaingain.setValueAtTime(this._v,t);
+			this.gaingain.setTargetAtTime(0,t+p0*.5,0.01);
+			this.delaylfogaingain.setValueAtTime(.1*(tick&2),t);
+			break;
+		case 0:
+		default:
+			this.delaylfogaingain.setValueAtTime(0,t);
+			this.outdelay.setValueAtTime(0,t);
+			this.gaingain.setValueAtTime(this._v,t);
+		}
 	}
 }
 function Delay() {

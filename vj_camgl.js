@@ -70,6 +70,7 @@ vj_cam = function(param){
 		uniform float time;\
 		uniform vec2 resolution;\
 		uniform vec3 cursor;\
+		uniform vec3 cursorold;\
 		uniform sampler2D textureCur;\
 		uniform sampler2D textureDiff;\
 		uniform float effposter;\
@@ -123,13 +124,25 @@ vj_cam = function(param){
 		void main() {\
 			vec2 uv=gl_FragCoord.xy/resolution.xy;\
 			vec2 p=abs(trans(uv));\
-			float r=cursor.z*0.08+0.01;\
-			float dist=min(1.0,length(cursor.xy-uv));\
-			float th=atan((cursor.y-uv.y)/(cursor.x-uv.x));\
-			float fac=pow(1.02-(dist-r),20.0);\
-			float cr=fac*pow(abs(sin(th*4.0+time/100.0)),2.0*dist/r);\
-			if(effpointer<1)\
-				cr=0.;\
+			float cr=0.;\
+			if(effpointer==1){\
+				float r=cursor.z*0.08+0.01;\
+				float dist=min(1.0,length(cursor.xy-uv));\
+				float th=atan((cursor.y-uv.y)/(cursor.x-uv.x));\
+				float fac=pow(1.02-(dist-r),20.0);\
+				cr=fac*pow(abs(sin(th*4.0+time/100.0)),2.0*dist/r);\
+			}\
+			if(effpointer==2){\
+				float difx=abs(uv.x-cursor.x);\
+				float dify=abs(uv.y-cursor.y);\
+				float difxold=abs(uv.x-cursorold.x);\
+				float difyold=abs(uv.y-cursorold.y);\
+				cr=max(0.,1.0-abs(sin(sin(time*.00113)/(.1+difx))*difx-(uv.y-cursor.y)));\
+				cr=max(cr,1.0-abs(sin(sin(time*.00081)/(.1+difxold))*difxold-(uv.y-cursor.y)));\
+				cr=max(cr,1.0-abs(sin(sin(time*.00098)/(.1+difyold))*difyold-(uv.x-cursor.x)));\
+				cr=max(cr,1.0-abs(sin(sin(time*.000121)/(.1+difyold))*difyold-(uv.x-cursorold.x)));\
+				cr=pow(cr,136.);\
+			}\
 			float mos=resolution.x/(effmosaic*64.0+1.0);\
 			uv=vec2(1.0)-uv;\
 			if(effkaleido>=1) {\
@@ -184,7 +197,7 @@ vj_cam = function(param){
 			else if(v>0.25) {\
 				colCur.x+=(1.0-colCur.x)*(v-0.25)*4.0*effmotion;\
 			}\
-			gl_FragColor=vec4(colCur.x+cr*0.5,colCur.y+cr,colCur.z,1.0);\
+			gl_FragColor=vec4(colCur.x+cr,colCur.y+cr,colCur.z+pow(cr,.5),1.0);\
 		}";
 	this.createVideoTexture=function(video) {
 		var tex=gl.createTexture();
@@ -288,6 +301,7 @@ vj_cam = function(param){
 	uniLocation.scr_time = gl.getUniformLocation(this.prgscr,"time");
 	uniLocation.scr_resolution = gl.getUniformLocation(this.prgscr,"resolution");
 	uniLocation.scr_cursor = gl.getUniformLocation(this.prgscr,"cursor");
+	uniLocation.scr_cursorold = gl.getUniformLocation(this.prgscr,"cursorold");
 	uniLocation.scr_texturecur = gl.getUniformLocation(this.prgscr,"textureCur");
 	uniLocation.scr_texturediff = gl.getUniformLocation(this.prgscr,"textureDiff");
 	uniLocation.scr_poster = gl.getUniformLocation(this.prgscr,"effposter");
@@ -332,11 +346,14 @@ vj_cam = function(param){
 		"efffilm":{"value":0, "type":"double","min":0, "max":1},
 		"effunsync":{"value":0, "type":"double","min":0, "max":1},
 		"effscan":{"value":0, "type":"double","min":0, "max":1},
+		"px":{"value":0,"type":"double","min":0,"max":1},
+		"py":{"value":0,"type":"double","min":0,"max":1},
+		"pz":{"value":0,"type":"double","min":0,"max":1},
 	};
 	this.starttime=0;
-	this.px=0;
-	this.py=0;
-	this.pz=0;
+	this.px=this.pxold=0;
+	this.py=this.pyold=0;
+	this.pz=this.pzold=0;
 
 	this.Osc=this.audioctx.createOscillator();
 	this.Fil=this.audioctx.createBiquadFilter();
@@ -425,8 +442,10 @@ vj_cam = function(param){
 			px/=sumpx;
 		if(sumpy)
 			py/=sumpy;
-		this.px=this.px*0.8+(1-px/this.sizex)*0.2;
-		this.py=this.py*0.8+(1-py/this.sizey)*0.2;
+		this.param.px.value=this.px=this.px*0.8+(1-px/this.sizex)*0.2;
+		this.param.py.value=this.py=this.py*0.8+(1-py/this.sizey)*0.2;
+		this.pxold+=(this.px-this.pxold)*.1;
+		this.pyold+=(this.py-this.pyold)*.1;
 		var vol=Math.min(1,sumpx*0.0002);
 		vol=vol*vol;
 		if(vol>0)
@@ -438,6 +457,7 @@ vj_cam = function(param){
 		gl.uniform1f(uniLocation.scr_time,timestamp-this.starttime);
 		gl.uniform2fv(uniLocation.scr_resolution,[this.w,this.h]);
 		gl.uniform3fv(uniLocation.scr_cursor,[this.px,this.py,this.pz]);
+		gl.uniform3fv(uniLocation.scr_cursorold,[this.pxold,this.pyold,this.pz]);
 		gl.activeTexture(gl.TEXTURE0);
 		gl.bindTexture(gl.TEXTURE_2D, this.textureCur);
 		gl.uniform1i(uniLocation.scr_texturecur,0);
@@ -500,7 +520,7 @@ vj_cam = function(param){
 			}
 		}
 		{
-			var f=Math.pow(this.param.c.value,this.py*1.4);
+			var f=Math.pow(Math.max(0,this.param.c.value),this.py*1.4);
 			this.Osc.frequency.value=this.param.f.value;
 			this.Osc.detune.setTargetAtTime(c,0,this.param.porta.value*.1);
 			this.Fil.frequency.value=this.param.f.value*f;
