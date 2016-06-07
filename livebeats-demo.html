@@ -5,6 +5,7 @@
 <title>Live Beats | g200kg Music &amp; Software</title>
 </head>
 <body onload="Init()" style="background:#000">
+<script src="https://skyway.io/dist/0.3/peer.min.js"></script>
 
 <script type="text/javascript" src="./vj_txt.js"></script>
 <script type="text/javascript" src="./vj_wavegl.js"></script>
@@ -86,6 +87,9 @@ var shot=[];
 var plugins=[];
 var pluginsparam=[];
 var midicb=[];
+var peer;
+var peerid=null;
+var peerconn=null;
 
 var fn=[
 	"wav.type=0;wav.fill=0;wav.effr=.9;wav.effx=0;wav.effy=0;wav.effz=1.05",
@@ -260,7 +264,30 @@ function animInterval(timestamp) {
 	}
 //	window.requestAnimationFrame(animInterval);
 }
+function PeerStart(){
+	if(peerconn)
+		peerconn.send("start");
+}
+function PeerSend(s){
+	if(peerconn){
+		peerconn.send(s);
+	}
+}
 function Init() {
+	peer = new Peer("master",{key: '126ad558-f09f-46e6-9e5d-5f910bbaa047'});
+	peer.on('open',function(id){
+		peerid=id;
+		console.log("peer open:"+id);
+		peerconn=peer.connect('slave');
+		if(peerconn){
+			console.log("peer connect");
+		}
+		console.log("peerconn:"+peerconn);
+	});
+	peer.on('connection',function(conn){
+		peerconn=conn;
+		console.log("event peer connection");
+	});
 	window.AudioContext=window.webkitAudioContext||window.AudioContext;
 	audioctx=new AudioContext();
 	midi=new Midi();
@@ -535,9 +562,10 @@ function Parse0(s) {
 		}
 		switch(l) {
 		case "video.src": video.Switch(numeval(r)); break;
+		case "peer.send": PeerSend(r); break;
 		case "master.v": master.v=r; break;
 		case "master.g": master.g=r; break;
-		case "master.tempo": master.tempo=r; break;
+		case "master.tempo": master.tempo=r; PeerSend("tempo:"+r); break;
 		case "master.rev": master.rev=r; break;
 		case "master.ir": master.ir=numeval(r);
 			if(master.ir>=1)
@@ -1421,6 +1449,7 @@ function Master() {
 			this.step0=step0;
 			switch(fsuparam){
 			case "p":
+				PeerStart();
 				break;
 			}
 		}
