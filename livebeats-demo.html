@@ -270,6 +270,7 @@ function PeerStart(){
 }
 function PeerSend(s){
 	if(peerconn){
+		console.log("PeerSend:"+s);
 		peerconn.send(s);
 	}
 }
