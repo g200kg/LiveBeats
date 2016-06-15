@@ -260,6 +260,13 @@ function animInterval(timestamp) {
 	}
 //	window.requestAnimationFrame(animInterval);
 }
+function CmdInit(cmd){
+	for(var i=0;i<cmd.length;++i){
+		var c=decodeURIComponent(cmd[i]);
+		cmds.message(c);
+		Enter(c);
+	}
+}
 function Init() {
 	window.AudioContext=window.webkitAudioContext||window.AudioContext;
 	audioctx=new AudioContext();
@@ -268,7 +275,6 @@ function Init() {
 	out=master.out;
 	run=1;
 	delay=new Delay();
-//	noise=new Noise();
 	o1=new OSC(110,0.4,1,out);
 	o2=new OSC(440,0.3,1,out);
 	o3=new OSC(440,0.3,1,out);
@@ -313,10 +319,8 @@ function Init() {
 	mat.obj.param.a.value=0;
 	_LoadPlugin("vj_wave","wav","base");
 	_LoadPlugin("vj_txt","txt","topmost");
-
-//	setTimeout(function(){window.requestAnimationFrame(animInterval);},1000);
-//	setInterval(animInterval);
 	setInterval(Interval,30);
+	setTimeout("CmdInit(location.search.slice(1).split('&'))",200);
 }
 function Resize() {
 	scrWidth=document.body.clientWidth;
@@ -988,12 +992,6 @@ function Interval() {
 		if(c64==0) sh32=Math.random();
 		if(c96==0) sh48=Math.random();
 		if(c128==0) sh64=Math.random();
-//		var a=0;
-//		for(var i=0;i<512;++i) {
-//			var t=wavdat[i]-128;
-//			a+=t*t;
-//		}
-//		lev=Math.sqrt(a/512)/256;
 		if(nextTime==0)
 			nextTime=current;
 		nextTime+=15/master._tempo;
