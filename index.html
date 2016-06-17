@@ -73,7 +73,7 @@ Chrome の使用を推奨します。またWebカメラが必要です。
 <tr><td>sdo.s=rrrrcrrr</td><td>Set snare drum pattern to 'rrrrcrrr'.</td></tr>
 <tr><td>hho.s=cr</td><td>Set Hi-hat pattern to 'cr'.</td></tr>
 <tr><td>o1.s=aarrrrrr</td><td>Set bass pattern.</td></tr>
-<tr><td>o2.s=s20</td><td>Set arpeggio pattern from preset</td></tr> 
+<tr><td>o2.s=s20</td><td>Set arpeggio pattern from preset</td></tr>
 <tr><td>wav.col=hue(lfo(16))</td><td>wav display color change</td></tr>
 <tr><td>wav.rot=tick</td><td>wav display rotation</td></tr>
 </table>
@@ -90,7 +90,7 @@ Chrome の使用を推奨します。またWebカメラが必要です。
 <tr><td>sdo.s=rrrrcrrr</td><td>スネアドラムのパターンを'rrrrcrrr'に設定します。</td></tr>
 <tr><td>hho.s=cr</td><td>ハイハットのパターンを'cr'に設定します。</td></tr>
 <tr><td>o1.s=aarrrrrr</td><td>ベースのパターンを設定します。</td></tr>
-<tr><td>o2.s=s20</td><td>プリセットからアルペジオパターンを設定します。</td></tr> 
+<tr><td>o2.s=s20</td><td>プリセットからアルペジオパターンを設定します。</td></tr>
 <tr><td>wav.col=hue(lfo(16))</td><td>波形表示の色を切り替えます。</td></tr>
 <tr><td>wav.rot=tick</td><td>波形表示を回転させます。</td></tr>
 </table>
@@ -226,7 +226,7 @@ Chrome の使用を推奨します。またWebカメラが必要です。
 <tr><th colspan="2">master</th><td>master control</td></tr>
 <tr><td>master.v</td><td>number</td><td>master volume. default value is 1.0</td></tr>
 <tr><td>master.tempo</td><td>number</td><td>tempo control. default value=120</td></tr>
-<tr><td>master.g</td><td>string</td><td>master step gate control. Each char is assigned to overall volume of one-step. available chars are "rcdefgab", that means 'r'=mute, 'c'=max, and 'd','e','f'... means decrease volume.</td></tr>
+<tr><td>master.g</td><td>string</td><td>master step effect control. Each char is assigned to overall effect of one-step. available chars are "0123456789", each number has each type of effect. "0" is no effect.</td></tr>
 <tr><td>master.rev</td><td>number</td><td>Reverb level. 'master.ir' should abe set</td></tr>
 <tr><td>master.ir</td><td>number</td><td>Select Impulse Response file for reverb effect. Available values are listed by 'list ir' command.</td></tr>
 </table>
@@ -236,7 +236,7 @@ Chrome の使用を推奨します。またWebカメラが必要です。
 <tr><th colspan="2">master</th><td>マスター制御</td></tr>
 <tr><td>master.v</td><td>number</td><td>マスターボリューム。デフォルトは1.0</td></tr>
 <tr><td>master.tempo</td><td>number</td><td>テンポコントロール。デフォルトは120</td></tr>
-<tr><td>master.g</td><td>string</td><td>マスターステップゲートコントロール。"rcdefgab"から成る文字列で、"r"はミュート、"c"は最大音量、"d","e","f",...で順次音量が下がります。</td></tr>
+<tr><td>master.g</td><td>string</td><td>マスターステップエフェクトコントロール。"0123456789"から成る文字列で、各文字はそれぞれ特有のエフェクトがかかります。"0"はエフェクトなし。</td></tr>
 <tr><td>master.rev</td><td>number</td><td>リバーブレベル。リバーブを有効にするには'master.ir'も設定する必要があります。</td></tr>
 <tr><td>master.ir</td><td>number</td><td>リバーブで使用するインパルスレスポンスファイルの選択。'list ir'コマンドで利用可能な値が一覧できます。</td></tr>
 </table>
@@ -303,11 +303,12 @@ Chrome の使用を推奨します。またWebカメラが必要です。
 <tr><td>cam.y</td><td>number</td><td>y pos of cam image. (0:top - 0.5:center - 1.0:bottom)</td></tr>
 <tr><td>cam.z</td><td>number</td><td>zoom factor of cam image. fit to window size if 1.0</td></tr>
 <tr><td>cam.rot</td><td>number</td><td>rotation of cam image in degree.</td></tr>
-<tr><td>cam.hue</td><td>number</td><td>hue rotation of cam image in degree.</td></tr>
-<tr><td>cam.effv</td><td>number</td><td>cam image type. 0: solarize to blue plane. 1: normal video image. can be set to intermediate value.</td></tr>
-<tr><td>cam.effm</td><td>number</td><td>motion effect. 0:none, 1:motion to red, 2:motion to white, 3:motion to fire effect</td></tr>
-<tr><td>cam.effl</td><td>number</td><td>scanline effect.</td></tr>
-<tr><td>cam.effk</td><td>number</td><td>kaleidscope effect. 0:none, 1:dual, 2:quad, 3:octa</td></tr>
+<tr><td>cam.effhue</td><td>number</td><td>hue rotation of cam image in degree.</td></tr>
+<tr><td>cam.effpointer</td><td>number</td><td>motion pointer type. 0:none, 1:star, 2:line</td></tr>
+<tr><td>cam.effposter</td><td>number</td><td>posterize.</td></tr>
+<tr><td>cam.effmotion</td><td>number</td><td>motion effect. 0:none, 1:motion to red, 2:motion to white, 3:motion to fire effect</td></tr>
+<tr><td>cam.effscan</td><td>number</td><td>scanline effect.</td></tr>
+<tr><td>cam.effkaleido</td><td>number</td><td>kaleidscope effect. 0:none, 1:dual, 2:quad, 3:octa</td></tr>
 <tr><td>cam.scale</td><td>string</td><td>Specify scale of cam sound with MML-style string. In default, 2 octave pentatonic scale, 'cdega>cdega>c'</td></tr>
 <tr><td>cam.midi</td><td>number</td><td>Use MIDI message instead of built-in oscillator sound. 0:build-in oscillator(Non-MIDI), otherwise specify midi port number that is listed in 'list midi' command. Note that the Web MIDI API should be available. defalut=0.</td></tr>
 <tr><td>cam.v</td><td>number</td><td>Sound volume</td></tr>
@@ -326,11 +327,12 @@ Chrome の使用を推奨します。またWebカメラが必要です。
 <tr><td>cam.y</td><td>number</td><td>映像のy座標 (0:上端 - 0.5:中央 - 1.0:下端)</td></tr>
 <tr><td>cam.z</td><td>number</td><td>映像のズーム 1.0でウインドウサイズに一致</td></tr>
 <tr><td>cam.rot</td><td>number</td><td>映像の回転。単位は度</td></tr>
-<tr><td>cam.hue</td><td>number</td><td>色相の回転。単位は度</td></tr>
-<tr><td>cam.effv</td><td>number</td><td>映像のタイプ 0:青プレーンにソラリゼーション効果 1:通常映像 中間の値も設定可能</td></tr>
-<tr><td>cam.effm</td><td>number</td><td>モーションエフェクト 0:エフェクトなし、 1:モーションを赤で表示、 2:モーションを白で表示、 3:モーションを黄色⇒赤で表示</td></tr>
-<tr><td>cam.effl</td><td>number</td><td>スキャンラインエフェクト</td></tr>
-<tr><td>cam.effk</td><td>number</td><td>カレイドスコープ・エフェクト。0:なし、 1:2方向、 2:4方向、 3:8方向</td></tr>
+<tr><td>cam.effhue</td><td>number</td><td>色相の回転。単位は度</td></tr>
+<tr><td>cam.effpointer</td><td>number</td><td>モーションポインター表示 0:なし, 1:スター, 2:ライン</td></tr>
+<tr><td>cam.effposter</td><td>number</td><td>ポスタライズ</td></tr>
+<tr><td>cam.effmotion</td><td>number</td><td>モーションエフェクト 0:エフェクトなし、 1:モーションを赤で表示、 2:モーションを白で表示、 3:モーションを黄色⇒赤で表示</td></tr>
+<tr><td>cam.effscan</td><td>number</td><td>スキャンラインエフェクト</td></tr>
+<tr><td>cam.effkaleido</td><td>number</td><td>カレイドスコープ・エフェクト。0:なし、 1:2方向、 2:4方向、 3:8方向</td></tr>
 <tr><td>cam.scale</td><td>string</td><td>'cam'オブジェクトからの音声の音階をMML文字列で指定。 デフォルトでは、2オクターブのペンタトニックスケール。 'cdega>cdega>c'</td></tr>
 <tr><td>cam.midi</td><td>number</td><td>'cam'オブジェクト音声に内蔵オシレータの代わりにMIDI出力を使用。 0:内蔵オシレータ(MIDIを使用しない)、 0以外:MIDIポート番号を指定。ポート番号は 'list midi'コマンドで表示される番号。 注) ブラウザのWeb MIDI APIが有効になっている必要があります。デフォルトは0。</td></tr>
 <tr><td>cam.v</td><td>number</td><td>音量。</td></tr>
@@ -431,7 +433,7 @@ Chrome の使用を推奨します。またWebカメラが必要です。
 
 <div class="doc_en">
 <h2>Variables:</h2>
-Pre-defined variables can be used in formula. 
+Pre-defined variables can be used in formula.
 <table>
 <tr><td>tick</td><td>'tick' is a count-up value from start of <b>LiveBeats</b>. Always integer. For example, it can be used as a rotation, e.g. 'wav.rot=tick' </td></tr>
 <tr><td>s0 - s24</td><td>preset sequence pattern. can be used to o1.s-o8.s (may be also for bdo.s-cyo.s)</td></tr>
