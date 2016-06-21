@@ -3,6 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <title>Live Beats | g200kg Music &amp; Software</title>
+<style>
+#urlpane{
+	display:none;
+	position:absolute;
+	width:100%;
+	height:300px;
+	left:0px;
+	top:0px;
+	background:#888;
+	border:2px solid #000;
+}
+#url{
+	margin:5%;
+	width:90%;
+	height:100px;
+}
+</style>
 </head>
 <body onload="Init()" style="background:#000">
 
@@ -38,6 +55,11 @@ var sh2=0;
 var sh4=0;
 var sh8=0;
 var sh16=0;
+var beat4=0;
+var beat8=0;
+var beat16=0;
+var beat32=0;
+var beat64=0;
 var rand1=rand2=rand4=0;
 var lev=0;
 var bd1="crrrcrrrcrrrcrcr";
@@ -165,15 +187,13 @@ function InitPlugin(plug,layer) {
 	plugins.push(plug);
 	pluginsparam.push({});
 	var p={
-		"a":{"value":1,"min":0,"max":1},
-		"blur":{"value":0,"min":0,"max":10},
-		"rot":{"value":0,"min":-360,"max":360},
-		"hue":{"value":0,"min":-360,"max":360},
-		"w":{"value":1,"min":0,"max":1},
-		"h":{"value":1,"min":0,"max":1},
-		"x":{"value":.5,"min":0,"max":1},
-		"y":{"value":.5,"min":0,"max":1},
-		"z":{"value":1,"min":0,"max":2},
+		"a":{"value":1,"def":1,"min":0,"max":1},
+		"rot":{"value":0,"def":1,"min":-360,"max":360},
+		"w":{"value":1,"def":1,"min":0,"max":1},
+		"h":{"value":1,"def":1,"min":0,"max":1},
+		"x":{"value":.5,"def":1,"min":0,"max":1},
+		"y":{"value":.5,"def":1,"min":0,"max":1},
+		"z":{"value":1,"def":1,"min":0,"max":2},
 	};
 	for(var j in plug.obj.param)
 		p[j]=plug.obj.param[j];
@@ -246,8 +266,15 @@ function animInterval(timestamp) {
 			}
 		}
 		if(layout) {
-			var w=plug.param.w.value*plug.param.z.value;
-			var h=plug.param.h.value*plug.param.z.value;
+			var w,h;
+			if(plug.param.z.def){
+				w=plug.param.w.value*plug.param.z.value;
+				h=plug.param.h.value*plug.param.z.value;
+			}
+			else{
+				w=plug.param.w.value;
+				h=plug.param.h.value;
+			}
 			plug.elem.style.left=((scrWidth*plug.param.x.value-scrWidth*w*.5)|0)+"px";
 			plug.elem.style.top=((scrHeight*plug.param.y.value-scrHeight*h*.5)|0)+"px";
 			plug.elem.style.width=((scrWidth*w)|0)+"px";
@@ -255,7 +282,9 @@ function animInterval(timestamp) {
 			plug.elem.style.opacity=plug.param.a.value;
 /*			plug.elem.style.WebkitFilter="blur("+(plug.param.blur.value|0)+"px)";
 			plug.elem.style.WebkitFilter=plug.elem.style.mozFilter="hue-rotate("+plug.param.hue.value+"deg)";
-*/			plug.elem.style.transform="rotate("+plug.param.rot.value+"deg)";
+*/
+			if(plug.param.rot.def)
+				plug.elem.style.transform="rotate("+plug.param.rot.value+"deg)";
 		}
 	}
 //	window.requestAnimationFrame(animInterval);
@@ -313,8 +342,10 @@ function Init() {
 
 	cam=_LoadPlugin("vj_cam","cam","base");
 	cam.obj.param.a.value=0;
-	drop=_LoadPlugin("vj_drop","drop","base");
-	drop.obj.param.a.value=0;
+	p1=_LoadPlugin("vj_drop","p1","base");
+	p1.obj.param.a.value=0;
+	p2=_LoadPlugin("vj_drop","p2","base");
+	p2.obj.param.a.value=0;
 	mat=_LoadPlugin("vj_matrix","mat","base");
 	mat.obj.param.a.value=0;
 	_LoadPlugin("vj_wave","wav","base");
@@ -426,6 +457,7 @@ function Reset() {
 //	bdo.step=sdo.step=hho.step=0;
 	cnt=0;
 	lfo1=lfo2=lfo4=lfo8=lfo16=lfo32=lfo48=lfo64=0;
+	beat4=beat8=beat16=beat32=beat64=0;
 }
 function Enter(s) {
 	var r="";
@@ -561,29 +593,7 @@ function Parse0(s) {
 		case "txt.eff": cmds.eff=r; break;
 		case "txt.col": cmds.col=r; break;
 		case "txt.bcol": cmds.bcol=r; break;
-/*		case "cam.v": cam.v=r; break;
-		case "cam.q": cam.q=r; break;
-		case "cam.c": cam.c=r; break;
-		case "cam.f": cam.f=r; break;
-		case "cam.g": cam.g=r; break;
-		case "cam.delay": cam.delay=r; break;
-		case "cam.porta": cam.porta=r; break;
-		case "cam.scale": cam.scale=r; cam.notes=Mml(cam.scale); break;
-		case "cam.midi": cam.midi=r; break;
-		case "cam.a": cam.a=r; break;
-		case "cam.w": cam.w=r; break;
-		case "cam.h": cam.h=r; break;
-		case "cam.x": cam.x=r; break;
-		case "cam.y": cam.y=r; break;
-		case "cam.z": cam.z=r; break;
-		case "cam.rot": cam.rot=r; break;
-		case "cam.hue": cam.hue=r; break;
-		case "cam.effv": cam.effv=r; break;
-		case "cam.effk": cam.effk=r; break;
-		case "cam.effb": cam.effb=r; break;
-		case "cam.effl": cam.effl=r; break;
-		case "cam.effm": cam.effm=r; break;
-*/		default: return "Object not found";
+		default: return "Object not found";
 		}
 		return null;
 	}
@@ -599,6 +609,57 @@ function Parse0(s) {
 		return r;
 	else
 		return right;
+}
+function GetUrl(){
+	document.getElementById("urlpane").style.display="block";
+	var s=location.href.split("?")[0]+"?";
+	if(master.tempo!="120")
+		s+="master.tempo="+master.tempo+"&";
+	if(master.ir!=0)
+		s+="master.ir="+master.ir+"&";
+	if(master.g!="")
+		s+="master.g="+master.g+"&";
+	for(var i=1;i<=8;++i){
+		var o=eval("o"+i);
+		if(o.s!=o.defs)
+			s+="o"+i+".s="+o.s+"&";
+		if(o.f!=o.deff)
+			s+="o"+i+".f="+o.f+"&";
+		if(o.d!=o.defd)
+			s+="o"+i+".d="+o.d+"&";
+		if(o.q!=o.defq)
+			s+="o"+i+".q="+o.q+"&";
+		if(o.c!=o.defc)
+			s+="o"+i+".c="+o.c+"&";
+		if(o.v!=o.defv)
+			s+="o"+i+".v="+o.v+"&";
+		if(o.delay!=o.defdelay)
+			s+="o"+i+".delay="+o.delay+"&";
+		if(o.out!=o.defout)
+			s+="o"+i+".out="+o.out+"&";
+		if(o.pan!=o.defpan)
+			s+="o"+i+".pan="+o.pan+"&";
+	}
+	var otab=["bdo","sdo","hho","cyo"];
+	for(var i=0;i<4;++i){
+		var o=eval(otab[i]);
+		if(o.s)
+			s+=otab[i]+".s="+o.s+"&";
+	}
+	for(var i=1;i<=2;++i){
+		var p=eval("p"+i);
+		if(p.obj.param.a.value!=0)
+			s+="p"+i+".a="+p.obj.param.a.value+"&";
+		if(p.obj.param.type.value!=0)
+			s+="p"+i+".type="+p.obj.param.type.value+"&";
+		if(p.obj.param.hue.value!=0)
+			s+="p"+i+".hue="+p.obj.param.hue.value+"&";
+		if(p.obj.param.mode.value!=0)
+			s+="p"+i+".mode="+p.obj.param.mode.value+"&";
+		if(p.obj.param.rot.value!=0)
+			s+="p"+i+".rot="+p.obj.param.rot.value+"&";
+	}
+	document.getElementById("url").value=s;
 }
 function Parse(str) {
 	function isspc(p) {
@@ -618,6 +679,10 @@ function Parse(str) {
 	}
 	var p=0;
 	p=skip(p);
+	if(test(p,"geturl")){
+		GetUrl();
+		return "";
+	}
 	if(test(p,"reload")){
 		location.href=location.href;
 	}
@@ -992,6 +1057,11 @@ function Interval() {
 		if(c64==0) sh32=Math.random();
 		if(c96==0) sh48=Math.random();
 		if(c128==0) sh64=Math.random();
+		beat4=(c4==0?1:0);
+		beat8=(c8==0?1:0);
+		beat16=(c16==0?1:0);
+		beat32=(c32==0?1:0);
+		beat64=(c64==0?1:0);
 		if(nextTime==0)
 			nextTime=current;
 		nextTime+=15/master._tempo;
@@ -1162,20 +1232,20 @@ function OSC(f,v,t,to) {
 	if(to) {
 		this.Pan.connect(to);
 	}
-	this.s="r";
-	this.g="c";
-	this.type=t;
-	this.c=20;
-	this.q=10;
-	this.v=v;
-	this.pan=0.5;
+	this.s=this.defs="";
+	this.g=this.defg="c";
+	this.type=this.deftype=t;
+	this.c=this.defc=20;
+	this.q=this.defq=10;
+	this.v=this.defv=v;
+	this.pan=this.defpan=0.5;
+	this.out=this.defout="master";
+	this.delay=this.defdelay=0.0;
+	this.f=this.deff=f;
+	this.d=this.defd=1;
 	this.step=0;
 	this._out=null;
-	this.out="master";
 	this.freq="";
-	this.delay=0.0;
-	this.f=f;
-	this.d=1;
 	this.Osc.start(0);
 	this.tune=0;
 	this.next=function(t) {
@@ -1236,7 +1306,7 @@ function FMO(f1,p1,v1,r1,t1,f2,p2,v2,r2,t2,f3,p3,v3,r3,t3,pan) {
 	this.Op1gain.connect(this.Pan);
 	this.Pan.connect(master.out);
 	this.Op1gain.gain.value=0;
-	this.s="r";
+	this.s="";
 	this.step=0;
 	this.f1=f1;
 	this.p1=p1;
@@ -1399,7 +1469,7 @@ function Master() {
 	this.comp.connect(audioctx.destination);
 	this.comp.connect(this.ana);
 	this.tccnt=0;
-	this.g="0";
+	this.g="";
 	this.ir=0;
 	this._rev=this.rev=.5;
 	this._tempo=this.tempo=120;
@@ -1673,6 +1743,11 @@ function Video() {
 <div id="topmost" style="position:absolute;left:0px;top:0px;overflow:hidden">
 </div>
 <div id="timecode" style="position:absolute;border:none;margin:0px;padding:0px;right:2px;bottom:5px;width:120px;height:20px;color:#aaa;font-size:20px;font-family:courier"></div>
+<div id="urlpane">
+	<textarea id="url">
+	</textarea><br/>
+	<button onclick="document.getElementById('urlpane').style.display='none';">Close</button>
+</div>
 <div style="display:none">
 	<video id="video" width="320" height="240"></video>
 <!--	<canvas id="cvcamwork" width="80" height="60"></canvas>-->
