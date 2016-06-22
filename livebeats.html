@@ -188,11 +188,11 @@ function InitPlugin(plug,layer) {
 	pluginsparam.push({});
 	var p={
 		"a":{"value":1,"def":1,"min":0,"max":1},
-		"rot":{"value":0,"def":1,"min":-360,"max":360},
+		"rot":{"value":0,"def":0,"min":-360,"max":360},
 		"w":{"value":1,"def":1,"min":0,"max":1},
 		"h":{"value":1,"def":1,"min":0,"max":1},
-		"x":{"value":.5,"def":1,"min":0,"max":1},
-		"y":{"value":.5,"def":1,"min":0,"max":1},
+		"x":{"value":.5,"def":.5,"min":0,"max":1},
+		"y":{"value":.5,"def":.5,"min":0,"max":1},
 		"z":{"value":1,"def":1,"min":0,"max":2},
 	};
 	for(var j in plug.obj.param)
@@ -484,7 +484,10 @@ function oscdesc(o,nam) {
 	r+=nam+".f (freq):"+o.f+"\n";
 	r+=nam+".c (cutoff):"+o.c+"\n";
 	r+=nam+".q (Q):"+o.q+"\n";
+	r+=nam+".porta:"+o.porta+"\n";
 	r+=nam+".delay:"+o.delay+"\n";
+	r+=nam+".wav:"+o.wav+"\n";
+	r+=nam+".type:"+o.type+"\n";
 	r+=nam+".pan:"+o.pan+"\n";
 	r+=nam+".out:"+o.out+"\n";
 	return r;
@@ -559,11 +562,13 @@ function Parse0(s) {
 				case "v": o.v=right; break;
 				case "c": o.c=right; break;
 				case "q": o.q=right; break;
+				case "porta": o.porta=right; break;
 				case "type": o.type=right; break;
 				case "delay": o.delay=right; break;
 				case "pan": o.pan=right; break;
 				case "out": o.out=right; break;
 				case "d": o.d=right; break;
+				case "wav": o.wav=right; o.MakeWav(); break;
 				default: return "Property not found";
 				}
 				return null;
@@ -614,52 +619,54 @@ function GetUrl(){
 	document.getElementById("urlpane").style.display="block";
 	var s=location.href.split("?")[0]+"?";
 	if(master.tempo!="120")
-		s+="master.tempo="+master.tempo+"&";
+		s+="master.tempo="+encodeURIComponent(master.tempo)+"&";
 	if(master.ir!=0)
-		s+="master.ir="+master.ir+"&";
+		s+="master.ir="+encodeURIComponent(master.ir)+"&";
 	if(master.g!="")
-		s+="master.g="+master.g+"&";
+		s+="master.g="+encodeURIComponent(master.g)+"&";
 	for(var i=1;i<=8;++i){
 		var o=eval("o"+i);
 		if(o.s!=o.defs)
-			s+="o"+i+".s="+o.s+"&";
+			s+="o"+i+".s="+encodeURIComponent(o.s)+"&";
 		if(o.f!=o.deff)
-			s+="o"+i+".f="+o.f+"&";
+			s+="o"+i+".f="+encodeURIComponent(o.f)+"&";
 		if(o.d!=o.defd)
-			s+="o"+i+".d="+o.d+"&";
+			s+="o"+i+".d="+encodeURIComponent(o.d)+"&";
 		if(o.q!=o.defq)
-			s+="o"+i+".q="+o.q+"&";
+			s+="o"+i+".q="+encodeURIComponent(o.q)+"&";
 		if(o.c!=o.defc)
-			s+="o"+i+".c="+o.c+"&";
+			s+="o"+i+".c="+encodeURIComponent(o.c)+"&";
 		if(o.v!=o.defv)
-			s+="o"+i+".v="+o.v+"&";
+			s+="o"+i+".v="+encodeURIComponent(o.v)+"&";
 		if(o.delay!=o.defdelay)
-			s+="o"+i+".delay="+o.delay+"&";
+			s+="o"+i+".delay="+encodeURIComponent(o.delay)+"&";
 		if(o.out!=o.defout)
-			s+="o"+i+".out="+o.out+"&";
+			s+="o"+i+".out="+encodeURIComponent(o.out)+"&";
 		if(o.pan!=o.defpan)
-			s+="o"+i+".pan="+o.pan+"&";
+			s+="o"+i+".pan="+encodeURIComponent(o.pan)+"&";
+		if(o.wav!=o.defwav)
+			s+="o"+i+".wav="+encodeURIComponent(o.wav)+"&";
+		if(o.type!=o.deftype)
+			s+="o"+i+".type="+encodeURIComponent(o.type)+"&";
+		if(o.porta!=o.defporta)
+			s+="o"+i+".porta="+encodeURIComponent(o.porta)+"&";
 	}
 	var otab=["bdo","sdo","hho","cyo"];
 	for(var i=0;i<4;++i){
 		var o=eval(otab[i]);
 		if(o.s)
-			s+=otab[i]+".s="+o.s+"&";
+			s+=otab[i]+".s="+encodeURIComponent(o.s)+"&";
 	}
-	for(var i=1;i<=2;++i){
-		var p=eval("p"+i);
-		if(p.obj.param.a.value!=0)
-			s+="p"+i+".a="+p.obj.param.a.value+"&";
-		if(p.obj.param.type.value!=0)
-			s+="p"+i+".type="+p.obj.param.type.value+"&";
-		if(p.obj.param.hue.value!=0)
-			s+="p"+i+".hue="+p.obj.param.hue.value+"&";
-		if(p.obj.param.mode.value!=0)
-			s+="p"+i+".mode="+p.obj.param.mode.value+"&";
-		if(p.obj.param.rot.value!=0)
-			s+="p"+i+".rot="+p.obj.param.rot.value+"&";
+	for(var i=0,e=plugins.length;i<e;++i){
+		var plug=plugins[i].obj;
+		var plugparam=pluginsparam[i];
+		console.log(plugins[i].name);
+		for(var j in plugparam){
+			console.log(j,plugparam[j]);
+			s+=plugins[i].name+"."+j+"="+encodeURIComponent(plugparam[j])+"&";
+		}
 	}
-	document.getElementById("url").value=s;
+	document.getElementById("url").value=(s);
 }
 function Parse(str) {
 	function isspc(p) {
@@ -679,6 +686,23 @@ function Parse(str) {
 	}
 	var p=0;
 	p=skip(p);
+	if(test(p,"edit")){
+		var s;
+		p=skip(p+4);
+		s=replaceplugin(str.substr(p));
+		try {
+			s=eval(s)+"\n";
+		} catch(e) {s="Undefined\n";}
+		return s;
+/*		if(this.histcur<this.hist.length-1) {
+			++this.histcur;
+			this.log[0]=this.hist[this.histcur];
+			this.cursor=this.log[0].length;
+			this.dirty=1;
+		}
+		return "";
+*/
+	}
 	if(test(p,"geturl")){
 		GetUrl();
 		return "";
@@ -1206,7 +1230,24 @@ function Noise() {
 	this.scr.connect(out);
 }
 function OSC(f,v,t,to) {
+	this.MakeWav=function(){
+		for(var i=0;i<32;++i){
+			var c=this.wav[i];
+			if(c>=0&&c<=9)
+				this.custom[1][i+1]=parseFloat(this.wav[i]);
+			else
+				this.custom[1][i+1]=0;
+		}
+		this.periodic=audioctx.createPeriodicWave(this.custom[0],this.custom[1]);
+	};
 	this.ena=0;
+	this.wav=this.defwav="10000001";
+	this.custom=[];
+	this.custom[0]=new Float32Array(33);
+	this.custom[1]=new Float32Array(33);
+	for(var i=0;i<9;++i)
+		this.custom[0][i]=this.custom[1][i]=0.;
+	this.MakeWav();
 	this.form={0:"sine",1:"sawtooth",2:"square"};
 	this.Osc=audioctx.createOscillator();
 	this.OscDetune=new Automation(audioctx,this.Osc.detune);
@@ -1238,6 +1279,7 @@ function OSC(f,v,t,to) {
 	this.c=this.defc=20;
 	this.q=this.defq=10;
 	this.v=this.defv=v;
+	this.porta=this.defporta=0;
 	this.pan=this.defpan=0.5;
 	this.out=this.defout="master";
 	this.delay=this.defdelay=0.0;
@@ -1250,7 +1292,10 @@ function OSC(f,v,t,to) {
 	this.tune=0;
 	this.next=function(t) {
 		this.Send.gain.value=this.delay;
-		this.Osc.type=this.form[numeval(this.type)];
+		if(this.type<3)
+			this.Osc.type=this.form[numeval(this.type)];
+		else
+			this.Osc.setPeriodicWave(this.periodic);
 		var s=Mml(streval(this.s));
 		this.step=tick%s.length;
 		var tune=s[this.step];
@@ -1271,7 +1316,7 @@ function OSC(f,v,t,to) {
 		}
 		if(tune) {
 			tune=(tune-57)*100;
-			this.OscDetune.setValueAtTime(tune,t);
+			this.OscDetune.setTargetAtTime(tune,t,Math.pow(100,numeval(this.porta))*.001);
 			this.FilDetune.setValueAtTime(tune,t);
 			var _freq=numeval(this.f);
 			this.OscFrequency.setValueAtTime(_freq,t);
@@ -1713,20 +1758,6 @@ function Video() {
 			}
 		}.bind(this)
 	);
-/*
-	if(MediaStreamTrack.getSources){
-		MediaStreamTrack.getSources(function(data){
-			var len=data.length;
-			for(var i=0,j=0;i<len;++i){
-				if(data[i].kind=="video"){
-					cmds.message("video "+j+":"+data[i].id);
-					this.cam.push(data[i].id);
-					++j;
-				}
-			}
-		}.bind(this));
-	}
-	*/
 	this.Switch=function(n){
 		if(n<0||n>=this.cam.length)
 			return;
