@@ -36,6 +36,7 @@
 var internalResoX=window.innerWidth;
 var internalResoY=window.innerHeight;
 
+var nocam=0;
 var buffers = [];
 var loadidx=0;
 var req = new XMLHttpRequest();
@@ -297,6 +298,9 @@ function CmdInit(cmd){
 	}
 }
 function Init() {
+	if(location.search.indexOf("nocam=1")>=0){
+		nocam=1;
+	}
 	window.AudioContext=window.webkitAudioContext||window.AudioContext;
 	audioctx=new AudioContext();
 	midi=new Midi();
@@ -1746,25 +1750,27 @@ function Video() {
 		this.stream=stream;
 	}
 	this.cam=[];
-	navigator.mediaDevices.enumerateDevices().then(
-		function(devices){
-			for(var i=0,j=0,len=devices.length;i<len;++i){
-				var device=devices[i];
-				if(device.kind=="videoinput"){
-					cmds.message("video "+j+":"+device.deviceId);
-					this.cam.push(device.deviceId);
-					++j;
+	if(nocam!=1){
+		navigator.mediaDevices.enumerateDevices().then(
+			function(devices){
+				for(var i=0,j=0,len=devices.length;i<len;++i){
+					var device=devices[i];
+					if(device.kind=="videoinput"){
+						cmds.message("video "+j+":"+device.deviceId);
+						this.cam.push(device.deviceId);
+						++j;
+					}
 				}
-			}
-		}.bind(this)
-	);
+			}.bind(this)
+		);
+	}
 	this.Switch=function(n){
 		if(n<0||n>=this.cam.length)
 			return;
 		navigator.getUserMedia({video:{optional:[{sourceId:this.cam[n]}]},audio:false},success.bind(this),err);
 	};
 	navigator.getUserMedia=navigator.getUserMedia||navigator.webkitGetUserMedia||navigator.mozGetUserMedia;
-	if(typeof(navigator.getUserMedia)=="function") {
+	if(nocam!=1 && typeof(navigator.getUserMedia)=="function") {
 		navigator.getUserMedia( {video: true},success.bind(this),err);
 	}
 }
