@@ -303,7 +303,7 @@ function CmdInit(){
 }
 function WaitReady(){
 	console.log("loadcnt:"+master.loadcnt);
-	if(master.loadcnt){
+	if(master.loadcnt>0){
 		setTimeout(WaitReady,200);
 		return;
 	}
@@ -599,7 +599,6 @@ function Parse0(s) {
 		case "master.rev": master.rev=r; break;
 		case "master.ir": master.ir=numeval(r);
 			if(master.ir>=1){
-				console.log(ir.length);
 				if(ir[master.ir-1])
 					master.conv.buffer=ir[master.ir-1].data;
 			}
@@ -1476,36 +1475,37 @@ function Master() {
 		var p=s.lastIndexOf("/");
 		return s.substr(p+1);
 	}
-	function LoadSample(buf,n,url) {
+	this.LoadSample=function(buf,n,url) {
 		++this.loadcnt;
 		var req = new XMLHttpRequest();
 		req.open("GET", url, true);
 		req.responseType = "arraybuffer";
 		req.nam=GetName(url);
+		req.master=this;
 		req.onload = function() {
 			if(req.response) {
-				audioctx.decodeAudioData(req.response,function(b){buf[n]={"name":req.nam,"data":b};--this.loadcnt;},function(){});
+				audioctx.decodeAudioData(req.response,function(b){buf[n]={"name":req.nam,"data":b};--req.master.loadcnt;},function(){});
 			}
 		}
 		req.onerror=function() {
 			window.xhrreqerr=true;
-			--this.loadcnt;
+			--req.master.loadcnt;
 		}
 		try {req.send();} catch(e){}
 	}
-	LoadSample(ir,0,"samples/IMreverbs1/Five Columns Long.wav");
-	LoadSample(ir,1,"samples/IMreverbs1/Five Columns.wav");
-	LoadSample(ir,2,"samples/IMreverbs1/French 18th Century Salon.wav");
-	LoadSample(ir,3,"samples/IMreverbs1/Going Home.wav");
-	LoadSample(ir,4,"samples/IMreverbs1/In The Silo Revised.wav");
-	LoadSample(ir,5,"samples/IMreverbs1/Narrow Bumpy Space.wav");
-	LoadSample(ir,6,"samples/IMreverbs1/Nice Drum Room.wav");
-	LoadSample(ir,7,"samples/IMreverbs1/Parking Garage.wav");
-	LoadSample(ir,8,"samples/IMreverbs1/Rays.wav");
-	LoadSample(ir,9,"samples/IMreverbs1/Trig Room.wav");
-	LoadSample(shot,0,"samples/kick.wav");
-	LoadSample(shot,1,"samples/snare.wav");
-	LoadSample(shot,2,"samples/chh.wav");
+	this.LoadSample(ir,0,"samples/IMreverbs1/Five Columns Long.wav");
+	this.LoadSample(ir,1,"samples/IMreverbs1/Five Columns.wav");
+	this.LoadSample(ir,2,"samples/IMreverbs1/French 18th Century Salon.wav");
+	this.LoadSample(ir,3,"samples/IMreverbs1/Going Home.wav");
+	this.LoadSample(ir,4,"samples/IMreverbs1/In The Silo Revised.wav");
+	this.LoadSample(ir,5,"samples/IMreverbs1/Narrow Bumpy Space.wav");
+	this.LoadSample(ir,6,"samples/IMreverbs1/Nice Drum Room.wav");
+	this.LoadSample(ir,7,"samples/IMreverbs1/Parking Garage.wav");
+	this.LoadSample(ir,8,"samples/IMreverbs1/Rays.wav");
+	this.LoadSample(ir,9,"samples/IMreverbs1/Trig Room.wav");
+//	LoadSample(shot,0,"samples/kick.wav");
+//	LoadSample(shot,1,"samples/snare.wav");
+//	LoadSample(shot,2,"samples/chh.wav");
 
 	this.v=this._v=1.0;
 	this.fade=.1;
