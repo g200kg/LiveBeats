@@ -302,6 +302,7 @@ function CmdInit(){
 	setInterval(Interval,30);
 }
 function WaitReady(){
+	console.log("loadcnt:"+master.loadcnt);
 	if(master.loadcnt){
 		setTimeout(WaitReady,200);
 		return;
