@@ -210,6 +210,7 @@ vj_drop = function(param){
 			vec3 ro = vec3(0, 0, -4);\
 			vec3 rd = normalize(vec3(uv, .7));\
 			float i = march(ro, rd, v-.5);\
+			float a = 0.;\
 			if(i < 4.0) {\
 				vec3 pos = ro + rd*i;\
 				vec2 h = vec2(0.001, 0.0);\
@@ -220,6 +221,7 @@ vj_drop = function(param){
 				);\
 				vec3 nor=normalize(n);\
 				col += clamp(nor, 0.0, 1.0);\
+				a = 1.;\
 			}\
 			float tt=col.x+col.y;\
 			gl_FragColor = vec4(hsl2rgb(vec3(hue,1.,tt)),0.);\
@@ -335,11 +337,11 @@ vj_drop = function(param){
 	uniLocation.scr_z = gl.getUniformLocation(this.prgscr,"scale");
 	gl.activeTexture(gl.TEXTURE0);
 	this.param = {
-		"hue":{"value":0,"def":0,"type":"double","min":0,"max":1},
-		"type":{"value":0,"def":0,"type":"int","min":0,"max":1},
-		"mode":{"value":0,"def":0,"type":"int","min":0,"max":1},
-		"rot":{"value":0,"def":0,"type":"double","min":0,"max":1},
-		"z":{"value":1,"def":0, "type":"double","min":0,"max":100},
+		"hue":{"value":0,"type":"double","min":0,"max":1},
+		"type":{"value":0,"type":"int","min":0,"max":1},
+		"mode":{"value":0,"type":"int","min":0,"max":1},
+		"rot":{"value":0,"type":"double","min":0,"max":1},
+		"z":{"value":1,"type":"double","min":0,"max":100},
 	};
 	this.starttime=0;
 	this.px=0;
@@ -381,7 +383,7 @@ vj_drop = function(param){
 		gl.uniform1i(uniLocation.scr_type,this.param.type.value);
 		gl.uniform1i(uniLocation.scr_mode,this.param.mode.value);
 	  gl.uniform1f(uniLocation.scr_hue,this.param.hue.value);
-		gl.uniform1f(uniLocation.scr_rot,this.param.rot.value*6.28/360);
+		gl.uniform1f(uniLocation.scr_rot,this.param.rot.value*3.14159265/180);
 		gl.uniform1f(uniLocation.scr_vu,this.vu);
 		gl.uniform1f(uniLocation.scr_z,this.param.z.value);
 		gl.drawArrays(gl.TRIANGLE_STRIP, 0,4);

@@ -188,16 +188,18 @@ function InitPlugin(plug,layer) {
 	plugins.push(plug);
 	pluginsparam.push({});
 	var p={
-		"a":{"value":1,"def":1,"min":0,"max":1},
-		"rot":{"value":0,"def":0,"min":-360,"max":360},
-		"w":{"value":1,"def":1,"min":0,"max":1},
-		"h":{"value":1,"def":1,"min":0,"max":1},
-		"x":{"value":.5,"def":.5,"min":0,"max":1},
-		"y":{"value":.5,"def":.5,"min":0,"max":1},
-		"z":{"value":1,"def":1,"min":0,"max":2},
+		"a":{"value":0,"defval":0,"define":1,"min":0,"max":1},
+		"rot":{"value":0,"defval":0,"define":1,"min":-360,"max":360},
+		"w":{"value":1,"defval":1,"define":1,"min":0,"max":1},
+		"h":{"value":1,"defval":1,"define":1,"min":0,"max":1},
+		"x":{"value":.5,"defval":.5,"define":1,"min":0,"max":1},
+		"y":{"value":.5,"defval":.5,"define":1,"min":0,"max":1},
+		"z":{"value":1,"defval":1,"define":1,"min":0,"max":2},
 	};
-	for(var j in plug.obj.param)
+	for(var j in plug.obj.param){
 		p[j]=plug.obj.param[j];
+		p[j].defval=p[j].value;
+	}
 	plug.obj.param=p;
 	document.getElementById(layer).appendChild(plug.obj.elem);
 	cmds.message("plugin '"+plug.script+"' is loaded as:"+plug.name);
@@ -268,7 +270,7 @@ function animInterval(timestamp) {
 		}
 		if(layout) {
 			var w,h;
-			if(plug.param.z.def){
+			if(plug.param.z.define){
 				w=plug.param.w.value*plug.param.z.value;
 				h=plug.param.h.value*plug.param.z.value;
 			}
@@ -284,18 +286,27 @@ function animInterval(timestamp) {
 /*			plug.elem.style.WebkitFilter="blur("+(plug.param.blur.value|0)+"px)";
 			plug.elem.style.WebkitFilter=plug.elem.style.mozFilter="hue-rotate("+plug.param.hue.value+"deg)";
 */
-			if(plug.param.rot.def)
+			if(plug.param.rot.define)
 				plug.elem.style.transform="rotate("+plug.param.rot.value+"deg)";
 		}
 	}
 //	window.requestAnimationFrame(animInterval);
 }
-function CmdInit(cmd){
+function CmdInit(){
+	var cmd=location.search.slice(1).split('&');
 	for(var i=0;i<cmd.length;++i){
 		var c=decodeURIComponent(cmd[i]);
 		cmds.message(c);
 		Enter(c);
 	}
+	setInterval(Interval,30);
+}
+function WaitReady(){
+	if(master.loadcnt){
+		setTimeout(WaitReady,200);
+		return;
+	}
+	CmdInit();
 }
 function Init() {
 	if(location.search.indexOf("nocam=1")>=0){
@@ -354,8 +365,9 @@ function Init() {
 	mat.obj.param.a.value=0;
 	_LoadPlugin("vj_wave","wav","base");
 	_LoadPlugin("vj_txt","txt","topmost");
-	setInterval(Interval,30);
-	setTimeout("CmdInit(location.search.slice(1).split('&'))",200);
+	setTimeout(WaitReady,200);
+//	setInterval(Interval,30);
+//	setTimeout("CmdInit(location.search.slice(1).split('&'))",200);
 }
 function Resize() {
 	scrWidth=document.body.clientWidth;
@@ -664,9 +676,8 @@ function GetUrl(){
 	for(var i=0,e=plugins.length;i<e;++i){
 		var plug=plugins[i].obj;
 		var plugparam=pluginsparam[i];
-		console.log(plugins[i].name);
 		for(var j in plugparam){
-			console.log(j,plugparam[j]);
+			if(plugparam[j]!=plug.param[j].defval)
 			s+=plugins[i].name+"."+j+"="+encodeURIComponent(plugparam[j])+"&";
 		}
 	}
@@ -1456,22 +1467,25 @@ function BOSC(n,v){
 	}
 }
 function Master() {
+	this.loadcnt=0;
 	function GetName(s) {
 		var p=s.lastIndexOf("/");
 		return s.substr(p+1);
 	}
 	function LoadSample(buf,n,url) {
+		++this.loadcnt;
 		var req = new XMLHttpRequest();
 		req.open("GET", url, true);
 		req.responseType = "arraybuffer";
 		req.nam=GetName(url);
 		req.onload = function() {
 			if(req.response) {
-				audioctx.decodeAudioData(req.response,function(b){buf[n]={"name":req.nam,"data":b};},function(){});
+				audioctx.decodeAudioData(req.response,function(b){buf[n]={"name":req.nam,"data":b};--this.loadcnt;},function(){});
 			}
 		}
 		req.onerror=function() {
 			window.xhrreqerr=true;
+			--this.loadcnt;
 		}
 		try {req.send();} catch(e){}
 	}

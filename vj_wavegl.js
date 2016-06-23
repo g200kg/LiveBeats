@@ -203,8 +203,10 @@ vj_wave = function(param){
 	this.levx=new Uint8Array(this.sizex*4);
 	this.levy=new Uint8Array(this.sizey*4);
 	this.param = {
+		"a":{"value":1,				"type":"double",	"min":0,	"max":1},
 		"line":{"value":2,		"type":"double",	"min":1,	"max":20},
 		"type":{"value":0,		"type":"int",		"min":0,	"max":2},
+		"anim":{"value":1,		"type":"int",		"min":0,	"max":1},
 		"fill":{"value":0,		"type":"int",		"min":0,	"max":1},
 		"effb":{"value":0,		"type":"double",	"min":0,	"max":20},
 		"effr":{"value":0.9,	"type":"double",	"min":0.9,	"max":0.99},
@@ -229,11 +231,9 @@ vj_wave = function(param){
 		if(dt<50)
 			return;
 		this.lasttime=timestamp;
-		for(var i=0;i<512;++i) {
-	    var j=i<<2;
-	    this.wavimgdat.data[j]=this.wavedat[i];
-	    this.wavimgdat.data[j+3]=255;
-	  }
+		if(this.param.anim.value>=.5){
+			for(var i=0;i<512;++i) {
+		}
 		gl.uniform1f(uniLocation.scr_time,timestamp-this.starttime);
 		gl.uniform2fv(uniLocation.scr_resolution,[this.w,this.h]);
 		gl.uniform3fv(uniLocation.scr_cursor,[this.px,this.py,this.pz]);

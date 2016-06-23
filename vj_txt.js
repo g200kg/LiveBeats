@@ -76,6 +76,7 @@ vj_txt=function(param) {
 		}
 	};
 	this.param={
-	"col":{"value":"#0f0","type":"string"},
+		"a":{"value":1,"type":"double"},
+		"col":{"value":"#0f0","type":"string"},
 	};
 }
