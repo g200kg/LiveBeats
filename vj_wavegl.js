@@ -233,6 +233,10 @@ vj_wave = function(param){
 		this.lasttime=timestamp;
 		if(this.param.anim.value>=.5){
 			for(var i=0;i<512;++i) {
+				var j=i<<2;
+				this.wavimgdat.data[j]=this.wavedat[i];
+				this.wavimgdat.data[j+3]=255;
+			}
 		}
 		gl.uniform1f(uniLocation.scr_time,timestamp-this.starttime);
 		gl.uniform2fv(uniLocation.scr_resolution,[this.w,this.h]);
