@@ -682,8 +682,7 @@ function GetUrl(){
 		var plug=plugins[i].obj;
 		var plugparam=pluginsparam[i];
 		for(var j in plugparam){
-			console.log(plug.param);
-			if(plugparam[j]!=plug.param[j].defval)
+			if(plug.param[j] && plugparam[j]!=plug.param[j].defval)
 				s+=plugins[i].name+"."+j+"="+encodeURIComponent(plugparam[j])+"&";
 		}
 	}
