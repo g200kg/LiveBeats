@@ -598,8 +598,11 @@ function Parse0(s) {
 		case "master.tempo": master.tempo=r; break;
 		case "master.rev": master.rev=r; break;
 		case "master.ir": master.ir=numeval(r);
-			if(master.ir>=1)
-				master.conv.buffer=ir[master.ir-1].data;
+			if(master.ir>=1){
+				console.log(ir.length);
+				if(ir[master.ir-1])
+					master.conv.buffer=ir[master.ir-1].data;
+			}
 			break;
 		case "master.run": master.run=r; break;
 		case "delay.t": delay.t=r; break;
