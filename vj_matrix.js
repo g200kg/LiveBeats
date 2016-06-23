@@ -49,7 +49,6 @@ vj_matrix=function(param) {
 			return;
 		if(timestamp-this.lasttime<50)
 			return;
-			console.log("mat.anim");
 		this.lasttime=timestamp;
 		var rz=this.param.effz.value;
 		var sx=(this.w*rz)|0;

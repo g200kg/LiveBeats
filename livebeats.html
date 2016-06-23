@@ -12,11 +12,13 @@
 	left:0px;
 	top:0px;
 	background:#888;
-	border:2px solid #000;
+	margin:0;
+	padding:0;
+	border:none;
 }
 #url{
-	margin:5%;
-	width:90%;
+	margin-top:20px;
+	width:100%;
 	height:100px;
 }
 </style>
@@ -680,8 +682,9 @@ function GetUrl(){
 		var plug=plugins[i].obj;
 		var plugparam=pluginsparam[i];
 		for(var j in plugparam){
+			console.log(plug.param);
 			if(plugparam[j]!=plug.param[j].defval)
-			s+=plugins[i].name+"."+j+"="+encodeURIComponent(plugparam[j])+"&";
+				s+=plugins[i].name+"."+j+"="+encodeURIComponent(plugparam[j])+"&";
 		}
 	}
 	document.getElementById("url").value=(s);
@@ -1799,9 +1802,12 @@ function Video() {
 </div>
 <div id="timecode" style="position:absolute;border:none;margin:0px;padding:0px;right:2px;bottom:5px;width:120px;height:20px;color:#aaa;font-size:20px;font-family:courier"></div>
 <div id="urlpane">
-	<textarea id="url">
-	</textarea><br/>
-	<button onclick="document.getElementById('urlpane').style.display='none';">Close</button>
+	<div style="width:90%;margin:auto">
+		<textarea id="url">
+		</textarea><br/>
+		<input type="checkbox"/>Use WebCam<br/>
+		<button onclick="document.getElementById('urlpane').style.display='none';">Close</button>
+	</div>
 </div>
 <div style="display:none">
 	<video id="video" width="320" height="240"></video>

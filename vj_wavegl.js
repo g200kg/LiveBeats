@@ -77,6 +77,8 @@ vj_wave = function(param){
 		uniform int eff_type;\
 		uniform float eff_mosaic;\
 		uniform float eff_wave;\
+		uniform float scale;\
+		uniform float rot;\
 		float plasma(vec2 p){\
 		  p*=10.0;\
 		  return (sin(p.x+time*0.001)*0.25+0.25)+(sin(p.y*time*0.121)*0.25+0.25);\
@@ -92,10 +94,11 @@ vj_wave = function(param){
   		return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);\
 		}\
 		void main() {\
-			vec2 uv=gl_FragCoord.xy/resolution.xy;\
 			vec2 p=(gl_FragCoord.xy*2.-resolution)/resolution;\
-			vec2 p2;\
-			p2=p;\
+			float th=atan(p.y,p.x)+rot;\
+			float r=length(p)/scale;\
+			p.x=cos(th)*r; p.y=sin(th)*r;\
+			vec2 p2=p;\
 			if(eff_type==2)\
 				p2=trans(p);\
 			float v=texture2D(textureWav,vec2((p2.x+1.)*.5,0.)).x;\
@@ -199,6 +202,8 @@ vj_wave = function(param){
 	uniLocation.scr_hue = gl.getUniformLocation(this.prgscr,"eff_hue");
 	uniLocation.scr_line = gl.getUniformLocation(this.prgscr,"eff_line");
 	uniLocation.scr_type = gl.getUniformLocation(this.prgscr,"eff_type");
+	uniLocation.scr_rot = gl.getUniformLocation(this.prgscr,"rot");
+	uniLocation.scr_z = gl.getUniformLocation(this.prgscr,"scale");
 	gl.activeTexture(gl.TEXTURE0);
 	this.levx=new Uint8Array(this.sizex*4);
 	this.levy=new Uint8Array(this.sizey*4);
@@ -207,6 +212,8 @@ vj_wave = function(param){
 		"line":{"value":2,		"type":"double",	"min":1,	"max":20},
 		"type":{"value":0,		"type":"int",		"min":0,	"max":2},
 		"anim":{"value":1,		"type":"int",		"min":0,	"max":1},
+		"rot":{"value":0,			"type":"double","min":0,"max":1},
+		"z":{"value":1,				"type":"double","min":0,"max":100},
 		"fill":{"value":0,		"type":"int",		"min":0,	"max":1},
 		"effb":{"value":0,		"type":"double",	"min":0,	"max":20},
 		"effr":{"value":0.9,	"type":"double",	"min":0.9,	"max":0.99},
@@ -249,6 +256,8 @@ vj_wave = function(param){
 		gl.uniform1f(uniLocation.scr_hue,this.param.hue.value);
 		gl.uniform1f(uniLocation.scr_line,this.param.line.value);
 		gl.uniform1i(uniLocation.scr_type,this.param.type.value);
+		gl.uniform1f(uniLocation.scr_rot,this.param.rot.value*3.14159265/180);
+		gl.uniform1f(uniLocation.scr_z,this.param.z.value);
 
 //		this.frameidx^=1;
 //		gl.bindFramebuffer(gl.FRAMEBUFFER,this.framebuf[this.frameidx].f);
