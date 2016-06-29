@@ -26,6 +26,9 @@
 //		'r' : rotate
 //
 vj_matrix=function(param) {
+	function MakeCol(hue,bri){
+		return "hsl("+(hue*360)+",100%,"+(bri*100)+"%)";
+	}
 	this.w=param.w;
 	this.h=param.h;
 	this.wavedat=param.wavedat;
@@ -65,7 +68,8 @@ vj_matrix=function(param) {
 		var i=this.wavedat[0]>>2;
 		if(this.mat[i]<0)
 			this.mat[i]=0;
-		this.ctx.fillStyle=this.param.col.value;
+//		this.ctx.fillStyle=this.param.col.value;
+		this.ctx.fillStyle=MakeCol(this.param.hue.value,this.param.bri.value);
 		this.ctx.shadowBlur=this.param.effb.value;
 		this.ctx.shadowColor=this.param.bcol.value;
 		this.ctx.strokeStyle="#000";
@@ -81,11 +85,14 @@ vj_matrix=function(param) {
 		}
 	};
 	this.param={
-		"effb":{"value":0,		"type":"double",	"min":0,	"max":20},
+		"z":{"value":2,				"define":1,	"type":"double",	"min":0,		"max":20},
+		"effb":{"value":0,		"type":"double",	"min":0,		"max":20},
 		"effr":{"value":0.95,	"type":"double",	"min":0.9,	"max":0.99},
 		"effx":{"value":0,		"type":"double",	"min":-20,	"max":20},
 		"effy":{"value":0,		"type":"double",	"min":-20,	"max":20},
 		"effz":{"value":1,		"type":"double",	"min":0.5,	"max":2},
+		"hue":{"value":0.3,			"type":"double",	"min":-1,		"max":1},
+		"bri":{"value":0.8,			"type":"double",	"min":0,		"max":1},
 		"col":{"value":"#0f0",	"type":"string"},
 		"bcol":{"value":"#fff",	"type":"string"},
 		"cx":{"value":.5,		"type":"double",	"min":0,	"max":1},

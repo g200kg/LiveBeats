@@ -101,9 +101,9 @@ vj_wave = function(param){
 			vec2 p2=p;\
 			if(eff_type==2)\
 				p2=trans(p);\
-			float v=texture2D(textureWav,vec2((p2.x+1.)*.5,0.)).x;\
+			float v=texture2D(textureWav,vec2((p2.x+1.)*.5,0.)).x*3.-1.5;\
 			vec4 b=texture2D(textureBack,p);\
-			float rr=pow(max(0.,1.-distance(p2+vec2(0.,+.5),vec2(p2.x,v))),11.0);\
+			float rr=pow(max(0.,1.-distance(p2,vec2(p2.x,v))),11.0);\
 			float rr4=pow(rr,10.0/eff_line);\
 			rr=max(rr*.25,rr4);\
 			gl_FragColor=vec4(hsv2rgb(vec3(eff_hue,1.-rr4,rr)),0.);\

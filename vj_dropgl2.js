@@ -32,6 +32,105 @@ vj_drop = function(param){
 		void main(void){\
 			gl_Position = vec4(position, 1.0);\
 		}";
+	var vj_fsobj="\
+		precision mediump float;\
+		uniform float time;\
+		uniform int type;\
+		uniform int mode;\
+		uniform vec2 resolution;\
+		uniform vec3 cursor;\
+		uniform sampler2D textureCur;\
+		uniform float vu;\
+		uniform float hue;\
+		uniform float scale;\
+		uniform float rot;\
+		vec3 hsv2rgb(vec3 c){\
+			vec4 K = vec4(1., 2./3., 1./3., 3.);\
+			vec3 p = abs(fract(c.xxx + K.xyz) * 6. - K.www);\
+			return c.z * mix(K.xxx, clamp(p - K.xxx, 0., 1.), c.y);\
+		}\
+		vec3 hsl2rgb(vec3 c){\
+			float v=c.z*2.;\
+			float s=c.y;\
+			if(v>1.){\
+				s=mix(c.y,0.,v-1.);\
+				v=1.;\
+			}\
+			return hsv2rgb(vec3(c.x,s,v));\
+		}\
+		void fold(inout vec2 p) {\
+			if(p.x + p.y < 0.0) p.xy = -p.yx;\
+		}\
+		void rotate(inout vec2 p, float a) {\
+			float s = sin(a);\
+			float c = cos(a);\
+			p = mat2(c, s, -s, c)*p;\
+		}\
+		float map(vec3 p) {\
+			float d = 20.0;\
+			for(int i = 0; i < 5; i++) {\
+				rotate(p.xz, time*0.0003);\
+				rotate(p.xy, time*0.00022);\
+				fold(p.xy);\
+				fold(p.xz);\
+				fold(p.yz);\
+				p=2.0*p-1.0;\
+				vec3 p2=pow(abs(p),vec3(1.6));\
+				float pp=pow(p2.x+p2.y+p2.z,1.0/1.6);\
+				d=pp*pow(2.,-float(i));\
+			}\
+			return d;\
+		}\
+		float march(vec3 ro, vec3 rd, float v) {\
+			float t = 1.0;\
+			for(int i = 0; i <10; i++) {\
+				float d = map(ro + rd*t);\
+				if(t < 0.1 || t >= 8.0) \
+					break;\
+				t += d*(0.08 + .1*t);\
+			}\
+			return t;\
+		}\
+		void object(vec2 uv,float v){\
+			uv-=0.5;\
+			vec3 col=vec3(0.0);\
+			vec3 ro = vec3(0, 0, -4);\
+			vec3 rd = normalize(vec3(uv, .7));\
+			float i = march(ro, rd, v-.5);\
+			float a = 0.;\
+			if(i < 4.0) {\
+				vec3 pos = ro + rd*i;\
+				vec2 h = vec2(0.001, 0.0);\
+				vec3 n = vec3(\
+					map(pos + h.xyy) - map(pos - h.xyy),\
+					map(pos + h.yxy) - map(pos - h.yxy),\
+					map(pos + h.yyx) - map(pos - h.yyx)\
+				);\
+				vec3 nor=normalize(n);\
+				col += clamp(nor, 0.0, 1.0);\
+				a = 1.;\
+			}\
+			float tt=col.x+col.y;\
+			gl_FragColor = vec4(hsl2rgb(vec3(hue,1.,tt)),0.);\
+		}\
+		void main() {\
+			vec2 uv=(gl_FragCoord.xy/resolution.xy-.5);\
+			vec2 p=(gl_FragCoord.xy*2.-resolution)/resolution;\
+			float a=atan(p.y,p.x);\
+			float d=length(p);\
+			float v;\
+			float th=atan(uv.y,uv.x)+rot;\
+			float r=length(uv)/scale;\
+			uv=vec2(cos(th)*r,sin(th)*r);\
+			uv+=.5;\
+			if(mode==0)\
+				v=texture2D(textureCur,vec2(uv.x,0.)).x;\
+			else if(mode==1)\
+				v=texture2D(textureCur,vec2((d+1.)*.5,0.)).x;\
+			else\
+				v=vu;\
+			object(uv,v);\
+	}";
 	var vj_fs="\
 		precision mediump float;\
 		uniform float time;\
@@ -88,6 +187,16 @@ vj_drop = function(param){
 				d=pp*pow(2.,-float(i));\
 			}\
 			return d;\
+		}\
+		float march(vec3 ro, vec3 rd, float v) {\
+			float t = 1.0;\
+			for(int i = 0; i <10; i++) {\
+				float d = map(ro + rd*t);\
+				if(t < 0.1 || t >= 8.0) \
+					break;\
+				t += d*(0.08 + .1*t);\
+			}\
+			return t;\
 		}\
 		void dots(vec2 p,float v){\
 			p-=.5;\
@@ -149,17 +258,22 @@ vj_drop = function(param){
 		}\
 		void lights(vec2 uv,float v){\
 			uv.y*=resolution.y/resolution.x;\
-			vec3 dir=vec3(uv*(5. * (0.5 + 0.5*cos(.001*time)) + 2.5),1.);\
+			vec3 dir=vec3(uv*(1.900 * (0.5 + 0.5*cos(.001*time)) + 0.5),1.);\
 			vec3 from=vec3(.5+.0005*time,.0005*time,-.0003*time*0.1)*2.5;\
 			dir-=vec3(.001*time,.0015*time,-.00003*time);\
-			float s=.4, fade=.2;\
+			float s=.4,fade=.2;\
 			vec3 vv=vec3(0.);\
 			vec3 p;\
+			float a2=-3.1;\
+			float a1=0.8;\
+			float a3 = 0.063*time;\
 			float a,pa;\
-			rotate(dir.xz,-3.1);\
-			rotate(dir.yz,.8);\
-			rotate(from.xz,-3.1);\
-			rotate(from.yz,.8);\
+			mat2 rot1=mat2(cos(a1),sin(a1),-sin(a1),cos(a1));\
+			mat2 rot2=mat2(cos(a2),sin(a2),-sin(a2),cos(a2));\
+			dir.xz*=rot1;\
+			dir.yz*=rot2;\
+			from.xz*=rot1;\
+			from.yz*=rot2;\
 			for (int r=0; r<8; r++) {\
 				p=from+s*dir*.5;\
 				p = abs(vec3(0.85)-mod(p,vec3(1.7)));\
@@ -208,15 +322,10 @@ vj_drop = function(param){
 			vec3 col=vec3(0.0);\
 			vec3 ro = vec3(0, 0, -4);\
 			vec3 rd = normalize(vec3(uv, .7));\
-			float d=map(ro + rd);\
-			float t=1.+d*.18;\
-			for(int i=0;i<7;++i){\
-				d=map(ro+rd*t);\
-				t+=d*(.08+.1*t);\
-			}\
+			float i = march(ro, rd, v-.5);\
 			float a = 0.;\
-			if(t < 4.0) {\
-				vec3 pos = ro + rd*t;\
+			if(i < 4.0) {\
+				vec3 pos = ro + rd*i;\
 				vec2 h = vec2(0.001, 0.0);\
 				vec3 n = vec3(\
 					map(pos + h.xyy) - map(pos - h.xyy),\
@@ -262,8 +371,6 @@ vj_drop = function(param){
 				plane(uv,v);\
 			else if(type==7)\
 				spot(uv,v);\
-			else if(type==8)\
-				object(uv,v);\
 		}";
 	this.audioctx=param.audioctx;
 	this.wavedat=param.wavedat;
@@ -289,11 +396,26 @@ vj_drop = function(param){
 	this.v_shader=gl.createShader(gl.VERTEX_SHADER);
 	gl.shaderSource(this.v_shader, vj_vs);
 	gl.compileShader(this.v_shader);
+	if(!gl.getShaderParameter(this.v_shader, gl.COMPILE_STATUS))
+		alert(gl.getShaderInfoLog(this.v_shader));
+
+	this.prg=[{"src":vj_fs},{"src":vj_fsobj}];
+	for(var i=0;i<this.prg.length;++i){
+		var prg=this.prg[i];
+		prg.fshader=gl.createShader(gl.FRAGMENT_SHADER);
+		gl.shaderSource(prg.fshader,prg.src);
+		gl.compileShader(prg.fshader);
+		if(!gl.getShaderParameter(prg.fshader, gl.COMPILE_STATUS))
+			alert(gl.getShaderInfoLog(prg.fshader));
+		prg.prg = gl.createProgram();
+		gl.attachShader(prg.prg, this.v_shader);
+		gl.attachShader(prg.prg, prg.fshader);
+		gl.linkProgram(prg.prg);
+	}
+
 	this.f_shaderscr=gl.createShader(gl.FRAGMENT_SHADER);
 	gl.shaderSource(this.f_shaderscr,vj_fs);
 	gl.compileShader(this.f_shaderscr);
-	if(!gl.getShaderParameter(this.v_shader, gl.COMPILE_STATUS))
-		alert(gl.getShaderInfoLog(this.v_shader));
 	if(!gl.getShaderParameter(this.f_shaderscr, gl.COMPILE_STATUS))
 		alert(gl.getShaderInfoLog(this.f_shaderscr));
 
@@ -364,7 +486,10 @@ vj_drop = function(param){
 			vu3=0;
 		this.vu=(vu3+40)/40;
 		this.frameidx^=1;
-		gl.useProgram(this.prgscr);
+
+//		gl.useProgram(this.prgscr);
+console.log(this.prg[0]);
+		gl.useProgram(this.prg[this.param.type.value].prg);
 		gl.uniform1f(uniLocation.scr_time,timestamp-this.starttime);
 		gl.uniform2fv(uniLocation.scr_resolution,[this.w,this.h]);
 		gl.uniform3fv(uniLocation.scr_cursor,[this.px,this.py,this.pz]);

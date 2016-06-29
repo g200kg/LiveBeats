@@ -49,11 +49,18 @@ table td {
 <button onclick="ShowDoc('ja')">Japanese</button>|<button onclick="ShowDoc('en')">English</button><br/>
 <div class="doc_en"><p><b>LiveBeats</b> is a command-line based audio/visual live performance tool for browser.
 <b>LiveBeats</b> can generate various sounds and visual effects by commmands from keyboard.
-Chrome is recommended. and WebCam is required.</p>
+WebCam is required.</p>
+<p>Chrome is recomemded.<br/>
+Firefox may produce some abnormal sounds.<br/>
+Edge can work but need so long initialization time.
+</p>
 </div>
 <div class="doc_ja"><p><b>LiveBeats</b> はブラウザ上で動作するコマンドラインベースの音響/映像ライブパフォーマンス用のツールです。キーボードからコマンドを入力して行く事で様々な音と映像効果をリアルタイムに生成する事が可能です。
-Chrome の使用を推奨します。またWebカメラが必要です。
-
+Webカメラが必要です。
+</p>
+<p>Chrome の使用を推奨します。<br/>
+Firefoxでは正常な音が出ない場合があります。<br/>
+Edge は初期化に非常に長い時間がかかる場合があります。
 </p>
 </div>
 <div id="link"><b><a href="livebeats.html" style="font-weight:bold;font-size:20px">Start LiveBeats</a></b></div>
@@ -68,13 +75,13 @@ Chrome の使用を推奨します。またWebカメラが必要です。
 <table>
 <tr><th>Type</th><th>Description</th></tr>
 <tr><td>cam.a=1</td><td>Set 'cam' object to visible</td></tr>
-<tr><td>cam.v=.5</td><td>Sound from 'cam' object is enabled. You can hear the sound from 'cam' by making motion in front of WebCam.</td></tr>
+<tr><td>cam.v=.3</td><td>Sound from 'cam' object is enabled. You can hear the sound from 'cam' by making motion in front of WebCam.</td></tr>
 <tr><td>bdo.s=crrr</td><td>Set bass drum pattern to 'crrr'. </td></tr>
 <tr><td>sdo.s=rrrrcrrr</td><td>Set snare drum pattern to 'rrrrcrrr'.</td></tr>
 <tr><td>hho.s=cr</td><td>Set Hi-hat pattern to 'cr'.</td></tr>
 <tr><td>o1.s=aarrrrrr</td><td>Set bass pattern.</td></tr>
 <tr><td>o2.s=s20</td><td>Set arpeggio pattern from preset</td></tr>
-<tr><td>wav.col=hue(lfo(16))</td><td>wav display color change</td></tr>
+<tr><td>wav.hue=lfo16</td><td>wav display color change</td></tr>
 <tr><td>wav.rot=tick</td><td>wav display rotation</td></tr>
 </table>
 </p>
@@ -85,13 +92,13 @@ Chrome の使用を推奨します。またWebカメラが必要です。
 <table>
 <tr><th>コマンド</th><th>説明</th></tr>
 <tr><td>cam.a=1</td><td>'cam'オブジェクトを表示します。</td></tr>
-<tr><td>cam.v=.5</td><td>'cam'オブジェクトの音を出力します。カメラの前で動作をすると音が出ます。</td></tr>
+<tr><td>cam.v=.3</td><td>'cam'オブジェクトの音を出力します。カメラの前で動作をすると音が出ます。</td></tr>
 <tr><td>bdo.s=crrr</td><td>バスドラムのパターンを'crrr'に設定します。 </td></tr>
 <tr><td>sdo.s=rrrrcrrr</td><td>スネアドラムのパターンを'rrrrcrrr'に設定します。</td></tr>
 <tr><td>hho.s=cr</td><td>ハイハットのパターンを'cr'に設定します。</td></tr>
 <tr><td>o1.s=aarrrrrr</td><td>ベースのパターンを設定します。</td></tr>
 <tr><td>o2.s=s20</td><td>プリセットからアルペジオパターンを設定します。</td></tr>
-<tr><td>wav.col=hue(lfo(16))</td><td>波形表示の色を切り替えます。</td></tr>
+<tr><td>wav.hue=lfo16</td><td>波形表示の色を切り替えます。</td></tr>
 <tr><td>wav.rot=tick</td><td>波形表示を回転させます。</td></tr>
 </table>
 </p>
@@ -167,9 +174,12 @@ Chrome の使用を推奨します。またWebカメラが必要です。
 <tr><td>o1.f</td><td>number</td><td>Base frequency for note 'a'. default value is 110 for o1 and o5. otherwise 440.</td></tr>
 <tr><td>o1.c</td><td>number</td><td>Filter cutoff. Specifying multiple number of current osc frequency.</td></tr>
 <tr><td>o1.q</td><td>number</td><td>Filter Q-factor.</td></tr>
-<tr><td>o1.pan</td><td>number</td><td>Panning control. (0(left) &lt;-&gt; 0.5(center) &lt;-&gt; 1.0(right))</td></tr>
-<tr><td>o1.type</td><td>number</td><td>Wave form (0:sine 1:sawtooth 2:square)</td></tr>
+<tr><td>o1.d</td><td>number</td><td>Decay time.</td></tr>
+<tr><td>o1.porta</td><td>number</td><td>Portamento time.</td></tr>
 <tr><td>o1.delay</td><td>number</td><td>Send to delay object (0.0 - 1.0)</td></tr>
+<tr><td>o1.wav</td><td>string</td><td>Custom waveform coeff string</td></tr>
+<tr><td>o1.type</td><td>number</td><td>Wave form (0:sine 1:sawtooth 2:square 3:custom)</td></tr>
+<tr><td>o1.pan</td><td>number</td><td>Panning control. (0(left) &lt;-&gt; 0.5(center) &lt;-&gt; 1.0(right))</td></tr>
 <tr><td>o1.out</td><td>object</td><td>Specify the output rourting. default='master'. FM modulation will be configured if you specify other oscillator like o1,o2,...</td></tr>
 </table>
 </div>
@@ -182,9 +192,12 @@ Chrome の使用を推奨します。またWebカメラが必要です。
 <tr><td>o1.f</td><td>number</td><td>ノート"a"の基本周波数。デフォルトはo1、o5では110、その他のオシレータは440。</td></tr>
 <tr><td>o1.c</td><td>number</td><td>フィルターのカットオフ。オシレータの周波数に対する倍数。</td></tr>
 <tr><td>o1.q</td><td>number</td><td>フィルターのQ</td></tr>
-<tr><td>o1.pan</td><td>number</td><td>パン制御 (0(左) &lt;-&gt; 0.5(中央) &lt;-&gt; 1.0(右))</td></tr>
-<tr><td>o1.type</td><td>number</td><td>波形 (0:サイン波 1:鋸歯状波 2:矩形波)</td></tr>
+<tr><td>o1.d</td><td>nubmer</td><td>ディケイタイム</td></tr>
+<tr><td>o1.porta</td><td>number</td><td>ポルタメント</td></tr>
 <tr><td>o1.delay</td><td>number</td><td>delayオブジェクトへのセンドレベル (0.0 - 1.0)</td></tr>
+<tr><td>o1.wav</td><td>string</td><td>カスタム波形の倍音係数</td></tr>
+<tr><td>o1.type</td><td>number</td><td>波形 (0:サイン波 1:鋸歯状波 2:矩形波 3:カスタム波形)</td></tr>
+<tr><td>o1.pan</td><td>number</td><td>パン制御 (0(左) &lt;-&gt; 0.5(中央) &lt;-&gt; 1.0(右))</td></tr>
 <tr><td>o1.out</td><td>object</td><td>出力のルーティング指定。デフォルトは"master"。 o1,o2など他のオシレータを指定してFM変調を掛ける事ができます。</td></tr>
 </table>
 </div>

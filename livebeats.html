@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <title>Live Beats | g200kg Music &amp; Software</title>
 <style>
+body{
+	margin:0;
+	padding:0;
+}
 #urlpane{
 	display:none;
 	position:absolute;
@@ -20,6 +24,14 @@
 	margin-top:20px;
 	width:100%;
 	height:100px;
+}
+#mess{
+	position:absolute;
+	left:0;
+	top:0;
+	width:100%;
+	padding:20px;
+	background:#ccc;
 }
 </style>
 </head>
@@ -39,6 +51,7 @@ var internalResoX=window.innerWidth;
 var internalResoY=window.innerHeight;
 
 var nocam=0;
+var cmdlinemode=0;
 var buffers = [];
 var loadidx=0;
 var req = new XMLHttpRequest();
@@ -184,6 +197,8 @@ function DeletePlugin(name) {
 	return "plugin '"+name+"' is deleted.\n";
 }
 function InitPlugin(plug,layer) {
+	if(!plug.obj || !plug.obj.elem || !plug.obj.param)
+		return;
 	plug.obj.elem.style.position="absolute";
 	plug.obj.elem.style.left="0px";
 	plug.obj.elem.style.top="0px";
@@ -312,6 +327,7 @@ function WaitReady(){
 	CmdInit();
 }
 function Init() {
+	console.log("Init start");
 	if(location.search.indexOf("nocam=1")>=0){
 		nocam=1;
 	}
@@ -322,18 +338,19 @@ function Init() {
 	out=master.out;
 	run=1;
 	delay=new Delay();
-	o1=new OSC(110,0.4,1,out);
-	o2=new OSC(440,0.3,1,out);
-	o3=new OSC(440,0.3,1,out);
-	o4=new OSC(880,0.3,1,out);
-	o5=new OSC(110,0.3,1,out);
-	o6=new OSC(440,0.3,1,out);
-	o7=new OSC(440,0.3,1,out);
-	o8=new OSC(880,0.3,1,out);
+	o1=new OSC(110,0.8,1,out);
+	o2=new OSC(440,0.5,1,out);
+	o3=new OSC(440,0.5,1,out);
+	o4=new OSC(880,0.5,1,out);
+	o5=new OSC(110,0.5,1,out);
+	o6=new OSC(440,0.5,1,out);
+	o7=new OSC(440,0.5,1,out);
+	o8=new OSC(880,0.5,1,out);
 	bdo=new FMO(115,.5,.8,.2,0,  451,.5,2670,.02,0,  131,1,1303,.1,0, .5);
 	sdo=new FMO(213,1,.8,.1,0, 723,1,2912,.6,0, 140,1,800,.1,0,.3);
 	hho=new FMO(2233,1,.5,.03,0, 423,1,3120,.07,2, 552,1,1800,.02,1,.7);
 	cyo=new FMO(2612,1,.4,.4,0, 1826,1,4219,5,2, 3897,1,1401,1,2,.4);
+	speech=new Speech();
 //	bdo=new BOSC(0,2.0);
 //	sdo=new BOSC(1,2.0);
 //	hho=new BOSC(2,0.8);
@@ -358,6 +375,7 @@ function Init() {
 	document.addEventListener("dragover",DragOver,false);
 	document.addEventListener("drop",FileDrop,false);
 
+	console.log("load plugins");
 	cam=_LoadPlugin("vj_cam","cam","base");
 	cam.obj.param.a.value=0;
 	p1=_LoadPlugin("vj_drop","p1","base");
@@ -368,6 +386,7 @@ function Init() {
 	mat.obj.param.a.value=0;
 	_LoadPlugin("vj_wave","wav","base");
 	_LoadPlugin("vj_txt","txt","topmost");
+
 	setTimeout(WaitReady,200);
 //	setInterval(Interval,30);
 //	setTimeout("CmdInit(location.search.slice(1).split('&'))",200);
@@ -389,6 +408,8 @@ function MouseEvent(ev) {
 	mouse.pz=ev.which;
 }
 function KeyDown(ev) {
+	if(cmdlinemode)
+		return;
 	switch(ev.keyCode) {
 	case 8:
 		cmds.key(8);
@@ -464,6 +485,8 @@ function KeyDown(ev) {
 	}
 }
 function KeyPress(ev) {
+	if(cmdlinemode)
+		return;
 	cmds.key(ev.charCode);
 	ev.preventDefault();
 	ev.stopPropagation();
@@ -503,6 +526,7 @@ function oscdesc(o,nam) {
 	r+=nam+".f (freq):"+o.f+"\n";
 	r+=nam+".c (cutoff):"+o.c+"\n";
 	r+=nam+".q (Q):"+o.q+"\n";
+	r+=nam+".d (decay):"+o.d+"\n";
 	r+=nam+".porta:"+o.porta+"\n";
 	r+=nam+".delay:"+o.delay+"\n";
 	r+=nam+".wav:"+o.wav+"\n";
@@ -587,6 +611,7 @@ function Parse0(s) {
 				case "pan": o.pan=right; break;
 				case "out": o.out=right; break;
 				case "d": o.d=right; break;
+				case "dist":o.dist=right; break;
 				case "wav": o.wav=right; o.MakeWav(); break;
 				default: return "Property not found";
 				}
@@ -608,6 +633,12 @@ function Parse0(s) {
 		case "master.run": master.run=r; break;
 		case "delay.t": delay.t=r; break;
 		case "delay.fb": delay.fb=r; break;
+		case "say.t": speech.SetText(r); break;
+		case "say.r": speech.SetRate(r); break;
+		case "say.p": speech.SetPitch(r); break;
+		case "say.l": speech.SetLoop(r); break;
+		case "say.v": speech.SetVol(r); break;
+		case "say.voice": speech.SetVoice(r); break;
 		case "txt.a": cmds.a=r; break;
 		case "txt.w": cmds.w=r; break;
 		case "txt.h": cmds.h=r; break;
@@ -708,12 +739,12 @@ function Parse(str) {
 	p=skip(p);
 	if(test(p,"edit")){
 		var s;
-		p=skip(p+4);
-		s=replaceplugin(str.substr(p));
+		var i=skip(p+4);
+		s=replaceplugin(str.substr(i));
 		try {
 			s=eval(s)+"\n";
 		} catch(e) {s="Undefined\n";}
-		return s;
+		return str.substr(i)+"="+s+"\n";
 /*		if(this.histcur<this.hist.length-1) {
 			++this.histcur;
 			this.log[0]=this.hist[this.histcur];
@@ -722,6 +753,15 @@ function Parse(str) {
 		}
 		return "";
 */
+	}
+	if(test(p,"cmdline")){
+		var el=document.getElementById("cmdline");
+		if((cmdlinemode^=1)){
+			el.style.display="block";
+			el.focus();
+		}
+		else
+			el.style.display="none";
 	}
 	if(test(p,"geturl")){
 		GetUrl();
@@ -997,6 +1037,12 @@ function Automation_None(actx,param,v,t){
 		this.param.setTargetAtTime(v,t,c);
 	};
 }
+function CmdlineInput(){
+	var s=document.getElementById("cmdline").value;
+	document.getElementById("cmdline").value="";
+	cmds.message("> "+s);
+	Enter(s);
+}
 function Automation(actx,param,v,t){
 	this.actx=actx;
 	this.param=param;
@@ -1077,6 +1123,7 @@ function Interval() {
 		o7.next(nextTime);
 		o8.next(nextTime);
 		delay.next(nextTime);
+		speech.next(nextTime);
 		var c4=tick&3;
 		var c8=tick&7;
 		var c16=tick&15;
@@ -1260,6 +1307,14 @@ function OSC(f,v,t,to) {
 		}
 		this.periodic=audioctx.createPeriodicWave(this.custom[0],this.custom[1]);
 	};
+	this.MakeCurve=function(){
+		var dist=Math.min(.99,Math.max(0,numeval(this.dist)));
+  	var k=2*dist/(1-dist);
+  	for(var i=0; i<15; ++i) {
+      	var x=i/7-1;
+      	this.curve[i] = (1 + k) * x / (1+ k * Math.abs(x))/(1+dist);
+    }
+	};
 	this.ena=0;
 	this.wav=this.defwav="10000001";
 	this.custom=[];
@@ -1277,19 +1332,22 @@ function OSC(f,v,t,to) {
 	this.FilDetune=new Automation(audioctx,this.Fil.detune);
 	this.Gain=audioctx.createGain();
 	this.GainGain=new Automation(audioctx,this.Gain.gain);
+	this.Shaper=audioctx.createWaveShaper();
+	this.curve=new Float32Array(15);
+	this.Shaper.curve=this.curve;
 	this.Mod=audioctx.createGain();
 	this.Send=audioctx.createGain();
 	this.Pan=audioctx.createStereoPanner();
 	this.Osc.connect(this.Fil);
 	this.Fil.connect(this.Gain);
-	this.Gain.connect(this.Mod);
-	this.Gain.connect(this.Send);
+	this.Gain.connect(this.Shaper);
+	this.Shaper.connect(this.Mod);
+	this.Shaper.connect(this.Send);
 	this.Send.connect(delay.Dly);
-	this.Gain.connect(this.Pan);
-	this.Gain.connect(this.Mod);
+	this.Shaper.connect(this.Pan);
 	this.Gain.gain.value=0;
 	this.Send.gain.value=0;
-	this.Mod.gain.value=1000;
+	this.Mod.gain.value=1200;
 	if(to) {
 		this.Pan.connect(to);
 	}
@@ -1305,13 +1363,14 @@ function OSC(f,v,t,to) {
 	this.delay=this.defdelay=0.0;
 	this.f=this.deff=f;
 	this.d=this.defd=1;
+	this.dist=this.defdist=0;
 	this.step=0;
 	this._out=null;
 	this.freq="";
 	this.Osc.start(0);
 	this.tune=0;
 	this.next=function(t) {
-		this.Send.gain.value=this.delay;
+		this.Send.gain.value=numeval(this.delay);
 		if(this.type<3)
 			this.Osc.type=this.form[numeval(this.type)];
 		else
@@ -1335,15 +1394,17 @@ function OSC(f,v,t,to) {
 			}
 		}
 		if(tune) {
+			this.MakeCurve();
 			tune=(tune-57)*100;
 			this.OscDetune.setTargetAtTime(tune,t,Math.pow(100,numeval(this.porta))*.001);
 			this.FilDetune.setValueAtTime(tune,t);
 			var _freq=numeval(this.f);
-			this.OscFrequency.setValueAtTime(_freq,t);
+//			this.OscFrequency.setValueAtTime(_freq,t);
+			this.OscFrequency.setTargetAtTime(_freq,t,Math.pow(100,numeval(this.porta))*.001);
 			var _cutoff=numeval(this.c);
 			this.FilFrequency.setValueAtTime(_freq*_cutoff,t);
 			this.Fil.Q.value=numeval(this.q);
-			this.GainGain.setTargetAtTime(numeval(this.v)*v,t,0.001);
+			this.GainGain.setTargetAtTime(numeval(this.v)*v*.6,t,0.001);
 			this.GainGain.setTargetAtTime(0,t+0.01,Math.max(.02,numeval(this.d)));
 			this.tune=tune;
 		}
@@ -1373,10 +1434,10 @@ function FMO(f1,p1,v1,r1,t1,f2,p2,v2,r2,t2,f3,p3,v3,r3,t3,pan) {
 	this.Op1gain.gain.value=0;
 	this.s="";
 	this.step=0;
-	this.f1=f1;
-	this.p1=p1;
-	this._v=this.v=v1;
-	this.r1=r1;
+	this.f1=this.deff1=f1;
+	this.p1=this.defp1=p1;
+	this._v=this.v=this.defv=v1;
+	this.r1=this.defr1=r1;
 	this.f2=f2;
 	this.p2=p2;
 	this.v2=v2;
@@ -1509,7 +1570,7 @@ function Master() {
 //	LoadSample(shot,1,"samples/snare.wav");
 //	LoadSample(shot,2,"samples/chh.wav");
 
-	this.v=this._v=1.0;
+	this._v=(this.v=1.0)*.3;
 	this.fade=.1;
 	this.conv=audioctx.createConvolver();
 	this.convgain=audioctx.createGain();
@@ -1549,7 +1610,7 @@ function Master() {
 		this._tempo=numeval(this.tempo);
 		var step0=((tick/4)|0);
 		var fsuparam=this.g[step0%this.g.length];
-		var _v=numeval(this.v);
+		var _v=numeval(this.v)*.3;
 		this._rev=numeval(this.rev);
 		this.convgain.gain.value=this._rev;
 		this._v+=(_v-this._v)*this.fade;
@@ -1628,6 +1689,51 @@ function Master() {
 		}
 	}
 }
+function Speech(){
+	this.utter=new SpeechSynthesisUtterance();
+	this.loop=16;
+	this.lang="en-US";
+	this.pitch="1";
+	this.rate="1";
+	this.vol="1";
+	this.text=[];
+	this.textidx=0;
+	this.voices=speechSynthesis.getVoices();
+	this.SetText=function(s){
+		this.text=s.split(",");
+	};
+	this.SetRate=function(s){
+		this.rate=s;
+	};
+	this.SetPitch=function(s){
+		this.pitch=s;
+	};
+	this.SetLoop=function(s){
+		var i=parseFloat(s);
+		if(i>=16)
+			this.loop=i;
+	};
+	this.SetVol=function(s){
+		this.vol=s;
+	};
+	this.SetVoice=function(s){
+		this.voice=s;
+	};
+	this.next=function(t){
+		if((tick%this.loop)==0){
+			if(this.text.length>0){
+				this.utter.text=this.text[this.textidx%this.text.length];
+				this.utter.pitch=numeval(this.pitch);
+				this.utter.rate=numeval(this.rate);
+				this.utter.volume=numeval(this.vol);
+				this.utter.voice=this.voices[numeval(this.voice)];
+				speechSynthesis.speak(this.utter);
+				if(++this.textidx>=this.text.length)
+					this.textidx=0;
+			}
+		}
+	};
+}
 function Delay() {
 	this.Dly=audioctx.createDelay();
 	this.Dly.delayTime.value=60/master._tempo;
@@ -1642,7 +1748,7 @@ function Delay() {
 		var n=4/numeval(this.t);
 		this.Fb.gain.value=numeval(this.fb);
 		this.Dly.delayTime.value=60*n/master._tempo+0.02;
-	}
+	};
 }
 function MidiIn(e){
 	for(var i=midicb.length-1;i>=0;--i)
@@ -1799,6 +1905,7 @@ function Video() {
 </div>
 <div id="topmost" style="position:absolute;left:0px;top:0px;overflow:hidden">
 </div>
+<input id="cmdline" onchange="CmdlineInput()" style="display:none;width:100%;position:absolute;left:0;bottom:0;border:none"/>
 <div id="timecode" style="position:absolute;border:none;margin:0px;padding:0px;right:2px;bottom:5px;width:120px;height:20px;color:#aaa;font-size:20px;font-family:courier"></div>
 <div id="urlpane">
 	<div style="width:90%;margin:auto">
@@ -1809,8 +1916,8 @@ function Video() {
 	</div>
 </div>
 <div style="display:none">
-	<video id="video" width="320" height="240"></video>
-<!--	<canvas id="cvcamwork" width="80" height="60"></canvas>-->
+	<video id="video" width="1" height="1"></video>
+<!--	<canvas id="cvcamwork" width="256" height="256"></canvas>-->
 </div>
 </body>
 </html>

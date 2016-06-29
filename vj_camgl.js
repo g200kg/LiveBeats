@@ -216,8 +216,10 @@ vj_cam = function(param){
 		var t=this.texturePre;
 		this.texturePre=this.textureCur;
 		this.textureCur=t;
+//		var ctx=this.cvwork.getContext("2d");
+//		ctx.drawImage(video,0,0,320,256);
 		gl.bindTexture(gl.TEXTURE_2D,this.textureCur);
-		gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,video);
+		gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,this.video);
 		gl.bindTexture(gl.TEXTURE_2D,null);
 	};
 	this.createFramebuffer=function(w, h) {
@@ -228,6 +230,8 @@ vj_cam = function(param){
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
 		gl.bindTexture(gl.TEXTURE_2D, null);
 		gl.bindRenderbuffer(gl.RENDERBUFFER, null);
@@ -386,6 +390,9 @@ vj_cam = function(param){
 	this.midipitch=0;
 	this.notes=Mml(this.param.scale.value);
 	this.ready=false;
+//	this.cvwork=document.createElement("canvas");
+//	this.cvwork.width=320;
+//	this.cvwork.height=256;
 
 	this.anim=function(timestamp) {
 		if(!this.ready || this.param.a.value==0)
