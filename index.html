@@ -117,6 +117,16 @@ Edge は初期化に非常に長い時間がかかる場合があります。
 (osc-2 freq : number) o2.f=o1.f &lt;-- 'o1.f' will be '110', and evaluated as a number<br/>
 (osc-1 sequence : string) o1.s=abcde &lt;-- 'abcde' will be evaluated as a string 'abcde'<br/>
 (osc-2 sequence : string) o2.s=o1.s &lt;-- 'o1.s' will evalueted as 'abcde'<br/>
+<br/>
+formula can contain bultin variables,<br/>
+tick --- count up per tick (sixteenth note)<br/>
+lfo2 / lfo4 / lfo8 / lfo16 / lfo32 / lfo64 --- low frequency osillator (n-ticks cycle)<br/>
+sh1 / sh2 / sh4 / sh8 / sh16 / sh32 / sh64 --- sample &amp; hold value (changes every n-ticks)<br/>
+beat4 / beat8 / beat16 / beat32 / beat64 --- trigger per n-ticks<br/>
+<br/>
+For example, <br/>
+o1.f=sh4*1000+100 --- random note using sample&amp;hold<br/>
+o1.c=lfo16*1000+100 --- filter sweep by lfo<br/>
 </p>
 </div>
 <div class="doc_ja">

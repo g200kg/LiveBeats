@@ -1109,6 +1109,36 @@ function Interval() {
 	animInterval(current*1000);
 	while(current>=nextTime-.2) {
 		++tick;
+		var c4=tick&3;
+		var c8=tick&7;
+		var c16=tick&15;
+		var c32=tick&31;
+		var c64=tick&63;
+		var c96=tick%96;
+		var c128=tick&127;
+		++cnt;
+		lfo2=cnt&1;
+		lfo4=((c4>2)?4-c4:c4)*.5;
+		lfo8=((c8>4)?8-c8:c8)*.25;
+		lfo16=((c16>8)?16-c16:c16)*.125;
+		lfo32=((c32>16)?32-c32:c32)*.0625;
+		lfo64=((c64>32)?64-c64:c64)*.03125;
+		lfo96=((c96>48)?96-c96:c96)/48;
+		lfo128=((c128>64)?128-c128:c128)*.015625;
+		sh1=Math.random();
+		if((tick&1)==0) sh2=Math.random();
+		if(c4==0) sh4=Math.random();
+		if(c8==0) sh8=Math.random();
+		if(c16==0) sh16=Math.random();
+		if(c32==0) sh32=Math.random();
+		if(c64==0) sh64=Math.random();
+		if(c96==0) sh96=Math.random();
+		if(c128==0) sh128=Math.random();
+		beat4=(c4==0?1:0);
+		beat8=(c8==0?1:0);
+		beat16=(c16==0?1:0);
+		beat32=(c32==0?1:0);
+		beat64=(c64==0?1:0);
 		master.next(nextTime);
 		bdo.next(nextTime);
 		sdo.next(nextTime);
@@ -1124,35 +1154,6 @@ function Interval() {
 		o8.next(nextTime);
 		delay.next(nextTime);
 		speech.next(nextTime);
-		var c4=tick&3;
-		var c8=tick&7;
-		var c16=tick&15;
-		var c32=tick&31;
-		var c64=tick&63;
-		var c96=tick%96;
-		var c128=tick&127;
-		++cnt;
-		lfo1=cnt&1;
-		lfo2=((c4>2)?4-c4:c4)*.5;
-		lfo4=((c8>4)?8-c8:c8)*.25;
-		lfo8=((c16>8)?16-c16:c16)*.125;
-		lfo16=((c32>16)?32-c32:c32)*.0625;
-		lfo32=((c64>32)?64-c64:c64)*.03125;
-		lfo48=((c96>48)?96-c96:c96)/48;
-		lfo64=((c128>64)?128-c128:c128)*.015625;
-		if((tick&1)==0) sh1=Math.random();
-		if(c4==0) sh2=Math.random();
-		if(c8==0) sh4=Math.random();
-		if(c16==0) sh8=Math.random();
-		if(c32==0) sh16=Math.random();
-		if(c64==0) sh32=Math.random();
-		if(c96==0) sh48=Math.random();
-		if(c128==0) sh64=Math.random();
-		beat4=(c4==0?1:0);
-		beat8=(c8==0?1:0);
-		beat16=(c16==0?1:0);
-		beat32=(c32==0?1:0);
-		beat64=(c64==0?1:0);
 		if(nextTime==0)
 			nextTime=current;
 		nextTime+=15/master._tempo;
@@ -1371,8 +1372,9 @@ function OSC(f,v,t,to) {
 	this.tune=0;
 	this.next=function(t) {
 		this.Send.gain.value=numeval(this.delay);
-		if(this.type<3)
-			this.Osc.type=this.form[numeval(this.type)];
+		var ty=numeval(this.type);
+		if(ty<3)
+			this.Osc.type=this.form[ty];
 		else
 			this.Osc.setPeriodicWave(this.periodic);
 		var s=Mml(streval(this.s));
