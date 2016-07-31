@@ -76,13 +76,24 @@ Edge は初期化に非常に長い時間がかかる場合があります。
 <tr><th>Type</th><th>Description</th></tr>
 <tr><td>cam.a=1</td><td>Set 'cam' object to visible</td></tr>
 <tr><td>cam.v=.3</td><td>Sound from 'cam' object is enabled. You can hear the sound from 'cam' by making motion in front of WebCam.</td></tr>
+<tr><td>cam.effpointer=2</td><td>'cam' object pointer is enabled.</td></tr>
+<tr><td>cam.effmelt=lfo32*2</td><td>'cam' object melt effect</td></tr>
 <tr><td>bdo.s=crrr</td><td>Set bass drum pattern to 'crrr'. </td></tr>
 <tr><td>sdo.s=rrrrcrrr</td><td>Set snare drum pattern to 'rrrrcrrr'.</td></tr>
 <tr><td>hho.s=cr</td><td>Set Hi-hat pattern to 'cr'.</td></tr>
 <tr><td>o1.s=aarrrrrr</td><td>Set bass pattern.</td></tr>
-<tr><td>o2.s=s20</td><td>Set arpeggio pattern from preset</td></tr>
+<tr><td>o5.s=o1.s</td><td>Set osc5 pattern same as osc1</td></tr>
+<tr><td>o5.f=55</td><td>Osc-5 base frequency to 55Hz</td></tr>
+<tr><td>o5.out=o1</td><td>FM mode from osc-5 to osc-1</td></tr>
+<tr><td>o2.s=ageeagdedeaa</td><td>Set Osc-2 pattern</td></tr>
+<tr><td>o2.q=28</td><td>Set Osc-2 filter Q</td></tr>
+<tr><td>o2.c=lfo32*32+1</td><td>Modify Osc-2 filter cutoff with LFO</td></tr>
+<tr><td>o2.delay=.3</td><td>Set Osc-2 delay effect</td></tr>
+<tr><td>o3.s=g</td><td>Set Osc-3 pattern</td></tr>
+<tr><td>o3.f=Math.random()*1000+100</td><td>Make random Osc-3 frequency</td></tr>
 <tr><td>wav.hue=lfo16</td><td>wav display color change</td></tr>
 <tr><td>wav.rot=tick</td><td>wav display rotation</td></tr>
+<tr><td>wav.line=beat8*100</td><td>Change wave display width with beat</td></tr>
 </table>
 </p>
 </div>
@@ -93,13 +104,24 @@ Edge は初期化に非常に長い時間がかかる場合があります。
 <tr><th>コマンド</th><th>説明</th></tr>
 <tr><td>cam.a=1</td><td>'cam'オブジェクトを表示します。</td></tr>
 <tr><td>cam.v=.3</td><td>'cam'オブジェクトの音を出力します。カメラの前で動作をすると音が出ます。</td></tr>
+<tr><td>cam.effpointer=2</td><td>'cam'オブジェクトの操作ポインターを表示します。</td></tr>
+<tr><td>cam.effmelt=lfo32*2</td><td>'cam'オブジェクトのメルトエフェクト</td></tr>
 <tr><td>bdo.s=crrr</td><td>バスドラムのパターンを'crrr'に設定します。 </td></tr>
 <tr><td>sdo.s=rrrrcrrr</td><td>スネアドラムのパターンを'rrrrcrrr'に設定します。</td></tr>
 <tr><td>hho.s=cr</td><td>ハイハットのパターンを'cr'に設定します。</td></tr>
 <tr><td>o1.s=aarrrrrr</td><td>ベースのパターンを設定します。</td></tr>
-<tr><td>o2.s=s20</td><td>プリセットからアルペジオパターンを設定します。</td></tr>
+<tr><td>o5.s=o1.s</td><td>オシレータ5をオシレータ1と同じパターンに</td></tr>
+<tr><td>o5.f=55</td><td>オシレータ5の基本周波数を55Hzに</td></tr>
+<tr><td>o5.out=o1</td><td>オシレータ5からオシレータ1にFM変調</td></tr>
+<tr><td>o2.s=ageeagdedeaa</td><td>オシレータ2のパターンを設定</td></tr>
+<tr><td>o2.q=28</td><td>オシレータ2のフィルターのQを設定</td></tr>
+<tr><td>o2.c=lfo32*32+1</td><td>オシレータ2のフィルターをLFOで操作</td></tr>
+<tr><td>o2.delay=.3</td><td>オシレータ2のディレイ効果</td></tr>
+<tr><td>o3.s=g</td><td>オシレータ3のパターンを設定</td></tr>
+<tr><td>o3.f=Math.random()*1000+100</td><td>オシレータ3の周波数をランダムで操作</td></tr>
 <tr><td>wav.hue=lfo16</td><td>波形表示の色を切り替えます。</td></tr>
 <tr><td>wav.rot=tick</td><td>波形表示を回転させます。</td></tr>
+<tr><td>wav.line=beat8*100</td><td>波形表示の太さをビートに合わせて変化させます。</td></tr>
 </table>
 </p>
 </div>
@@ -439,6 +461,22 @@ o1.c=lfo16*1000+100 --- filter sweep by lfo<br/>
 <tr><td>wav.col</td><td>string</td><td>波形の色 例えば'#fff'のように指定。 また、hue(value)、hsv(h,s,v) 関数が使用できます。</td></tr>
 <tr><td>wav.bcol</td><td>string</td><td>ブラーエフェクトの色 例えば'#fff'のように指定。 また、hue(value)、hsv(h,s,v) 関数が使用できます。</td></tr>
 </table>
+
+<p>p1 および p2 オブジェクトはWebGLを利用した映像効果を表示します。以下の説明ではp1.xxxとなっていますがp2オブジェクトも同様です。
+</p>
+<table>
+<tr><th colspan="2">wav</th><td>波形表示</td></tr>
+<tr><td>p1.a</td><td>number</td><td>wavオブジェクトのアルファ (0.0 - 1.0)</td></tr>
+<tr><td>p1.w</td><td>number</td><td>wavオブジェクトの幅 (0.0 - 1.0)</td></tr>
+<tr><td>p1.h</td><td>number</td><td>wavオブジェクトの高さ (0,0 - 1.0)</td></tr>
+<tr><td>p1.x</td><td>number</td><td>wavオブジェクトのx座標 (0:左端 - 0.5:中央 - 1.0:右端)</td></tr>
+<tr><td>p1.y</td><td>number</td><td>wavオブジェクトのy座標 (0:上端 - 0.5:中央 - 1.0:下端)</td></tr>
+<tr><td>p1.z</td><td>number</td><td>wavオブジェクトのズーム 1.0でウインドウサイズに一致</td></tr>
+<tr><td>p1.rot</td><td>number</td><td>wavオブジェクトの回転。単位は度</td></tr>
+<tr><td>p1.type</td><td>number</td><td>効果のタイプ (0 - 8)</td></tr>
+<tr><td>p1.hue</td><td>number</td><td>色相を変化させます</td></tr>
+</table>
+
 <p>matオブジェクトは文字が流れるマトリックス風のエフェクトを付加します</p>
 <table>
 <tr><th colspan="2">mat</th><td>マトリックスエフェクト</td></tr>
