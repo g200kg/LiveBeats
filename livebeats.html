@@ -76,6 +76,7 @@ var beat8=0;
 var beat16=0;
 var beat32=0;
 var beat64=0;
+var cc=[0,0,0,0,0,0,0,0];
 var rand1=rand2=rand4=0;
 var lev=0;
 var bd1="crrrcrrrcrrrcrcr";
@@ -528,6 +529,7 @@ function oscdesc(o,nam) {
 	r+=nam+".q (Q):"+o.q+"\n";
 	r+=nam+".d (decay):"+o.d+"\n";
 	r+=nam+".porta:"+o.porta+"\n";
+	r+=nam+".dist:"+o.dist+"\n";
 	r+=nam+".delay:"+o.delay+"\n";
 	r+=nam+".wav:"+o.wav+"\n";
 	r+=nam+".type:"+o.type+"\n";
@@ -1308,13 +1310,33 @@ function OSC(f,v,t,to) {
 		}
 		this.periodic=audioctx.createPeriodicWave(this.custom[0],this.custom[1]);
 	};
+	this.rdist=0;
 	this.MakeCurve=function(){
-		var dist=Math.min(.99,Math.max(0,numeval(this.dist)));
-  	var k=2*dist/(1-dist);
-  	for(var i=0; i<15; ++i) {
-      	var x=i/7-1;
-      	this.curve[i] = (1 + k) * x / (1+ k * Math.abs(x))/(1+dist);
-    }
+		var v=numeval(this.dist);
+		for(var i=0;i<16;++i){
+			k=i/15*(v*10+1);
+			for(;;){
+				if(k>1) k=2-k;
+				else if(k<0) k=-k;
+				else break;
+			}
+			this.curve[15+i]=k;
+			this.curve[15-i]=-k;
+		}
+/*		var dist=Math.min(.99,numeval(this.dist));
+		var peak=1-dist*.5;
+		var v=(.01+dist)*100;
+		for(var i=0;i<16;++i){
+			var c=i/15;
+			var k=Math.min(1,c*v);
+			this.curve[15+i]=(k+(1-k)*c)*peak;
+			this.curve[15-i]=(-k-(1-k)*c)*peak;
+		}
+*/
+//		if(this.rdist!=this.dist){
+//			this.rdist=this.dist;
+//			console.log(this.curve);
+//		}
 	};
 	this.ena=0;
 	this.wav=this.defwav="10000001";
@@ -1334,18 +1356,18 @@ function OSC(f,v,t,to) {
 	this.Gain=audioctx.createGain();
 	this.GainGain=new Automation(audioctx,this.Gain.gain);
 	this.Shaper=audioctx.createWaveShaper();
-	this.curve=new Float32Array(15);
+	this.curve=new Float32Array(31);
 	this.Shaper.curve=this.curve;
 	this.Mod=audioctx.createGain();
 	this.Send=audioctx.createGain();
 	this.Pan=audioctx.createStereoPanner();
-	this.Osc.connect(this.Fil);
+	this.Osc.connect(this.Shaper);
+	this.Shaper.connect(this.Fil);
 	this.Fil.connect(this.Gain);
-	this.Gain.connect(this.Shaper);
-	this.Shaper.connect(this.Mod);
-	this.Shaper.connect(this.Send);
+	this.Gain.connect(this.Mod);
+	this.Gain.connect(this.Send);
+	this.Gain.connect(this.Pan);
 	this.Send.connect(delay.Dly);
-	this.Shaper.connect(this.Pan);
 	this.Gain.gain.value=0;
 	this.Send.gain.value=0;
 	this.Mod.gain.value=1200;
@@ -1407,7 +1429,9 @@ function OSC(f,v,t,to) {
 			this.FilFrequency.setValueAtTime(_freq*_cutoff,t);
 			this.Fil.Q.value=numeval(this.q);
 			this.GainGain.setTargetAtTime(numeval(this.v)*v*.6,t,0.001);
-			this.GainGain.setTargetAtTime(0,t+0.01,Math.max(.02,numeval(this.d)));
+			var d=Math.max(0.02,numeval(this.d));
+			if(d<1)
+				this.GainGain.setTargetAtTime(0,t+0.01,d);
 			this.tune=tune;
 		}
 		else {
@@ -1755,6 +1779,10 @@ function Delay() {
 function MidiIn(e){
 	for(var i=midicb.length-1;i>=0;--i)
 		midicb[i].func.bind(midicb[i].plug)(e);
+	if((e.data[0]&0xf0)==0xb0){
+		var ccnum=e.data[1]&0x7f;
+		cc[ccnum]=e.data[2]/127;
+	}
 }
 function Midi() {
 	console.log("---MIDI---");
