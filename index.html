@@ -268,6 +268,25 @@ o1.c=lfo16*1000+100 --- filter sweep by lfo<br/>
 <br/>
 <div class="doc_en">
 <table>
+<tr><th colspan="2">say</th><td>Speech object. This object use SpeechSynthesis API.</td></tr>
+<tr><td>say.t</td><td>string</td><td>Specify text to speak. it can be sync to beat if comma separated</td></tr>
+<tr><td>say.v</td><td>number</td><td>speech volume</td></tr>
+<tr><td>say.p</td><td>number</td><td>speech pitch</td></tr>
+<tr><td>say.r</td><td>number</td><td>speech rate</td></tr>
+</table>
+</div>
+<div class="doc_ja">
+<table>
+<tr><th colspan="2">say</th><td>SpeechSynthesis APIを使用したTTSオブジェクトです</td></tr>
+<tr><td>say.t</td><td>string</td><td>しゃべる言葉を指定します。コンマがある場合、ビートに合わせて分割します。</td></tr>
+<tr><td>say.v</td><td>number</td><td>音量</td></tr>
+<tr><td>say.p</td><td>number</td><td>ピッチ</td></tr>
+<tr><td>say.r</td><td>number</td><td>速さ</td></tr>
+</table>
+</div>
+<br/>
+<div class="doc_en">
+<table>
 <tr><th colspan="2">master</th><td>master control</td></tr>
 <tr><td>master.v</td><td>number</td><td>master volume. default value is 1.0</td></tr>
 <tr><td>master.tempo</td><td>number</td><td>tempo control. default value=120</td></tr>
