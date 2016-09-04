@@ -26,7 +26,95 @@
 //		'r' : rotate
 //
 
-vj_cam = function(param){
+function VowelOsc(actx){
+	this.connect=function(out){
+		this.vol.connect(out);
+		this.delaylev.connect(out);
+	};
+	this.SetFreq=function(f){
+		this.osc.frequency.value=f;
+	};
+	this.SetDetune=function(d){
+		this.osc.detune.value=d;
+	};
+	this.GetNode=function(n){
+		return this.osc;
+	};
+	this.SetFormant=function(f1,f2){
+		this.fil1.frequency.value=f1*300*(f2+1)+300;
+		this.fil2.frequency.value=500+2500*f2*(1-0.8*f1);
+	};
+	this.SetVibRate=function(v){
+		this.lfo.frequency.value=v*9+1;
+	};
+	this.SetVibDepth=function(v){
+		this.lfodepth.gain.value=v*100;
+	};
+	this.SetVol=function(v){
+		this.vol.gain.value=v;
+	};
+	this.SetDelayLevel=function(v){
+		this.delaylev.gain.value=v;
+	}
+	this.ProcessLimit=function(ev){
+		var inbuf = ev.inputBuffer.getChannelData(0);
+		var outbuf = ev.outputBuffer.getChannelData(0);
+		var d=0;
+		for(var i = 0; i < 1024; ++i){
+			var r=Math.abs(inbuf[i]);
+			if(r>this.limmax)
+				this.limmax=r;
+			else
+				this.limmax*=.999;
+			outbuf[i]=inbuf[i]/this.limmax;
+		}
+	};
+	this.osc=actx.createOscillator();
+	this.lfo=actx.createOscillator();
+	this.lfodepth=actx.createGain();
+	this.fil1=actx.createBiquadFilter();
+	this.fil2=actx.createBiquadFilter();
+	this.lim=actx.createScriptProcessor(1024,1,1);
+	this.vol=actx.createGain();
+	this.delay=actx.createDelay();
+	this.delaylev=actx.createGain();
+	this.lim.onaudioprocess=this.ProcessLimit;
+	this.lim.limmax=0;
+	this.delay.delayTime.value=0.2;
+	this.delaylev.gain.value=0.5;
+	this.lfo.frequency.value=5;
+	this.lfodepth.gain.value=50;
+	var wavImag=new Float32Array(300);
+	var wavReal=new Float32Array(300);
+	for(var i=0;i<300;++i){
+		wavReal[i]=1;
+		wavImag[i]=0;
+	}
+	this.osc.setPeriodicWave(actx.createPeriodicWave(wavReal,wavImag));
+	this.osc.start();
+	this.lfo.connect(this.lfodepth);
+	this.lfodepth.connect(this.osc.detune);
+	this.lfo.start();
+	this.fil1.type="bandpass";
+	this.fil2.type="bandpass";
+	this.fil1.Q.value=15;
+	this.fil2.Q.value=15;
+	this.osc.connect(this.fil1);
+	this.fil1.connect(this.fil2);
+	this.fil2.connect(this.lim);
+	this.lim.connect(this.vol);
+	this.vol.connect(this.delaylev);
+	this.delaylev.connect(this.delay);
+	this.delay.connect(this.delaylev);
+	this.SetFreq(55);
+	this.SetFormant(0.5,0.5);
+	this.SetVibRate(0.3);
+	this.SetVibDepth(0.2);
+	this.SetVol(0);
+	this.SetDelayLevel(0.4);
+}
+
+vj_camformantgl = function(param){
 	var vj_video_vs="\
 		attribute vec3 position;\
 		void main(void){\
@@ -238,7 +326,58 @@ vj_cam = function(param){
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		return {"f":frameBuff, "t":tex};
 	}
-
+	this.DrawFace=function(ctx,f,x,y,z,fPot){
+		function Draw(){
+	    ctx.beginPath();
+	    var pm=220-fPot[2]*10;
+	    ctx.moveTo(128,pm-fPot[0]*30*zz);
+	    ctx.bezierCurveTo(128,pm-fPot[0]*30*zz,128+fPot[1]*64,pm-fPot[0]*50*zz,128+fPot[1]*64,pm);
+	    ctx.bezierCurveTo(128+fPot[1]*64,pm+10*zz,128+30*fPot[0],pm+fPot[0]*30*zz,128,pm+fPot[0]*30*zz);
+	    ctx.bezierCurveTo(128-30*fPot[0],pm+fPot[0]*30*zz,128-fPot[1]*64,pm+10*zz,128-fPot[1]*64,pm);
+	    ctx.bezierCurveTo(128-fPot[1]*64,pm-fPot[0]*50*zz,128,pm-fPot[0]*30*zz,128,pm-fPot[0]*30*zz);
+	    ctx.stroke();
+	    ctx.beginPath();
+	    ctx.arc(128+40,120,22,0,2*Math.PI);
+	    ctx.stroke();
+	    ctx.beginPath();
+	    ctx.arc(128-40,120,22,0,2*Math.PI);
+	    ctx.stroke();
+	    ctx.beginPath();
+	    ctx.moveTo(128+20,75+fPot[0]*10);
+	    ctx.bezierCurveTo(128+20,90-fPot[0]*20,128+70,90-fPot[0]*20,128+70,85);
+	    ctx.moveTo(128-20,75+fPot[0]*10);
+	    ctx.bezierCurveTo(128-20,90-fPot[0]*20,128-70,90-fPot[0]*20,128-70,85);
+	    ctx.stroke();
+	    ctx.beginPath();
+	    var py=120+(y-128)*.1;
+	    ctx.arc(128+40+(x-128-40)*.1,py,8,0,2*Math.PI);
+			ctx.moveTo(128-40+(x-128+40)*.1,py);
+	    ctx.arc(128-40+(x-128+40)*.1,py,8,0,2*Math.PI);
+			ctx.stroke();
+	    ctx.fill();
+		}
+		ctx.strokeStyle="#000";
+		ctx.fillStyle="#000";
+		ctx.lineWidth=8;
+		ctx.lineJoin="round";
+		ctx.lineCap="round";
+		zz=z;
+		zz=zz+(z-zz)*.5;
+		ctx.clearRect(0,0,256,256);
+		if(f){
+			Draw();
+			ctx.strokeStyle="#ff0";
+			ctx.fillStyle="#ff0";
+			ctx.lineWidth=4;
+			Draw();
+		}
+/*    ctx.strokeStyle="#f22";
+    ctx.lineWidth=4;
+    ctx.beginPath();
+    ctx.arc(x,y,16,0,Math.PI*2,true);
+    ctx.stroke();
+*/
+	}
 	this.audioctx=param.audioctx;
 	this.wavedat=param.wavedat;
 	this.freqdat=param.freqdat;
@@ -252,16 +391,31 @@ vj_cam = function(param){
 	this.h=param.h;
 
 	this.video=param.video;
-	this.elem=document.createElement("canvas");
+	this.elem=document.createElement("div");
 	this.elem.width=this.w;
 	this.elem.height=this.h;
+	this.glcanvas=document.createElement("canvas");
+	this.glcanvas.width=this.w;
+	this.glcanvas.height=this.h;
+	this.glcanvas.style.width="100%";
+	this.glcanvas.style.height="100%";
+	this.elem.appendChild(this.glcanvas);
+	this.facecanvas=document.createElement("canvas");
+	this.facecanvas.width=256;
+	this.facecanvas.height=256;
+	this.facecanvas.style.width="100%";
+	this.facecanvas.style.height="100%";
+	this.facecanvas.style.position="absolute";
+	this.facecanvas.style.top="0px";
+	this.facecanvas.style.left="0px";
+	this.elem.appendChild(this.facecanvas);
 
 	this.sizex=param.w;
 	this.sizey=param.h;
 
+	this.facectx=this.facecanvas.getContext("2d");
 
-
-	var gl = this.elem.getContext("webgl") || this.elem.getContext("experimental-webgl");
+	var gl = this.glcanvas.getContext("webgl") || this.elem.getContext("experimental-webgl");
 	this.v_shader=gl.createShader(gl.VERTEX_SHADER);
 	gl.shaderSource(this.v_shader, vj_video_vs);
 	gl.compileShader(this.v_shader);
@@ -329,18 +483,18 @@ vj_cam = function(param){
 	this.levy=new Uint8Array(this.sizey*4);
 	this.param = {
 		"c":{"value":32,"type":"double","min":0,"max":100},
-		"f":{"value":440,"type":"double","min":0,"max":1760},
+		"f":{"value":110,"type":"double","min":0,"max":1760},
 		"v":{"value":0,"type":"double","min":0,"max":1},
 		"q":{"value":5,"type":"double","min":0,"max":100},
 		"porta":{"value":0.5,"type":"double","min":0,"max":1},
 		"delay":{"value":0.4,"type":"double","min":0,"max":1},
-		"midi":{"value":0,"type":"int","min":0,"max":1},
 		"scale":{"value":"cdega<cdega<c","type":"string"},
 		"effkaleido":{"value":0, "type":"int", "min":0, "max":3},
 		"effpointer":{"value":0, "type":"int", "min":0, "max":3},
 		"effposter":{"value":0, "type":"double","min":0,"max":1},
 		"effmotion":{"value":1, "type":"double","min":0,"max":1},
 		"effmosaic":{"value":0, "type":"double","min":0,"max":1},
+		"effface":{"value":0, "type":"int", "min":0,"max":1},
 		"effwave":{"value":0, "type":"double","min":0,"max":1},
 		"effdiv":{"value":0, "type":"int","min":0, "max":10},
 		"effhue":{"value":0, "type":"double","min":-4, "max":4},
@@ -358,46 +512,40 @@ vj_cam = function(param){
 	this.px=this.pxold=0;
 	this.py=this.pyold=0;
 	this.pz=this.pzold=0;
+	this.freq=110;
 
-	this.Osc=this.audioctx.createOscillator();
-	this.Fil=this.audioctx.createBiquadFilter();
-	this.Lfo=this.audioctx.createOscillator();
-	this.LfoGain=this.audioctx.createGain();
-	this.Gain=this.audioctx.createGain();
-	this.Send=this.audioctx.createGain();
-	this.Send.gain.value=0;
-	this.Gain.gain.value=0;
-	this.Osc.connect(this.Fil);
-	this.Lfo.connect(this.LfoGain);
-	this.LfoGain.connect(this.Osc.detune);
-	this.Fil.connect(this.Gain);
-	this.Gain.connect(this.Send);
-	this.Gain.connect(this.dest);
-	this.Send.connect(this.senddest);
-	this.midi=0;
-	this.midipitch=0;
-	this.Osc.type="square";
-	this.Lfo.type="sine";
-	this.Osc.frequency.value=440;
-	this.Lfo.frequency.value=6;
-	this.Fil.frequency.value=4400;
-	this.Fil.Q.value=1;
-	this.LfoGain.gain.value=0;
-	this.Lfo.start(0);
-	this.Osc.start(0);
-	this.midion=0;
-	this.midi=0;
-	this.midipitch=0;
+	this.Osc=new VowelOsc(this.audioctx);
+	this.Osc.connect(this.dest);
+//	this.Osc=this.audioctx.createOscillator();
+//	this.Fil=this.audioctx.createBiquadFilter();
+//	this.Lfo=this.audioctx.createOscillator();
+//	this.LfoGain=this.audioctx.createGain();
+//	this.Gain=this.audioctx.createGain();
+//	this.Send=this.audioctx.createGain();
+//	this.Send.gain.value=0;
+//	this.Gain.gain.value=0;
+//	this.Osc.connect(this.Fil);
+//	this.Lfo.connect(this.LfoGain);
+//	this.LfoGain.connect(this.Osc.detune);
+//	this.Fil.connect(this.Gain);
+//	this.Gain.connect(this.Send);
+//	this.Gain.connect(this.dest);
+//	this.Send.connect(this.senddest);
+//	this.Osc.type="square";
+//	this.Lfo.type="sine";
+//	this.Osc.frequency.value=440;
+//	this.Lfo.frequency.value=6;
+//	this.Fil.frequency.value=4400;
+//	this.Fil.Q.value=1;
+//	this.LfoGain.gain.value=0;
+//	this.Lfo.start(0);
+//	this.Osc.start(0);
 	this.notes=Mml(this.param.scale.value);
 	this.ready=false;
 //	this.cvwork=document.createElement("canvas");
 //	this.cvwork.width=320;
 //	this.cvwork.height=256;
-	this.destroy=function(){
-		this.Osc.stop();
-		this.Gain.disconnect();
-		this.Send.disconnect();
-	};
+	this.cnt=0;
 	this.anim=function(timestamp) {
 		if(!this.ready || this.param.a.value==0)
 			return;
@@ -491,54 +639,35 @@ vj_cam = function(param){
 		gl.uniform1f(uniLocation.scr_scan,this.param.effscan.value);
 		gl.drawArrays(gl.TRIANGLE_STRIP, 0,4);
 		gl.flush();
-		var c=(this.notes[((this.sizex-1-px)*this.notes.length/this.sizex)|0]-57)*100;
-		if(this.param.midi.value>0) {
-			this.Gain.gain.value=this.Send.gain.value=0;
-			var midiout=midioutputs[this.param.midi.value-1];
-			if(midiout) {
-				if(this.param.midi.value!=this.midi) {
-					midiout.send([0xb0,70,125]);	//detune
-					midiout.send([0xb0,76,55]);		//lfo rate
-					midiout.send([0xb0,101,0]);
-					midiout.send([0xb0,100,0]);
-					midiout.send([0xb0,6,12]);
-					midiout.send([0xb0,38,0]);		//RPN0 BendRange
-					midiout.send([0xc0,17]);
-					this.midi=this.param.midi.value;
-				}
-				this.midipitch+=(c-this.midipitch)*(1-this.param.porta.value);
-//					var vol=(this.pos.z*this.param.v.value*127)|0;
-				var vol=(this.pos.z*127)|0;
-				if(vol>1) {
-					if(this.midion==0)
-						midiout.send([0x90,69,127]);
-					this.midion=1;
-				}
-				else {
-					if(this.midion)
-						midiout.send([0x90,69,0]);
-					this.midion=0;
-				}
-
-				midiout.send([0xb0,7,vol]);
-//					midiout.send([0x90,69,127]);
-				var p=((this.midipitch/1200*8191)|0)+8192;
-				midiout.send([0xe0,p&0x7f,(p>>7)&0x7f]);
-				var m=1-this.pos.y;
-				midiout.send([0xb0,70,0]);//detune
-				midiout.send([0xb0,80,32]);//cutoff
-				midiout.send([0xb0,1,(m*16)|0]);
-			}
-		}
+		var c=(this.notes[this.px*this.notes.length|0]-57)*100;
 		{
 			var f=Math.pow(Math.max(0,this.param.c.value),this.py*1.4);
-			this.Osc.frequency.value=this.param.f.value;
-			this.Osc.detune.setTargetAtTime(c,0,this.param.porta.value*.1);
-			this.Fil.frequency.value=this.param.f.value*f;
-			this.Fil.Q.value=this.param.q.value;
-			this.LfoGain.gain.value=f*1.2;
-			this.Gain.gain.value=this.pz*this.param.v.value;
-			this.Send.gain.value=this.param.delay.value;
+			f=this.param.f.value*(Math.pow(2,c/1200));
+//			this.Osc.frequency.value=this.param.f.value;
+//			this.Osc.detune.setTargetAtTime(c,0,this.param.porta.value*.1);
+//			this.Fil.frequency.value=this.param.f.value*f;
+//			this.Fil.Q.value=this.param.q.value;
+//			this.LfoGain.gain.value=f*1.2;
+//			this.Gain.gain.value=this.pz*this.param.v.value;
+//			this.Send.gain.value=this.param.delay.value;
+//			this.freq+=(f-this.freq)*(1-this.param.porta.value);
+			this.Osc.SetFreq(this.param.f.value);
+			this.Osc.GetNode().detune.setTargetAtTime(c,0,this.param.porta.value*.1);
+			this.Osc.SetVol(this.pz*this.param.v.value);
+			var f1,f2;
+			var yy=this.py*2-.5;
+			if(yy<0) yy=0;
+			if(yy>1) yy=1;
+			if(yy<0.25) f1=1-yy*4,f2=0;
+			else if(yy<.5) f1=0,f2=(yy-.25)*4;
+			else f1=(yy-.5)*2,f2=1;
+			this.Osc.SetFormant(f1,f2);
+			this.Osc.SetDelayLevel(this.param.delay.value);
+//			console.log(f1,f2,this.px);
+			if(++this.cnt>=2){
+				this.DrawFace(this.facectx, this.param.effface.value,this.px*256, 256-this.py*256, this.pz*.5, [f1*2.5,f2/2,this.px*5]);
+				this.cnt=0;
+			}
 		}
 
 	};

@@ -41,6 +41,7 @@ body{
 <script type="text/javascript" src="./vj_wavegl.js"></script>
 <script type="text/javascript" src="./vj_matrix.js"></script>
 <script type="text/javascript" src="./vj_camgl.js"></script>
+<script type="text/javascript" src="./vj_camformantgl.js"></script>
 <script type="text/javascript" src="./vj_dropgl.js"></script>
 <!--<script type="text/javascript" src="./vj_beatstep.js"></script>-->
 <script type="text/javascript">
@@ -192,6 +193,8 @@ function DeletePlugin(name) {
 		return "plugin '"+name+"' is not found.\n";
 	}
 	var plug=plugins[i];
+	if(plug.obj.destroy)
+		plug.obj.destroy();
 	document.getElementById("base").removeChild(plug.obj.elem);
 	plugins.splice(i,1);
 	pluginsparam.splice(i,1);
@@ -315,7 +318,7 @@ function CmdInit(){
 	for(var i=0;i<cmd.length;++i){
 		var c=decodeURIComponent(cmd[i]);
 		cmds.message(c);
-		Enter(c);
+		cmds.input(c);
 	}
 	setInterval(Interval,30);
 }
@@ -377,14 +380,14 @@ function Init() {
 	document.addEventListener("drop",FileDrop,false);
 
 	console.log("load plugins");
-	cam=_LoadPlugin("vj_cam","cam","base");
-	cam.obj.param.a.value=0;
-	p1=_LoadPlugin("vj_drop","p1","base");
-	p1.obj.param.a.value=0;
-	p2=_LoadPlugin("vj_drop","p2","base");
-	p2.obj.param.a.value=0;
-	mat=_LoadPlugin("vj_matrix","mat","base");
-	mat.obj.param.a.value=0;
+	var p=_LoadPlugin("vj_camformantgl","cam","base");
+	p.obj.param.a.value=0;
+	p=_LoadPlugin("vj_drop","p1","base");
+	p.obj.param.a.value=0;
+	p=_LoadPlugin("vj_drop","p2","base");
+	p.obj.param.a.value=0;
+	p=_LoadPlugin("vj_matrix","mat","base");
+	p.obj.param.a.value=0;
 	_LoadPlugin("vj_wave","wav","base");
 	_LoadPlugin("vj_txt","txt","topmost");
 
@@ -1826,6 +1829,19 @@ function Cmds() {
 			this.log.length=this.rows;
 		this.dirty=1;
 	}
+	this.input=function(s){
+		s=Enter(s);
+		this.cursor=0;
+		if(s!=undefined) {
+			var ss=s.split("\n");
+			for(ii=0;ii<ss.length-1;++ii) {
+				this.log.unshift(ss[ii]);
+				this.log.length=this.rows;
+			}
+		}
+		this.log.unshift("> ");
+		this.dirty=1;
+	}
 	this.key=function(k) {
 		if(k[0]=="f") {
 			this.log[0]="> "+fn[k[1]-1];
@@ -1872,17 +1888,7 @@ function Cmds() {
 			this.hist.unshift(this.log[0]);
 			if(this.hist.length>10)
 				this.hist.length=10;
-			var s=Enter(this.log[0].substr(2));
-			this.cursor=0;
-			if(s!=undefined) {
-				var ss=s.split("\n");
-				for(ii=0;ii<ss.length-1;++ii) {
-					this.log.unshift(ss[ii]);
-					this.log.length=this.rows;
-				}
-			}
-			this.log.unshift("> ");
-			this.dirty=1;
+			this.input(this.log[0].substr(2));
 			return;
 		}
 		var s=String.fromCharCode(k);
