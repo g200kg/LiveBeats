@@ -1364,8 +1364,9 @@ function OSC(f,v,t,to) {
 	this.Mod=audioctx.createGain();
 	this.Send=audioctx.createGain();
 	this.Pan=audioctx.createStereoPanner();
-	this.Osc.connect(this.Shaper);
-	this.Shaper.connect(this.Fil);
+//	this.Osc.connect(this.Shaper);
+//	this.Shaper.connect(this.Fil);
+	this.Osc.connect(this.Fil);
 	this.Fil.connect(this.Gain);
 	this.Gain.connect(this.Mod);
 	this.Gain.connect(this.Send);
