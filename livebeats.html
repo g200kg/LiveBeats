@@ -112,6 +112,7 @@ var mouse={"px":0,"py":0,"pz":0};
 var nextTime=0;
 
 var master=null;
+var midi=null;
 var o1,o2,o3,o4,o5,o6,o7,o8;
 var delay;
 var video=null;
@@ -339,6 +340,7 @@ function Init() {
 	audioctx=new AudioContext();
 	midi=new Midi();
 	master=new Master();
+
 	out=master.out;
 	run=1;
 	delay=new Delay();
@@ -624,6 +626,8 @@ function Parse0(s) {
 			}
 		}
 		switch(l) {
+    case "midi.port": midi.port=r; break;
+    case "midi.pg": midioutputs[midi.port].send([0xc0,r]);
 		case "video.src": video.Switch(numeval(r)); break;
 		case "master.v": master.v=r; break;
 		case "master.g": master.g=r; break;
@@ -642,6 +646,7 @@ function Parse0(s) {
 		case "say.r": speech.SetRate(r); break;
 		case "say.p": speech.SetPitch(r); break;
 		case "say.l": speech.SetLoop(r); break;
+		case "say.lang": speech.SetLang(r); break;
 		case "say.v": speech.SetVol(r); break;
 		case "say.voice": speech.SetVoice(r); break;
 		case "txt.a": cmds.a=r; break;
@@ -1738,6 +1743,9 @@ function Speech(){
 	this.SetPitch=function(s){
 		this.pitch=s;
 	};
+	this.SetLang=function(s){
+		this.lang=s;
+	}
 	this.SetLoop=function(s){
 		var i=parseFloat(s);
 		if(i>=16)
@@ -1757,6 +1765,7 @@ function Speech(){
 				this.utter.rate=numeval(this.rate);
 				this.utter.volume=numeval(this.vol);
 				this.utter.voice=this.voices[numeval(this.voice)];
+				this.utter.lang=this.lang;
 				speechSynthesis.speak(this.utter);
 				if(++this.textidx>=this.text.length)
 					this.textidx=0;
@@ -1790,6 +1799,7 @@ function MidiIn(e){
 }
 function Midi() {
 	console.log("---MIDI---");
+  this.port=0;
 	this.onMIDIFailure=function(msg) {console.log(msg);};
 	this.onMIDISuccess=function(ac) {
 		console.log("requestMIDIAccess:success");
