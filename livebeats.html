@@ -343,6 +343,7 @@ function Init() {
 
 	out=master.out;
 	run=1;
+  dmx=new DMX();
 	delay=new Delay();
 	o1=new OSC(110,0.8,1,out);
 	o2=new OSC(440,0.5,1,out);
@@ -626,6 +627,10 @@ function Parse0(s) {
 			}
 		}
 		switch(l) {
+    case "dmx.p1": dmx.p1=r; break;
+    case "dmx.p2": dmx.p2=r; break;
+    case "dmx.p3": dmx.p3=r; break;
+    case "dmx.p4": dmx.p4=r; break;
     case "midi.port": midi.port=r; break;
     case "midi.pg": midioutputs[midi.port].send([0xc0,r]);
 		case "video.src": video.Switch(numeval(r)); break;
@@ -1164,6 +1169,7 @@ function Interval() {
 		o8.next(nextTime);
 		delay.next(nextTime);
 		speech.next(nextTime);
+    dmx.next(nextTime);
 		if(nextTime==0)
 			nextTime=current;
 		nextTime+=15/master._tempo;
@@ -1306,6 +1312,28 @@ function Noise() {
 	};
 	this.scr.onaudioprocess=this.Process;
 	this.scr.connect(out);
+}
+function DMX(){
+  this.p1="9";
+  this.p2="0";
+  this.p3="0";
+  this.p4="0";
+  this.next=function(t) {
+    if(dmxout==null)
+      return;
+    this.step1=tick%this.p1.length;
+    this.step2=tick%this.p2.length;
+    this.step3=tick%this.p3.length;
+    this.step4=tick%this.p4.length;
+    var v1=this.p1[this.step1]/9*127;
+    var v2=this.p2[this.step2]/9*127;
+    var v3=this.p3[this.step3]/9*127;
+    var v4=this.p4[this.step4]/9*127;
+    dmxout.send([0xb0,1,v1]);
+    dmxout.send([0xb0,2,v2]);
+    dmxout.send([0xb0,3,v3]);
+    dmxout.send([0xb0,4,v4]);
+  }
 }
 function OSC(f,v,t,to) {
 	this.MakeWav=function(){
@@ -1805,8 +1833,13 @@ function Midi() {
 		console.log("requestMIDIAccess:success");
 		var i=ac.outputs.values();
 		midioutputs=[];
+    dmxout=null;
 		for (var o=i.next(); !o.done; o=i.next()) {
 			midioutputs.push(o.value);
+      console.log(o.value);
+      if(o.value.name=="MocoLUFA"){
+        dmxout=o.value;
+      }
 		}
 		console.log("number of midiout ports:"+midioutputs.length);
 		i=ac.inputs.values();
