@@ -653,7 +653,7 @@ vj_camformantgl = function(param){
 //        var b=(this.px<0.5)?this.px*2:1;
 //        dmxout.send([0xb0,2,r*this.pz*127]);
 //        dmxout.send([0xb0,4,b*this.pz*127]);
-        var rgb=RGBCol(this.px);
+        var rgb=RGBCol(this.py);
         dmxout.send([0xb0,2,rgb[0]*this.pz*127]);
         dmxout.send([0xb0,3,rgb[1]*this.pz*127]);
         dmxout.send([0xb0,4,rgb[2]*this.pz*127]);
