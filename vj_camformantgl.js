@@ -26,6 +26,18 @@
 //		'r' : rotate
 //
 
+function RGBCol(x){
+  var r=1-x*2;
+  if(r<0) r=0;
+  var b=x*2-1;
+  if(b<0) b=0;
+  var g=x*4;
+  if(g>2) g=4-g;
+  g-=1;
+  if(g<0) g=0;
+  console.log(g)
+  return [r,g,b];
+}
 function VowelOsc(actx){
 	this.connect=function(out){
 		this.vol.connect(out);
@@ -115,6 +127,7 @@ function VowelOsc(actx){
 }
 
 vj_camformantgl = function(param){
+  console.log("vj_camformantgl")
 	var vj_video_vs="\
 		attribute vec3 position;\
 		void main(void){\
@@ -516,38 +529,11 @@ vj_camformantgl = function(param){
 
 	this.Osc=new VowelOsc(this.audioctx);
 	this.Osc.connect(this.dest);
-//	this.Osc=this.audioctx.createOscillator();
-//	this.Fil=this.audioctx.createBiquadFilter();
-//	this.Lfo=this.audioctx.createOscillator();
-//	this.LfoGain=this.audioctx.createGain();
-//	this.Gain=this.audioctx.createGain();
-//	this.Send=this.audioctx.createGain();
-//	this.Send.gain.value=0;
-//	this.Gain.gain.value=0;
-//	this.Osc.connect(this.Fil);
-//	this.Lfo.connect(this.LfoGain);
-//	this.LfoGain.connect(this.Osc.detune);
-//	this.Fil.connect(this.Gain);
-//	this.Gain.connect(this.Send);
-//	this.Gain.connect(this.dest);
-//	this.Send.connect(this.senddest);
-//	this.Osc.type="square";
-//	this.Lfo.type="sine";
-//	this.Osc.frequency.value=440;
-//	this.Lfo.frequency.value=6;
-//	this.Fil.frequency.value=4400;
-//	this.Fil.Q.value=1;
-//	this.LfoGain.gain.value=0;
-//	this.Lfo.start(0);
-//	this.Osc.start(0);
 	this.notes=Mml(this.param.scale.value);
 	this.ready=false;
-//	this.cvwork=document.createElement("canvas");
-//	this.cvwork.width=320;
-//	this.cvwork.height=256;
 	this.cnt=0;
 	this.anim=function(timestamp) {
-		if(!this.ready || this.param.a.value==0)
+	if(!this.ready || this.param.a.value==0)
 			return;
 		if(this.starttime==0)
 			this.startime=timestamp;
@@ -609,7 +595,6 @@ vj_camformantgl = function(param){
 		vol=vol*vol;
 		if(vol>0)
 			this.pz=this.pz*0.8+vol*0.2;
-//		console.log(this.px,this.py,this.pz);
 		gl.bindFramebuffer(gl.FRAMEBUFFER,null);
 		gl.bindFramebuffer(gl.FRAMEBUFFER,null);
 		gl.useProgram(this.prgscr);
@@ -643,14 +628,6 @@ vj_camformantgl = function(param){
 		{
 			var f=Math.pow(Math.max(0,this.param.c.value),this.py*1.4);
 			f=this.param.f.value*(Math.pow(2,c/1200));
-//			this.Osc.frequency.value=this.param.f.value;
-//			this.Osc.detune.setTargetAtTime(c,0,this.param.porta.value*.1);
-//			this.Fil.frequency.value=this.param.f.value*f;
-//			this.Fil.Q.value=this.param.q.value;
-//			this.LfoGain.gain.value=f*1.2;
-//			this.Gain.gain.value=this.pz*this.param.v.value;
-//			this.Send.gain.value=this.param.delay.value;
-//			this.freq+=(f-this.freq)*(1-this.param.porta.value);
 			this.Osc.SetFreq(this.param.f.value);
 			this.Osc.GetNode().detune.setTargetAtTime(c,0,this.param.porta.value*.1);
 			this.Osc.SetVol(this.pz*this.param.v.value);
@@ -663,13 +640,25 @@ vj_camformantgl = function(param){
 			else f1=(yy-.5)*2,f2=1;
 			this.Osc.SetFormant(f1,f2);
 			this.Osc.SetDelayLevel(this.param.delay.value);
-//			console.log(f1,f2,this.px);
 			if(++this.cnt>=2){
 				this.DrawFace(this.facectx, this.param.effface.value,this.px*256, 256-this.py*256, this.pz*.5, [f1*2.5,f2/2,this.px*5]);
 				this.cnt=0;
 			}
 		}
-
+    {
+      if(dmxout){
+//        dmxout.send([0xb0,1,(this.pz*127)|0]);
+//        dmxout.send([0xb0,1,127]);
+//        var r=(this.px<0.5)?1:2-this.px*2;
+//        var b=(this.px<0.5)?this.px*2:1;
+//        dmxout.send([0xb0,2,r*this.pz*127]);
+//        dmxout.send([0xb0,4,b*this.pz*127]);
+        var rgb=RGBCol(this.px);
+        dmxout.send([0xb0,2,rgb[0]*this.pz*127]);
+        dmxout.send([0xb0,3,rgb[1]*this.pz*127]);
+        dmxout.send([0xb0,4,rgb[2]*this.pz*127]);
+      }
+    }
 	};
 	this.ready=true;
 };

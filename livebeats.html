@@ -40,7 +40,7 @@ body{
 <script type="text/javascript" src="./vj_txt.js"></script>
 <script type="text/javascript" src="./vj_wavegl.js"></script>
 <script type="text/javascript" src="./vj_matrix.js"></script>
-<script type="text/javascript" src="./vj_camgl.js"></script>
+<!--<script type="text/javascript" src="./vj_camgl.js"></script>-->
 <script type="text/javascript" src="./vj_camformantgl.js"></script>
 <script type="text/javascript" src="./vj_dropgl.js"></script>
 <!--<script type="text/javascript" src="./vj_beatstep.js"></script>-->
@@ -249,16 +249,13 @@ function animInterval(timestamp) {
 	var layout=false;
 	if(master.run==0)
 		return;
-//	Interval();
 	if(timestamp-lastTime>50) {
 		lastTime=timestamp;
 		layout=true;
 	}
 	else {
-//		window.requestAnimationFrame(animInterval);
 		return;
 	}
-//	Interval();
 	if(++master.tccnt>=10)
 		document.getElementById("timecode").innerHTML=Timecode(audioctx.currentTime);
 	master.ana.getByteTimeDomainData(wavdat);
@@ -387,8 +384,8 @@ function Init() {
 	p.obj.param.a.value=0;
 	p=_LoadPlugin("vj_drop","p1","base");
 	p.obj.param.a.value=0;
-	p=_LoadPlugin("vj_drop","p2","base");
-	p.obj.param.a.value=0;
+//	p=_LoadPlugin("vj_drop","p2","base");
+//	p.obj.param.a.value=0;
 	p=_LoadPlugin("vj_matrix","mat","base");
 	p.obj.param.a.value=0;
 	_LoadPlugin("vj_wave","wav","base");
@@ -1313,14 +1310,33 @@ function Noise() {
 	this.scr.onaudioprocess=this.Process;
 	this.scr.connect(out);
 }
+function LightCol(h){
+  var r,g,b;
+  var n=h*6;
+  var nn=n|0;
+  n=((n-nn)*127)|0;
+  nn%=6;
+  switch(nn){
+  case 0: r=127,g=n,b=0; break;
+  case 1: r=127-n,g=127,b=0; break;
+  case 2: r=0,g=127,b=n; break;
+  case 3: r=0,g=127-n,b=127; break;
+  case 4: r=n,g=0,b=127; break;
+  case 5: r=127,g=0,b=127-n; break;
+  }
+  return [r,g,b];
+}
 function DMX(){
-  this.p1="9";
+  this.hue=0;
+  this.p1="1";
   this.p2="0";
   this.p3="0";
   this.p4="0";
   this.next=function(t) {
     if(dmxout==null)
       return;
+    var now=performance.now();
+    var dmxdelay=200;
     this.step1=tick%this.p1.length;
     this.step2=tick%this.p2.length;
     this.step3=tick%this.p3.length;
@@ -1329,10 +1345,19 @@ function DMX(){
     var v2=this.p2[this.step2]/9*127;
     var v3=this.p3[this.step3]/9*127;
     var v4=this.p4[this.step4]/9*127;
-    dmxout.send([0xb0,1,v1]);
-    dmxout.send([0xb0,2,v2]);
-    dmxout.send([0xb0,3,v3]);
-    dmxout.send([0xb0,4,v4]);
+//    dmxout.send([0xb0,1,v1]);
+//    dmxout.send([0xb0,2,v2]);
+//    dmxout.send([0xb0,3,v3]);
+//    dmxout.send([0xb0,4,v4]);
+//    var rgb=LightCol(this.hue);
+//    this.hue+=0.01;
+//    if(this.hue>=1){
+//      this.hue-=1;
+//    }
+//    dmxout.send([0xb0,1,v1],now+dmxdelay);
+//    dmxout.send([0xb0,2,rgb[0]]);
+    dmxout.send([0xb0,1,v1],now+dmxdelay);
+//    dmxout.send([0xb0,4,rgb[2]]);
   }
 }
 function OSC(f,v,t,to) {
