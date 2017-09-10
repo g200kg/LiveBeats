@@ -27,7 +27,7 @@
 //
 
 function RGBCol(x){
-  x=(x-.5)*2+.5;
+  x=1.5-x*2;
   if(x<0) x=0;
   if(x>1) x=1;
   var r=1-x*2;
@@ -648,18 +648,13 @@ vj_camformantgl = function(param){
 			}
 		}
     {
-//      console.log(this.py)
       if(dmxout){
-//        dmxout.send([0xb0,1,(this.pz*127)|0]);
-//        dmxout.send([0xb0,1,127]);
-//        var r=(this.px<0.5)?1:2-this.px*2;
-//        var b=(this.px<0.5)?this.px*2:1;
-//        dmxout.send([0xb0,2,r*this.pz*127]);
-//        dmxout.send([0xb0,4,b*this.pz*127]);
         var rgb=RGBCol(this.py);
-        dmxout.send([0xb0,2,rgb[0]*this.pz*127]);
-        dmxout.send([0xb0,3,rgb[1]*this.pz*127]);
-        dmxout.send([0xb0,4,rgb[2]*this.pz*127]);
+        var pz=this.pz*2;
+        if(pz>1) pz=1;
+        dmxout.send([0xb0,2,rgb[0]*pz*127]);
+        dmxout.send([0xb0,3,rgb[1]*pz*127]);
+        dmxout.send([0xb0,4,rgb[2]*pz*127]);
       }
     }
 	};
