@@ -27,6 +27,9 @@
 //
 
 function RGBCol(x){
+  x=(.5-x)*2+.5;
+  if(x<0) x=0;
+  if(x>1) x=1;
   var r=1-x*2;
   if(r<0) r=0;
   var b=x*2-1;
@@ -35,7 +38,6 @@ function RGBCol(x){
   if(g>2) g=4-g;
   g-=1;
   if(g<0) g=0;
-  console.log(g)
   return [r,g,b];
 }
 function VowelOsc(actx){
@@ -646,6 +648,7 @@ vj_camformantgl = function(param){
 			}
 		}
     {
+      console.log(this.py)
       if(dmxout){
 //        dmxout.send([0xb0,1,(this.pz*127)|0]);
 //        dmxout.send([0xb0,1,127]);
