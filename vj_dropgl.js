@@ -44,6 +44,19 @@ vj_drop = function(param){
 		uniform float hue;\
 		uniform float scale;\
 		uniform float rot;\
+    uniform float alpha;\
+    float rand(vec2 n){\
+      return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);\
+    }\
+    float noise(vec2 n){\
+      const vec2 d = vec2(0.0, 1.0);\
+      vec2 b = floor(n), f = smoothstep(vec2(0.0), vec2(1.0), fract(n));\
+      return mix(mix(rand(b), rand(b + d.yx), f.x), mix(rand(b + d.xy), rand(b + d.yy), f.x), f.y);\
+    }\
+    float fbm(vec2 n){\
+      n.y-=time*.001;\
+      return noise(n)+noise(n*2.)*.7+noise(n*3.)*.5;\
+    }\
 		vec3 hsv2rgb(vec3 c){\
 			vec4 K = vec4(1., 2./3., 1./3., 3.);\
 			vec3 p = abs(fract(c.xxx + K.xyz) * 6. - K.www);\
@@ -230,6 +243,15 @@ vj_drop = function(param){
 			float tt=col.x+col.y;\
 			gl_FragColor = vec4(hsl2rgb(vec3(hue,1.,tt)),0.);\
 		}\
+    void soar(vec2 uv,float v){\
+    	uv-=.5;\
+    	uv*=12.;\
+    	float q = fbm(uv);\
+    	vec2 r = vec2(fbm(uv + q + uv.y+v*2.), fbm(uv + q - uv.y));\
+    	float cc=fbm(uv+r)*.6;\
+      cc=pow(cc,3.);\
+      gl_FragColor = vec4(hsl2rgb(vec3(hue,1.,cc)),0.);\
+    }\
 		void main() {\
 			vec2 uv=(gl_FragCoord.xy/resolution.xy-.5);\
 			vec2 p=(gl_FragCoord.xy*2.-resolution)/resolution;\
@@ -264,6 +286,9 @@ vj_drop = function(param){
 				spot(uv,v);\
 			else if(type==8)\
 				object(uv,v);\
+      else if(type==9)\
+        soar(uv,v);\
+      gl_FragColor = gl_FragColor*alpha;\
 		}";
 	this.audioctx=param.audioctx;
 	this.wavedat=param.wavedat;
@@ -271,8 +296,10 @@ vj_drop = function(param){
 	this.dest=param.dest;
 	this.senddest=param.senddest;
 
-	param.w=512;
-	param.h=512;
+	param.w/=2;
+	param.h/=2;
+//  param.w=640;
+//  param.h=480;
 
 	this.w=param.w;
 	this.h=param.h;
@@ -323,6 +350,7 @@ vj_drop = function(param){
 	uniLocation.scr_mode = gl.getUniformLocation(this.prgscr,"mode");
 	uniLocation.scr_hue = gl.getUniformLocation(this.prgscr,"hue");
 	uniLocation.scr_rot = gl.getUniformLocation(this.prgscr,"rot");
+  uniLocation.scr_alpha = gl.getUniformLocation(this.prgscr,"alpha");
 	uniLocation.scr_vu = gl.getUniformLocation(this.prgscr,"vu");
 	uniLocation.scr_z = gl.getUniformLocation(this.prgscr,"scale");
 	gl.activeTexture(gl.TEXTURE0);
@@ -331,6 +359,7 @@ vj_drop = function(param){
 		"type":{"value":0,"type":"int","min":0,"max":1},
 		"mode":{"value":0,"type":"int","min":0,"max":1},
 		"rot":{"value":0,"type":"double","min":0,"max":1},
+    "a":{"value":1,"type":"double","min":0,"max":1},
 		"z":{"value":1,"type":"double","min":0,"max":100},
 	};
 	this.starttime=0;
@@ -343,12 +372,12 @@ vj_drop = function(param){
 	this.anim=function(timestamp) {
 		if(this.param.a.value==0)
 			return;
-		if(this.starttime==0)
-			this.startime=timestamp;
-		var dt=timestamp-this.lasttime;
-		if(dt<50)
-			return;
-		this.lasttime=timestamp;
+//		if(this.starttime==0)
+//			this.startime=timestamp;
+//		var dt=timestamp-this.lasttime;
+//		if(dt<60)
+//			return;
+//		this.lasttime=timestamp;
 		var vu2=0;
 		for(var i=1;i<512;++i) {
 			var j=i<<2;
@@ -374,6 +403,7 @@ vj_drop = function(param){
 		gl.uniform1i(uniLocation.scr_mode,this.param.mode.value);
 	  gl.uniform1f(uniLocation.scr_hue,this.param.hue.value);
 		gl.uniform1f(uniLocation.scr_rot,this.param.rot.value*3.14159265/180);
+    gl.uniform1f(uniLocation.scr_alpha,this.param.a.value);
 		gl.uniform1f(uniLocation.scr_vu,this.vu);
 		gl.uniform1f(uniLocation.scr_z,this.param.z.value);
 		gl.drawArrays(gl.TRIANGLE_STRIP, 0,4);

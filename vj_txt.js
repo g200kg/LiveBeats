@@ -57,7 +57,7 @@ vj_txt=function(param) {
 			this.cmds.dirty=0;
 			this.ctx.strokeStyle="#000";
 			this.ctx.fillStyle=this.param.col.value;
-			this.ctx.lineWidth=3;
+			this.ctx.lineWidth=5;
 			this.ctx.clearRect(0,0,this.w,this.h);
 			var i;
 			for(i=0;i<this.rows;++i) {

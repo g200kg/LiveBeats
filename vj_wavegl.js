@@ -79,6 +79,7 @@ vj_wave = function(param){
 		uniform float eff_wave;\
 		uniform float scale;\
 		uniform float rot;\
+    uniform float alpha;\
 		float plasma(vec2 p){\
 		  p*=10.0;\
 		  return (sin(p.x+time*0.001)*0.25+0.25)+(sin(p.y*time*0.121)*0.25+0.25);\
@@ -106,7 +107,7 @@ vj_wave = function(param){
 			float rr=pow(max(0.,1.-distance(p2,vec2(p2.x,v))),11.0);\
 			float rr4=pow(rr,10.0/eff_line);\
 			rr=max(rr*.25,rr4);\
-			gl_FragColor=vec4(hsv2rgb(vec3(eff_hue,1.-rr4,rr)),0.);\
+			gl_FragColor=vec4(hsv2rgb(vec3(eff_hue,1.-rr4,rr))*alpha,0.);\
 		}";
 		this.createFramebuffer=function(w, h) {
 			var frameBuff = gl.createFramebuffer();
@@ -203,6 +204,7 @@ vj_wave = function(param){
 	uniLocation.scr_line = gl.getUniformLocation(this.prgscr,"eff_line");
 	uniLocation.scr_type = gl.getUniformLocation(this.prgscr,"eff_type");
 	uniLocation.scr_rot = gl.getUniformLocation(this.prgscr,"rot");
+  uniLocation.scr_alpha = gl.getUniformLocation(this.prgscr,"alpha");
 	uniLocation.scr_z = gl.getUniformLocation(this.prgscr,"scale");
 	gl.activeTexture(gl.TEXTURE0);
 	this.levx=new Uint8Array(this.sizex*4);
@@ -257,6 +259,7 @@ vj_wave = function(param){
 		gl.uniform1f(uniLocation.scr_line,this.param.line.value);
 		gl.uniform1i(uniLocation.scr_type,this.param.type.value);
 		gl.uniform1f(uniLocation.scr_rot,this.param.rot.value*3.14159265/180);
+    gl.uniform1f(uniLocation.scr_alpha,Math.min(.99,this.param.a.value));
 		gl.uniform1f(uniLocation.scr_z,this.param.z.value);
 
 //		this.frameidx^=1;

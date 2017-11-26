@@ -176,6 +176,9 @@ vj_camformantgl = function(param){
 		uniform vec3 cursorold;\
 		uniform sampler2D textureCur;\
 		uniform sampler2D textureDiff;\
+    uniform float rot;\
+    uniform float alpha;\
+    uniform float scale;\
 		uniform float effposter;\
 		uniform float effmotion;\
 		uniform int effkaleido;\
@@ -225,8 +228,11 @@ vj_camformantgl = function(param){
 			return p+(vec2(smoothrand(p*30.),smoothrand(p*31.))-vec2(.5))*effmelt;\
 		}\
 		void main() {\
-			vec2 uv=gl_FragCoord.xy/resolution.xy;\
-			vec2 p=abs(trans(uv));\
+      vec2 uv=(gl_FragCoord.xy/resolution.xy-.5);\
+			float th=atan(uv.y,uv.x)+rot*3.14159/180.0;\
+			float r=length(uv)/scale;\
+			uv=vec2(cos(th)*r,sin(th)*r);\
+			uv+=.5;\
 			float cr=0.;\
 			if(effpointer==1){\
 				float r=cursor.z*0.08+0.01;\
@@ -246,6 +252,23 @@ vj_camformantgl = function(param){
 				cr=max(cr,1.0-abs(sin(sin(time*.000121)/(.1+difyold))*difyold-(uv.x-cursorold.x)));\
 				cr=pow(cr,136.);\
 			}\
+      if(effpointer==3){\
+        float r=cursor.z*0.05;\
+        float fac=1.00002;\
+        float dist=1.;\
+        for(int i=0;i<8;++i){\
+          vec2 pos=cursor.xy;\
+          float fi=sin(float(i)*8.2);\
+          float fi2=cos(float(i)*3.3);\
+          float t=time*(0.005+fi*0.001)+fi;\
+          pos.x+=tan(fi)*sin(t)*0.11*(sin(fi))*cursor.z*2.;\
+          pos.y+=tan(fi2)*cos(t)*0.132*(sin(fi))*cursor.z*2.;\
+          dist=min(dist,1.);\
+          dist=min(dist,length(pos-uv));\
+        }\
+        fac-=(dist);\
+        cr=pow(fac,30.);\
+      }\
 			float mos=resolution.x/(effmosaic*64.0+1.0);\
 			uv=vec2(1.0)-uv;\
 			if(effkaleido>=1) {\
@@ -300,7 +323,7 @@ vj_camformantgl = function(param){
 			else if(v>0.25) {\
 				colCur.x+=(1.0-colCur.x)*(v-0.25)*4.0*effmotion;\
 			}\
-			gl_FragColor=vec4(colCur.x+cr,colCur.y+cr,colCur.z+pow(cr,.5),1.0);\
+			gl_FragColor=vec4(colCur.x+cr,colCur.y+cr,colCur.z+pow(cr,.5),0.0)*alpha;\
 		}";
 	this.createVideoTexture=function(video) {
 		var tex=gl.createTexture();
@@ -308,7 +331,6 @@ vj_camformantgl = function(param){
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-//		gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,video);
 		gl.bindTexture(gl.TEXTURE_2D,null);
 		return tex;
 	};
@@ -319,8 +341,6 @@ vj_camformantgl = function(param){
 		var t=this.texturePre;
 		this.texturePre=this.textureCur;
 		this.textureCur=t;
-//		var ctx=this.cvwork.getContext("2d");
-//		ctx.drawImage(video,0,0,320,256);
 		gl.bindTexture(gl.TEXTURE_2D,this.textureCur);
 		gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,this.video);
 		gl.bindTexture(gl.TEXTURE_2D,null);
@@ -399,8 +419,8 @@ vj_camformantgl = function(param){
 	this.dest=param.dest;
 	this.senddest=param.senddest;
 
-	param.w=1024;
-	param.h=1024;
+	param.w=512;
+	param.h=512;
 
 	this.w=param.w;
 	this.h=param.h;
@@ -415,6 +435,9 @@ vj_camformantgl = function(param){
 	this.glcanvas.style.width="100%";
 	this.glcanvas.style.height="100%";
 	this.elem.appendChild(this.glcanvas);
+
+  this.facectx=null;
+/* for face animation
 	this.facecanvas=document.createElement("canvas");
 	this.facecanvas.width=256;
 	this.facecanvas.height=256;
@@ -424,13 +447,13 @@ vj_camformantgl = function(param){
 	this.facecanvas.style.top="0px";
 	this.facecanvas.style.left="0px";
 	this.elem.appendChild(this.facecanvas);
-
+  this.facectx=this.facecanvas.getContext("2d");
+*/
 	this.sizex=param.w;
 	this.sizey=param.h;
 
-	this.facectx=this.facecanvas.getContext("2d");
 
-	var gl = this.glcanvas.getContext("webgl") || this.elem.getContext("experimental-webgl");
+	var gl = this.glcanvas.getContext("webgl") || this.glcanvas.getContext("experimental-webgl");
 	this.v_shader=gl.createShader(gl.VERTEX_SHADER);
 	gl.shaderSource(this.v_shader, vj_video_vs);
 	gl.compileShader(this.v_shader);
@@ -477,6 +500,9 @@ vj_camformantgl = function(param){
 	uniLocation.scr_cursorold = gl.getUniformLocation(this.prgscr,"cursorold");
 	uniLocation.scr_texturecur = gl.getUniformLocation(this.prgscr,"textureCur");
 	uniLocation.scr_texturediff = gl.getUniformLocation(this.prgscr,"textureDiff");
+  uniLocation.scr_rot = gl.getUniformLocation(this.prgscr,"rot");
+  uniLocation.scr_alpha = gl.getUniformLocation(this.prgscr,"alpha");
+  uniLocation.scr_scale = gl.getUniformLocation(this.prgscr,"scale");
 	uniLocation.scr_poster = gl.getUniformLocation(this.prgscr,"effposter");
 	uniLocation.scr_motion = gl.getUniformLocation(this.prgscr,"effmotion");
 	uniLocation.scr_kaleido = gl.getUniformLocation(this.prgscr,"effkaleido");
@@ -497,6 +523,9 @@ vj_camformantgl = function(param){
 	this.levx=new Uint8Array(this.sizex*4);
 	this.levy=new Uint8Array(this.sizey*4);
 	this.param = {
+    "a":{"value":0,"type":"double","min":0,"max:":1},
+    "rot":{"value":0,			"type":"double","min":0,"max":1},
+    "z":{"value":1, "type":"double","min":0,"max":10},
 		"c":{"value":32,"type":"double","min":0,"max":100},
 		"f":{"value":110,"type":"double","min":0,"max":1760},
 		"v":{"value":0,"type":"double","min":0,"max":1},
@@ -523,28 +552,33 @@ vj_camformantgl = function(param){
 		"py":{"value":0,"type":"double","min":0,"max":1},
 		"pz":{"value":0,"type":"double","min":0,"max":1},
 	};
-	this.starttime=0;
+	this.starttime=this.lasttime=0;
 	this.px=this.pxold=0;
 	this.py=this.pyold=0;
 	this.pz=this.pzold=0;
 	this.freq=110;
-
+  this.scale=this.param.scale.value;
 	this.Osc=new VowelOsc(this.audioctx);
 	this.Osc.connect(this.dest);
 	this.notes=Mml(this.param.scale.value);
-	this.ready=false;
+	this.ready=0;
 	this.cnt=0;
 	this.anim=function(timestamp) {
-	if(!this.ready || this.param.a.value==0)
+//    if(this.starttime==0)
+//			this.startime=timestamp;
+//		if(timestamp-this.lasttime<60)
+//			return;
+//    this.lasttime=timestamp;
+	  if(this.ready==0 || this.param.a.value==0)
 			return;
-		if(this.starttime==0)
-			this.startime=timestamp;
-		var dt=timestamp-this.lasttime;
-		if(dt<50)
-			return;
-		this.lasttime=timestamp;
 		this.frameidx^=1;
 		this.updateTexture(this.video);
+    if(++this.ready<3)
+      return;
+    if(this.scale!=this.param.scale.value){
+      this.scale=this.param.scale.value;
+      this.notes=Mml(this.scale);
+    }
 		gl.useProgram(this.prgdiff);
 		gl.bindFramebuffer(gl.FRAMEBUFFER,this.framebuf[this.frameidx].f);
 		gl.uniform2fv(uniLocation.diff_resolution,[this.sizex,this.sizey]);
@@ -610,6 +644,9 @@ vj_camformantgl = function(param){
 		gl.activeTexture(gl.TEXTURE1);
 		gl.bindTexture(gl.TEXTURE_2D, this.framebuf[this.frameidx].t);
 		gl.uniform1i(uniLocation.scr_texturediff,1);
+    gl.uniform1f(uniLocation.scr_rot,this.param.rot.value);
+    gl.uniform1f(uniLocation.scr_alpha,this.param.a.value);
+    gl.uniform1f(uniLocation.scr_scale,this.param.z.value);
 		gl.uniform1f(uniLocation.scr_poster,this.param.effposter.value);
 		gl.uniform1f(uniLocation.scr_motion,this.param.effmotion.value);
 		gl.uniform1i(uniLocation.scr_kaleido,this.param.effkaleido.value);
@@ -626,10 +663,8 @@ vj_camformantgl = function(param){
 		gl.uniform1f(uniLocation.scr_scan,this.param.effscan.value);
 		gl.drawArrays(gl.TRIANGLE_STRIP, 0,4);
 		gl.flush();
-		var c=(this.notes[this.px*this.notes.length|0]-57)*100;
+		var c=((this.notes[this.px*this.notes.length|0]-57)+(master.tunparam-5))*100;
 		{
-			var f=Math.pow(Math.max(0,this.param.c.value),this.py*1.4);
-			f=this.param.f.value*(Math.pow(2,c/1200));
 			this.Osc.SetFreq(this.param.f.value);
 			this.Osc.GetNode().detune.setTargetAtTime(c,0,this.param.porta.value*.1);
 			this.Osc.SetVol(this.pz*this.param.v.value);
@@ -642,21 +677,9 @@ vj_camformantgl = function(param){
 			else f1=(yy-.5)*2,f2=1;
 			this.Osc.SetFormant(f1,f2);
 			this.Osc.SetDelayLevel(this.param.delay.value);
-			if(++this.cnt>=2){
+			if(this.facectx)
 				this.DrawFace(this.facectx, this.param.effface.value,this.px*256, 256-this.py*256, this.pz*.5, [f1*2.5,f2/2,this.px*5]);
-				this.cnt=0;
-			}
 		}
-    {
-      if(dmxout){
-        var rgb=RGBCol(this.py);
-        var pz=this.pz*2;
-        if(pz>1) pz=1;
-        dmxout.send([0xb0,2,rgb[0]*pz*127]);
-        dmxout.send([0xb0,3,rgb[1]*pz*127]);
-        dmxout.send([0xb0,4,rgb[2]*pz*127]);
-      }
-    }
 	};
-	this.ready=true;
+	this.ready=1;
 };
