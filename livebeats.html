@@ -129,6 +129,7 @@ var pluginsparam=[];
 var midicb=[];
 
 var fn=[
+	"dmx.p0=0;dmx.p2=9;dmx.p3=0;dmx.p4=0;dmx.p6=0",
 	"wav.type=0;wav.fill=0;wav.effr=.9;wav.effx=0;wav.effy=0;wav.effz=1.05",
 	"wav.type=1;wav.fill=0;wav.effr=.9;wav.effx=0;wav.effy=10;wav.effz=1",
 	"wav.type=2;wav.fill=0;wav.effr=.9;wav.effx=0;wav.effy=0;wav.effz=1.05",
@@ -137,7 +138,6 @@ var fn=[
 	"",
 	"bdo.v=0;sdo.v=0;hho.v=0;cam.v=0",
 	"bdo.v=.5;sdo.v=.5;hho.v=.5",
-	"",
 	"",
 	"",
 	"",
@@ -1791,27 +1791,29 @@ function Master() {
 	this.comp.connect(this.ana);
 	this.tccnt=0;
 	this.g="";
-  this.t="5";
+	this.t="5";
 	this.ir=0;
 	this._rev=this.rev=.5;
 	this._tempo=this.tempo=120;
 	this.step=0;
 	this.run=1;
-	this.step0=0;
+	this.stepg=0;
+	this.stept=0;
 	this.next=function(t) {
 		this._tempo=numeval(this.tempo);
-		var step0=((tick/4)|0);
-		var fsuparam=this.g[step0%this.g.length];
-    this.tunparam=parseInt(this.t[step0%this.t.length]);
-    if(isNaN(this.tunparam))
-      this.tunparam=5;
+		var stepg=((tick/4)|0);
+		var stept=((tick/16)|0);
+		var fsuparam=this.g[stepg%this.g.length];
+		this.tunparam=parseInt(this.t[stept%this.t.length]);
+		if(isNaN(this.tunparam))
+			this.tunparam=5;
 		var _v=numeval(this.v)*.3;
 		this._rev=numeval(this.rev);
 		this.convgain.gain.value=this._rev;
 		this._v+=(_v-this._v)*this.fade;
 		var p0=15/this._tempo;
-		if(step0!=this.step0){
-			this.step0=step0;
+		if(stepg!=this.stepg){
+			this.stepg=stepg;
 			switch(fsuparam){
 			case "p":
 				break;
@@ -2133,7 +2135,7 @@ function Video() {
 function Start(){
 	const s=document.getElementById("splash");
 	s.style.display="none";
-//	video.video.play();
+	video.video.play();
 }
 </script>
 <div id="base" style="position:absolute;left:0px;top:0px;background:#000;overflow:hidden">
