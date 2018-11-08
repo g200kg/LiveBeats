@@ -176,9 +176,9 @@ vj_camformantgl = function(param){
 		uniform vec3 cursorold;\
 		uniform sampler2D textureCur;\
 		uniform sampler2D textureDiff;\
-    uniform float rot;\
-    uniform float alpha;\
-    uniform float scale;\
+		uniform float rot;\
+		uniform float alpha;\
+		uniform float scale;\
 		uniform float effposter;\
 		uniform float effmotion;\
 		uniform int effkaleido;\
@@ -228,7 +228,7 @@ vj_camformantgl = function(param){
 			return p+(vec2(smoothrand(p*30.),smoothrand(p*31.))-vec2(.5))*effmelt;\
 		}\
 		void main() {\
-      vec2 uv=(gl_FragCoord.xy/resolution.xy-.5);\
+			vec2 uv=(gl_FragCoord.xy/resolution.xy-.5);\
 			float th=atan(uv.y,uv.x)+rot*3.14159/180.0;\
 			float r=length(uv)/scale;\
 			uv=vec2(cos(th)*r,sin(th)*r);\
@@ -252,23 +252,23 @@ vj_camformantgl = function(param){
 				cr=max(cr,1.0-abs(sin(sin(time*.000121)/(.1+difyold))*difyold-(uv.x-cursorold.x)));\
 				cr=pow(cr,136.);\
 			}\
-      if(effpointer==3){\
-        float r=cursor.z*0.05;\
-        float fac=1.00002;\
-        float dist=1.;\
-        for(int i=0;i<8;++i){\
-          vec2 pos=cursor.xy;\
-          float fi=sin(float(i)*8.2);\
-          float fi2=cos(float(i)*3.3);\
-          float t=time*(0.005+fi*0.001)+fi;\
-          pos.x+=tan(fi)*sin(t)*0.11*(sin(fi))*cursor.z*2.;\
-          pos.y+=tan(fi2)*cos(t)*0.132*(sin(fi))*cursor.z*2.;\
-          dist=min(dist,1.);\
-          dist=min(dist,length(pos-uv));\
-        }\
-        fac-=(dist);\
-        cr=pow(fac,30.);\
-      }\
+			if(effpointer==3){\
+				float r=cursor.z*0.05;\
+				float fac=1.00002;\
+				float dist=1.;\
+				for(int i=0;i<8;++i){\
+					vec2 pos=cursor.xy;\
+					float fi=sin(float(i)*8.2);\
+					float fi2=cos(float(i)*3.3);\
+					float t=time*(0.005+fi*0.001)+fi;\
+					pos.x+=tan(fi)*sin(t)*0.11*(sin(fi))*cursor.z*2.;\
+					pos.y+=tan(fi2)*cos(t)*0.132*(sin(fi))*cursor.z*2.;\
+					dist=min(dist,1.);\
+					dist=min(dist,length(pos-uv));\
+				}\
+				fac-=(dist);\
+				cr=pow(fac,30.);\
+			}\
 			float mos=resolution.x/(effmosaic*64.0+1.0);\
 			uv=vec2(1.0)-uv;\
 			if(effkaleido>=1) {\
@@ -323,7 +323,7 @@ vj_camformantgl = function(param){
 			else if(v>0.25) {\
 				colCur.x+=(1.0-colCur.x)*(v-0.25)*4.0*effmotion;\
 			}\
-			gl_FragColor=vec4(colCur.x+cr,colCur.y+cr,colCur.z+pow(cr,.5),0.0)*alpha;\
+			gl_FragColor=vec4(colCur.x+cr,colCur.y+cr,colCur.z+pow(cr,.5),1.0)*alpha;\
 		}";
 	this.createVideoTexture=function(video) {
 		var tex=gl.createTexture();

@@ -48,6 +48,8 @@ vj_matrix=function(param) {
 	this.mry=this.h/48;
 	this.lasttime=0;
 	this.anim=function(timestamp) {
+		console.log(this.param.a.value,this.elem.style.opacity);
+		this.elem.style.opacity=this.param.a.value;
 		if(this.param.a.value==0)
 			return;
 		if(timestamp-this.lasttime<50)
@@ -64,7 +66,15 @@ vj_matrix=function(param) {
 		this.ctx.clearRect(0,0,this.w,this.h);
 		this.ctx.globalAlpha=this.param.effr.value;
 		this.ctx.drawImage(this.elemwork,0,0,this.w,this.h);
-		this.ctx.globalAlpha=1.0;
+		var rad=this.param.rot.value*3.14159/180;
+		var sn=Math.sin(rad);
+		var cs=Math.cos(rad);
+		this.ctx.translate(this.w*0.5,this.h*0.5);
+		this.ctx.transform(cs, sn, -sn, cs, 0,0 );
+		this.ctx.translate(-this.w*0.5,-this.h*0.5);
+
+//		console.log(this.param.a.value)
+		this.ctx.globalAlpha=1.0;//this.param.a.value;
 		var i=this.wavedat[0]>>2;
 		if(this.mat[i]<0)
 			this.mat[i]=0;
@@ -83,16 +93,19 @@ vj_matrix=function(param) {
 					this.mat[i]=0;
 			}
 		}
+		this.ctx.setTransform(1,0,0,1,0,0);
 	};
 	this.param={
-		"z":{"value":2,				"define":1,	"type":"double",	"min":0,		"max":20},
-		"effb":{"value":0,		"type":"double",	"min":0,		"max":20},
+		"rot":{"value":0,		"type":"double",	"min":-1000,"max":1000},
+		"z":{"value":2,			"define":1,	"type":"double",	"min":0,		"max":20},
+		"a":{"value":0,			"type":"double",	"min":0,	"max":1},
+		"effb":{"value":0,		"type":"double",	"min":0,	"max":20},
 		"effr":{"value":0.95,	"type":"double",	"min":0.9,	"max":0.99},
 		"effx":{"value":0,		"type":"double",	"min":-20,	"max":20},
 		"effy":{"value":0,		"type":"double",	"min":-20,	"max":20},
 		"effz":{"value":1,		"type":"double",	"min":0.5,	"max":2},
-		"hue":{"value":0.3,			"type":"double",	"min":-1,		"max":1},
-		"bri":{"value":0.8,			"type":"double",	"min":0,		"max":1},
+		"hue":{"value":0.3,		"type":"double",	"min":-1,	"max":1},
+		"bri":{"value":0.5,		"type":"double",	"min":0,	"max":1},
 		"col":{"value":"#0f0",	"type":"string"},
 		"bcol":{"value":"#fff",	"type":"string"},
 		"cx":{"value":.5,		"type":"double",	"min":0,	"max":1},

@@ -79,10 +79,10 @@ vj_wave = function(param){
 		uniform float eff_wave;\
 		uniform float scale;\
 		uniform float rot;\
-    uniform float alpha;\
+		uniform float alpha;\
 		float plasma(vec2 p){\
-		  p*=10.0;\
-		  return (sin(p.x+time*0.001)*0.25+0.25)+(sin(p.y*time*0.121)*0.25+0.25);\
+			p*=10.0;\
+			return (sin(p.x+time*0.001)*0.25+0.25)+(sin(p.y*time*0.121)*0.25+0.25);\
 		}\
 		vec2 trans(vec2 p){\
 			float theta = atan(p.y, p.x);\
@@ -90,9 +90,9 @@ vj_wave = function(param){
 			return vec2(theta*.25, r);\
 		}\
 		vec3 hsv2rgb(vec3 c) {\
-  		vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);\
-  		vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);\
-  		return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);\
+			vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);\
+			vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);\
+			return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);\
 		}\
 		void main() {\
 			vec2 p=(gl_FragCoord.xy*2.-resolution)/resolution;\
@@ -103,26 +103,32 @@ vj_wave = function(param){
 			if(eff_type==2)\
 				p2=trans(p);\
 			float v=texture2D(textureWav,vec2((p2.x+1.)*.5,0.)).x*3.-1.5;\
+			/*v=0.;*/\
 			vec4 b=texture2D(textureBack,p);\
 			float rr=pow(max(0.,1.-distance(p2,vec2(p2.x,v))),11.0);\
 			float rr4=pow(rr,10.0/eff_line);\
 			rr=max(rr*.25,rr4);\
-			gl_FragColor=vec4(hsv2rgb(vec3(eff_hue,1.-rr4,rr))*alpha,0.);\
+			rr=clamp(rr,0.0,1.0);\
+			rr4=clamp(rr4,0.0,1.0);\
+			gl_FragColor=vec4(0.0,rr4,rr,1.0);\
+			gl_FragColor=vec4(1.0,0.0,0.0,1.0);\
+			vec3 col=hsv2rgb(vec3(eff_hue,1.0-rr4,rr))*alpha;\
+			gl_FragColor=vec4(col,col.x);\
 		}";
-		this.createFramebuffer=function(w, h) {
-			var frameBuff = gl.createFramebuffer();
-			var tex = gl.createTexture();
-			gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuff);
-			gl.bindTexture(gl.TEXTURE_2D, tex);
-			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-			gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
-			gl.bindTexture(gl.TEXTURE_2D, null);
-			gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-			return {"f":frameBuff, "t":tex};
-		}
+	this.createFramebuffer=function(w, h) {
+		var frameBuff = gl.createFramebuffer();
+		var tex = gl.createTexture();
+		gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuff);
+		gl.bindTexture(gl.TEXTURE_2D, tex);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+		gl.bindTexture(gl.TEXTURE_2D, null);
+		gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		return {"f":frameBuff, "t":tex};
+	}
 
 
 	this.audioctx=param.audioctx;
@@ -146,7 +152,8 @@ vj_wave = function(param){
 	this.sizex=param.w;
 	this.sizey=param.h;
 
-	var gl = this.elem.getContext("webgl") || this.elem.getContext("experimental-webgl");
+//	var gl = this.elem.getContext("webgl") || this.elem.getContext("experimental-webgl");
+	var gl = this.elem.getContext("webgl2",{alpha:true});
 	this.v_shader=gl.createShader(gl.VERTEX_SHADER);
 	gl.shaderSource(this.v_shader, vj_video_vs);
 	gl.compileShader(this.v_shader);
@@ -156,21 +163,34 @@ vj_wave = function(param){
 	this.f_shaderscr=gl.createShader(gl.FRAGMENT_SHADER);
 	gl.shaderSource(this.f_shaderscr,vj_video_fsscr);
 	gl.compileShader(this.f_shaderscr);
-	if(!gl.getShaderParameter(this.v_shader, gl.COMPILE_STATUS))
-		alert(gl.getShaderInfoLog(this.v_shader));
-	if(!gl.getShaderParameter(this.f_shaderdiff, gl.COMPILE_STATUS))
-		alert(gl.getShaderInfoLog(this.f_shaderdiff));
-	if(!gl.getShaderParameter(this.f_shaderscr, gl.COMPILE_STATUS))
-		alert(gl.getShaderInfoLog(this.f_shaderscr));
-
+	if(gl.getShaderParameter(this.v_shader, gl.COMPILE_STATUS))
+		console.log("this.v_shader ok");
+	else
+		console.log("Shader err",gl.getShaderInfoLog(this.v_shader));
+	if(gl.getShaderParameter(this.f_shaderdiff, gl.COMPILE_STATUS))
+		console.log("this.f_shaderdiff ok");
+	else
+		console.log("Shader err",gl.getShaderInfoLog(this.f_shaderdiff));
+	if(gl.getShaderParameter(this.f_shaderscr, gl.COMPILE_STATUS))
+		console.log("this.f_shaderscr ok");
+	else
+		console.log("Shader err",gl.getShaderInfoLog(this.f_shaderscr));
 	this.prgdiff = gl.createProgram();
 	gl.attachShader(this.prgdiff, this.v_shader);
 	gl.attachShader(this.prgdiff, this.f_shaderdiff);
 	gl.linkProgram(this.prgdiff);
+	if(gl.getProgramParameter(this.prgdiff, gl.LINK_STATUS))
+		console.log(this.prgdiff);
 	this.prgscr = gl.createProgram();
 	gl.attachShader(this.prgscr, this.v_shader);
 	gl.attachShader(this.prgscr, this.f_shaderscr);
 	gl.linkProgram(this.prgscr);
+	if(gl.getProgramParameter(this.prgscr, gl.LINK_STATUS))
+		console.log(this.prgscr);
+
+	gl.clearColor(0.0, 0.0, 0.0, 1.0);
+	gl.clearDepth(1.0);
+//	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
 	this.framebuf=[];
 	this.framebuf[0]=this.createFramebuffer(this.sizex,this.sizey);
@@ -180,6 +200,7 @@ vj_wave = function(param){
 	var vPosition=gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER,vPosition);
 	gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,1,0, 1,1,0, -1,-1,0, 1,-1,0]),gl.STATIC_DRAW);
+//	gl.bindBuffer(gl.ARRAY_BUFFER, null);
 	var vAttLocation = gl.getAttribLocation(this.prgdiff, "position");
 	gl.enableVertexAttribArray(vAttLocation);
 	gl.vertexAttribPointer(vAttLocation, 3, gl.FLOAT, false, 0, 0);
@@ -204,7 +225,7 @@ vj_wave = function(param){
 	uniLocation.scr_line = gl.getUniformLocation(this.prgscr,"eff_line");
 	uniLocation.scr_type = gl.getUniformLocation(this.prgscr,"eff_type");
 	uniLocation.scr_rot = gl.getUniformLocation(this.prgscr,"rot");
-  uniLocation.scr_alpha = gl.getUniformLocation(this.prgscr,"alpha");
+	uniLocation.scr_alpha = gl.getUniformLocation(this.prgscr,"alpha");
 	uniLocation.scr_z = gl.getUniformLocation(this.prgscr,"scale");
 	gl.activeTexture(gl.TEXTURE0);
 	this.levx=new Uint8Array(this.sizex*4);
@@ -243,9 +264,10 @@ vj_wave = function(param){
 		if(this.param.anim.value>=.5){
 			for(var i=0;i<512;++i) {
 				var j=i<<2;
-				this.wavimgdat.data[j]=this.wavedat[i];
+				this.wavimgdat.data[j]=this.wavimgdat.data[j+1]=this.wavimgdat.data[j+2]=this.wavedat[i];
 				this.wavimgdat.data[j+3]=255;
 			}
+//			console.log(this.wavimgdat);
 		}
 		gl.uniform1f(uniLocation.scr_time,timestamp-this.starttime);
 		gl.uniform2fv(uniLocation.scr_resolution,[this.w,this.h]);
@@ -259,7 +281,7 @@ vj_wave = function(param){
 		gl.uniform1f(uniLocation.scr_line,this.param.line.value);
 		gl.uniform1i(uniLocation.scr_type,this.param.type.value);
 		gl.uniform1f(uniLocation.scr_rot,this.param.rot.value*3.14159265/180);
-    gl.uniform1f(uniLocation.scr_alpha,Math.min(.99,this.param.a.value));
+		gl.uniform1f(uniLocation.scr_alpha,Math.min(.99,this.param.a.value));
 		gl.uniform1f(uniLocation.scr_z,this.param.z.value);
 
 //		this.frameidx^=1;

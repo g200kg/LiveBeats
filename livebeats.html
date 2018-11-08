@@ -163,6 +163,7 @@ function _LoadPlugin(script,name,layer) {
 	var plug={"script":script,"name":name};
 	eval("plug.obj=new "+script+"({'w':"+internalResoX+",'h':"+internalResoY+",'cmds':cmds,'wavedat':wavdat,'freqdat':freqdat,'video':video.video,'audioctx':audioctx,'dest':master.out,'senddest':delay.Dly})");
 	InitPlugin(plug,layer);
+	console.log("LoadPlugin:",script,name);
 	return plug;
 }
 function NamePlugin(name) {
@@ -256,9 +257,9 @@ function animInterval(timestamp) {
 		return;
 	}
 	if(++master.tccnt>=10){
-    layout=true;
+		layout=true;
 		document.getElementById("timecode").innerHTML=Timecode(audioctx.currentTime);
-  }
+	}
 	master.ana.getByteTimeDomainData(wavdat);
 	master.ana.getByteFrequencyData(freqdat);
 	for(var i=0,e=plugins.length;i<e;++i) {
@@ -302,7 +303,7 @@ function animInterval(timestamp) {
 			plug.elem.style.top=((scrHeight*plug.param.y.value-scrHeight*h*.5)|0)+"px";
 			plug.elem.style.width=((scrWidth*w)|0)+"px";
 			plug.elem.style.height=((scrHeight*h)|0)+"px";
-			plug.elem.style.opacity=0.99;//Math.min(0.999,parseFloat(plug.param.a.value));
+//			plug.elem.style.opacity=0.99;//Math.min(0.999,parseFloat(plug.param.a.value));
 /*			plug.elem.style.WebkitFilter="blur("+(plug.param.blur.value|0)+"px)";
 			plug.elem.style.WebkitFilter=plug.elem.style.mozFilter="hue-rotate("+plug.param.hue.value+"deg)";
 */
@@ -341,7 +342,7 @@ function Init() {
 
 	out=master.out;
 	run=1;
-  dmx=new DMX();
+	dmx=new DMX();
 	delay=new Delay();
 	o1=new OSC(110,0.8,1,out);
 	o2=new OSC(440,0.5,1,out);
@@ -355,6 +356,7 @@ function Init() {
 	sdo=new FMO(213,1,.8,.1,0, 723,1,2912,.6,0, 140,1,800,.1,0,.3);
 	hho=new FMO(2233,1,.5,.03,0, 423,1,3120,.07,2, 552,1,1800,.02,1,.7);
 	cyo=new FMO(2612,1,.4,.4,0, 1826,1,4219,5,2, 3897,1,1401,1,2,.4);
+	noise=new Noise(440,0.5,out);
 	speech=new Speech();
 //	bdo=new BOSC(0,2.0);
 //	sdo=new BOSC(1,2.0);
@@ -421,9 +423,9 @@ function KeyDown(ev) {
 		ev.preventDefault();
 		ev.stopPropagation();
 		return false;
-  case 9:
-    cmds.key(9);
-    ev.preventDefault();
+	case 9:
+		cmds.key(9);
+		ev.preventDefault();
 		ev.stopPropagation();
 		return false;
 	case 13:
@@ -630,16 +632,22 @@ function Parse0(s) {
 			}
 		}
 		switch(l) {
-    case "dmx.p0": dmx.p0=r; break;
-    case "dmx.p1": dmx.p1=r; break;
-    case "dmx.p2": dmx.p2=r; break;
-    case "dmx.p3": dmx.p3=r; break;
-    case "midi.port": midi.port=r; break;
-    case "midi.pg": midioutputs[midi.port].send([0xc0,r]);
+		case "noise.v": noise.v=r; break;
+		case "noise.s": noise.s=r; break;
+		case "dmx.p0": dmx.p0=r; break;
+		case "dmx.p1": dmx.p1=r; break;
+		case "dmx.p2": dmx.p2=r; break;
+		case "dmx.p3": dmx.p3=r; break;
+		case "dmx.p4": dmx.p4=r; break;
+		case "dmx.p5": dmx.p5=r; break;
+		case "dmx.p6": dmx.p6=r; break;
+		case "dmx.p7": dmx.p7=r; break;
+		case "midi.port": midi.port=r; break;
+		case "midi.pg": midioutputs[midi.port].send([0xc0,r]);
 		case "video.src": video.Switch(numeval(r)); break;
 		case "master.v": master.v=r; break;
 		case "master.g": master.g=r; break;
-    case "master.t": master.t=r; break;
+		case "master.t": master.t=r; break;
 		case "master.tempo": master.tempo=r; break;
 		case "master.rev": master.rev=r; break;
 		case "master.ir": master.ir=numeval(r);
@@ -1173,7 +1181,8 @@ function Interval() {
 		o8.next(nextTime);
 		delay.next(nextTime);
 		speech.next(nextTime);
-    dmx.next(nextTime);
+		dmx.next(nextTime);
+		noise.next(nextTime);
 		if(nextTime==0)
 			nextTime=current;
 		nextTime+=15/master._tempo;
@@ -1306,17 +1315,6 @@ function Note2Vol(n) {
 		return 0;
 	return 2/(n+2);
 }
-function Noise() {
-	this.scr=audioctx.createScriptProcessor(1024,1,1);
-	this.Process=function(ev) {
-//		Interval();
-//		var buf=ev.getChannelData(0);
-//		for(var i=0;i<1024;++i)
-//			buf.data[i]=Math.random()*.5;
-	};
-	this.scr.onaudioprocess=this.Process;
-	this.scr.connect(out);
-}
 function LightCol(h){
   var r,g,b;
   var n=h*6;
@@ -1333,60 +1331,137 @@ function LightCol(h){
   }
   return [r,g,b];
 }
-var dmxdat=[
-  1,0,  2, 0,127,0,0,0,0,0,0,0,
-  2,1,  2, 0,255,0,0,0,0,0,0,0,
-  3,2,  2, 0,255,0,0,0,0,0,0,0,
-  4,3,  2, 0,255,0,0,0,0,0,0,0,
-  0,0,  0, 0,0,0,0,0,0,0,0,0,
-];
 function DMX(){
-  this.hue=0;
-  this.p0="0";
-  this.p1="0";
-  this.p2="0";
-  this.p3="0";
-//  if(dmxout){
-//    dmxout.send([0xb0,111,0]);
-//    dmxout.send([0xb0,110,0]);
-//    for(var i=0;i<dmxdat.length;++i){
-//      dmxout.send([0xb0,112,(dmxdat[i]>>4)&0xf])
-//    }
-//  }
-  this.next=function(t) {
-    if(dmxout==null)
-      return;
-    var now=performance.now();
-    var dmxdelay=200;
-    this.step0=tick%this.p0.length;
-    this.step1=tick%this.p1.length;
-    this.step2=tick%this.p2.length;
-    this.step3=tick%this.p3.length;
-    var v0=this.p0[this.step0]/9*127;
-    var v1=this.p1[this.step1]/9*127;
-    var v2=this.p2[this.step2]/9*127;
-    var v3=this.p3[this.step3]/9*127;
-    dmxout.send([0xb0,0,v0],now+dmxdelay);
-    dmxout.send([0xb0,1,v1],now+dmxdelay);
-    dmxout.send([0xb0,2,v2],now+dmxdelay);
-    dmxout.send([0xb0,3,v3],now+dmxdelay);
-//    var rgb=LightCol(this.hue);
-//    this.hue+=0.01;
-//    if(this.hue>=1){
-//      this.hue-=1;
-//    }
-//    dmxout.send([0xb0,1,v1],now+dmxdelay);
-//    dmxout.send([0xb0,2,rgb[0]]);
-//    dmxout.send([0xb0,0,v1*plugins[0].obj.pz],now+dmxdelay);
-//    var v=(plugins[0].obj.py-.5)*2+.5;
-//    if(v<0) v=0;
-//    if(v>1) v=1;
+	this.hue=0;
+	this.p0="0";
+	this.p1="0";
+	this.p2="0";
+	this.p3="0";
+	this.p4="0";
+	this.p5="0";
+	this.p6="0";
+	this.p7="0";
+	this.next=function(t) {
+		if(dmxout==null)
+			return;
+		var now=performance.now();
+		var dmxdelay=200;
+		var v0=this.p0[tick%this.p0.length];
+		var v1=this.p1[tick%this.p1.length];
+		var v2=this.p2[tick%this.p2.length];
+		var v3=this.p3[tick%this.p3.length];
+		var v4=this.p4[tick%this.p4.length];
+		var v5=this.p5[tick%this.p5.length];
+		var v6=this.p6[tick%this.p6.length];
+		var v7=this.p7[tick%this.p7.length];
+		if(v0>"a") v0=(v0.charCodeAt(0)-0x61)*127/25; else v0=v0*127/9;
+		if(v1>"a") v1=(v1.charCodeAt(0)-0x61)*127/25; else v1=v1*127/9;
+		if(v2>"a") v2=(v2.charCodeAt(0)-0x61)*127/25; else v2=v2*127/9;
+		if(v3>"a") v3=(v3.charCodeAt(0)-0x61)*127/25; else v3=v3*127/9;
+		if(v4>"a") v4=(v4.charCodeAt(0)-0x61)*127/25; else v4=v4*127/9;
+		if(v5>"a") v5=(v5.charCodeAt(0)-0x61)*127/25; else v5=v5*127/9;
+		if(v6>"a") v6=(v6.charCodeAt(0)-0x61)*127/25; else v6=v6*127/9;
+		if(v7>"a") v7=(v7.charCodeAt(0)-0x61)*127/25; else v7=v7*127/9;
+		dmxout.send([0xb0,0,v0],now+dmxdelay);
+		dmxout.send([0xb0,1,v1],now+dmxdelay);
+		dmxout.send([0xb0,2,v2],now+dmxdelay);
+		dmxout.send([0xb0,3,v3],now+dmxdelay);
+		dmxout.send([0xb0,4,v4],now+dmxdelay);
+		dmxout.send([0xb0,5,v5],now+dmxdelay);
+		dmxout.send([0xb0,6,v6],now+dmxdelay);
+		dmxout.send([0xb0,7,v7],now+dmxdelay);
+	}
+}
+function Noise(f,v,to){
+	this.rdist=0;
+	this.ena=0;
+	this.form={0:"sine",1:"sawtooth",2:"square"};
+	this.Source=audioctx.createBufferSource();
+	this.Source.loop=true;
+	this.Buf=audioctx.createBuffer(1,44100,44100);
+	const d=this.Buf.getChannelData(0);
+	for(let i=0;i<44100;++i){
+		d[i]=Math.random()-0.5;
+	}
+	this.Source.buffer=this.Buf;
 
-//    dmxout.send([0xb0,1,127-v*127]);
-//    dmxout.send([0xb0,1,0]);
-//    dmxout.send([0xb0,1,plugins[0].obj.py]*127);
-//    dmxout.send([0xb0,4,rgb[2]]);
-  }
+	this.Fil=audioctx.createBiquadFilter();
+	this.FilFrequency=new Automation(audioctx,this.Fil.frequency);
+	this.FilDetune=new Automation(audioctx,this.Fil.detune);
+	this.Gain=audioctx.createGain();
+	this.GainGain=new Automation(audioctx,this.Gain.gain);
+	this.Mod=audioctx.createGain();
+	this.Send=audioctx.createGain();
+	this.Pan=audioctx.createStereoPanner();
+	this.Source.connect(this.Fil);
+	this.Fil.connect(this.Gain);
+	this.Gain.connect(this.Mod);
+	this.Gain.connect(this.Send);
+	this.Gain.connect(this.Pan);
+	this.Send.connect(delay.Dly);
+	this.Gain.gain.value=0;
+	this.Send.gain.value=0;
+	this.Mod.gain.value=1200;
+	if(to) {
+		this.Pan.connect(to);
+	}
+	this.s=this.defs="";
+	this.g=this.defg="c";
+//	this.type=this.deftype=t;
+	this.c=this.defc=20;
+	this.q=this.defq=10;
+	this.v=this.defv=v;
+	this.porta=this.defporta=0;
+	this.pan=this.defpan=0.5;
+	this.out=this.defout="master";
+	this.delay=this.defdelay=0.0;
+	this.f=this.deff=f;
+	this.d=this.defd=1;
+	this.dist=this.defdist=0;
+	this.step=0;
+	this._out=null;
+	this.freq="";
+	this.Source.start(0);
+	this.tune=0;
+	this.next=function(t) {
+		this.Send.gain.value=numeval(this.delay);
+		var s=Mml(streval(this.s));
+		this.step=tick%s.length;
+		var tune=s[this.step];
+		var v=1;//Note2Vol(g[tick%g.length]);
+		if(this._out!=this.out) {
+			this._out=this.out;
+			this.Pan.disconnect();
+			this.Mod.disconnect();
+			if(this._out=="master")
+				this.Pan.connect(master.out);
+			else {
+				this.Gain.connect(this.Mod);
+				try {
+					this.Mod.connect(eval(this.out).Osc.frequency);
+				} catch(e) {}
+			}
+		}
+		if(tune) {
+			tune=(tune-57+master.tunparam-5)*100;
+//			this.OscDetune.setTargetAtTime(tune,t,Math.pow(100,numeval(this.porta))*.001);
+			this.FilDetune.setValueAtTime(tune,t);
+			var _freq=numeval(this.f);
+//			this.OscFrequency.setTargetAtTime(_freq,t,Math.pow(100,numeval(this.porta))*.001);
+			var _cutoff=numeval(this.c);
+			this.FilFrequency.setValueAtTime(_freq*_cutoff,t);
+			this.Fil.Q.value=numeval(this.q);
+			this.GainGain.setTargetAtTime(numeval(this.v)*v*.6,t,0.001);
+			var d=Math.max(0.02,numeval(this.d));
+			if(d<1)
+				this.GainGain.setTargetAtTime(0,t+0.01,d);
+			this.tune=tune;
+		}
+		else {
+			this.GainGain.setTargetAtTime(0,t,0.01);
+		}
+		this.Pan.pan.value=(numeval(this.pan)-0.5)*2;
+	}
 }
 function OSC(f,v,t,to) {
 	this.MakeWav=function(){
@@ -1888,8 +1963,8 @@ function MidiIn(e){
 }
 function Midi() {
 	console.log("---MIDI---");
-  this.port=0;
-  dmxout=null;
+	this.port=0;
+	dmxout=null;
 	this.onMIDIFailure=function(msg) {console.log(msg);};
 	this.onMIDISuccess=function(ac) {
 		console.log("requestMIDIAccess:success");
@@ -1897,10 +1972,10 @@ function Midi() {
 		midioutputs=[];
 		for (var o=i.next(); !o.done; o=i.next()) {
 			midioutputs.push(o.value);
-      console.log(o.value);
-      if(o.value.name=="MocoLUFA"){
-        dmxout=o.value;
-      }
+			console.log(o.value);
+			if(o.value.name=="MocoLUFA"){
+				dmxout=o.value;
+			}
 		}
 		console.log("number of midiout ports:"+midioutputs.length);
 		i=ac.inputs.values();
@@ -2018,16 +2093,17 @@ function Cmds() {
 }
 function Video() {
 	this.video=document.getElementById("video");
+	this.play=0;
 	function err(err) {
+		console.log(err);
 		cmds.message("video is not available.");
 	}
 	function success(stream) {
-		var v=document.getElementById("video");
-		v.src= window.URL.createObjectURL(stream);
-		v.width=320;
-		v.height=240;
-		v.play();
+		this.video.src= window.URL.createObjectURL(stream);
+		this.video.width=320;
+		this.video.height=240;
 		this.stream=stream;
+		this.video.play();
 	}
 	this.cam=[];
 	if(nocam!=1){
@@ -2054,10 +2130,18 @@ function Video() {
 		navigator.getUserMedia( {video: true},success.bind(this),err);
 	}
 }
+function Start(){
+	const s=document.getElementById("splash");
+	s.style.display="none";
+//	video.video.play();
+}
 </script>
 <div id="base" style="position:absolute;left:0px;top:0px;background:#000;overflow:hidden">
 </div>
 <div id="topmost" style="position:absolute;left:0px;top:0px;overflow:hidden">
+</div>
+<div id="splash">
+<button style="display:block;position:absolute;left:25%;top:40%;width:50%;height:20%" onclick="Start()">Start</button>	
 </div>
 <input id="cmdline" onchange="CmdlineInput()" style="display:none;width:100%;position:absolute;left:0;bottom:0;border:none"/>
 <div id="timecode" style="position:absolute;border:none;margin:0px;padding:0px;right:2px;bottom:5px;width:120px;height:20px;color:#aaa;font-size:20px;font-family:courier"></div>
