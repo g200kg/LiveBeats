@@ -328,6 +328,7 @@ function WaitReady(){
 		setTimeout(WaitReady,200);
 		return;
 	}
+	console.log("CmdInit");
 	CmdInit();
 }
 function Init() {
@@ -2101,7 +2102,7 @@ function Video() {
 		cmds.message("video is not available.");
 	}
 	function success(stream) {
-		this.video.src= window.URL.createObjectURL(stream);
+		this.video.srcObject = stream;
 		this.video.width=320;
 		this.video.height=240;
 		this.stream=stream;
