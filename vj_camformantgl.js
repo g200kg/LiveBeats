@@ -130,201 +130,201 @@ function VowelOsc(actx){
 
 vj_camformantgl = function(param){
   console.log("vj_camformantgl")
-	var vj_video_vs="\
-		attribute vec3 position;\
-		void main(void){\
-			gl_Position = vec4(position, 1.0);\
-		}";
-	var vj_video_fsdiff="\
-		precision mediump float;\
-		uniform vec2 resolution;\
-		uniform sampler2D textureCur;\
-		uniform sampler2D texturePre;\
-		uniform sampler2D textureDiff;\
-		void main(void){\
-			vec2 uv=gl_FragCoord.xy/resolution.xy;\
-			vec4 cur=texture2D(textureCur,uv);\
-			vec4 pre=texture2D(texturePre,uv);\
-			vec4 diff=texture2D(textureDiff,uv);\
-			vec4 d=abs(cur-pre);\
-			float v=max(d.x+d.y+d.z,diff.x*0.9);\
-			float sumx=0.0;\
-			float sumy=0.0;\
-			if(uv.y>0.99) {\
-				for(int i=0;i<20;++i) {\
-					float py=float(i)/20.0;\
-					vec2 p=vec2(uv.x,py);\
-					sumx+=texture2D(textureDiff,p).x;\
-				}\
-				sumx=sumx*0.05;\
-			}\
-			if(uv.x>0.99) {\
-				for(int i=0;i<20;++i) {\
-					float px=float(i)/20.0;\
-					vec2 p=vec2(px,uv.y);\
-					sumy+=texture2D(textureDiff,p).x;\
-				}\
-				sumy=sumy*0.05;\
-			}\
-			gl_FragColor=vec4(v,sumx,sumy,0);\
-		}";
-	var vj_video_fsscr="\
-		precision mediump float;\
-		uniform float time;\
-		uniform vec2 resolution;\
-		uniform vec3 cursor;\
-		uniform vec3 cursorold;\
-		uniform sampler2D textureCur;\
-		uniform sampler2D textureDiff;\
-		uniform float rot;\
-		uniform float alpha;\
-		uniform float scale;\
-		uniform float effposter;\
-		uniform float effmotion;\
-		uniform int effkaleido;\
-		uniform float effmosaic;\
-		uniform float effwave;\
-		uniform float effdiv;\
-		uniform float effhue;\
-		uniform float effsat;\
-		uniform float effcont;\
-		uniform int effpointer;\
-		uniform float effmelt;\
-		uniform float efffilm;\
-		uniform float effunsync;\
-		uniform float effscan;\
-		float rand(vec2 p){\
-			return fract(sin(dot(p ,vec2(12.9898,78.233))) * 43758.5453);\
-		}\
-		float smooth(float a, float b, float x){\
-			float f=(1.-cos(x*3.14159))*.5;\
-			return a+(b-a)*f;\
-		}\
-		float smoothrand(vec2 p){\
-			vec2 i = floor(p);\
-			vec2 f = fract(p);\
-			vec4 v = vec4(rand(i),rand(vec2(i.x+1., i.y)),rand(vec2(i.x,i.y+1.)),rand(vec2(i.x+1.,i.y+1.)));\
-			return smooth(smooth(v.x, v.y, f.x), smooth(v.z, v.w, f.x), f.y);\
-		}\
-		vec3 rgb2hsv(vec3 c){\
-			vec4 K = vec4(0., -1./3., 2./3., -1.0);\
-			vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));\
-			vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));\
-			float d = q.x - min(q.w, q.y);\
-			float e = 1.0e-10;\
-			return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);\
-		}\
-		vec3 hsv2rgb(vec3 c){\
-			vec4 K = vec4(1., 2./3., 1./3., 3.);\
-			vec3 p = abs(fract(c.xxx + K.xyz) * 6. - K.www);\
-			return c.z * mix(K.xxx, clamp(p - K.xxx, 0., 1.), c.y);\
-		}\
-		vec2 trans(vec2 p){\
-			float t=atan(p.y, p.x)+time*0.0001;\
-			float r=length(p);\
-			return vec2(t,r);\
-		}\
-		vec2 melt(vec2 p){\
-			return p+(vec2(smoothrand(p*30.),smoothrand(p*31.))-vec2(.5))*effmelt;\
-		}\
-		void main() {\
-			vec2 uv=(gl_FragCoord.xy/resolution.xy-.5);\
-			float th=atan(uv.y,uv.x)+rot*3.14159/180.0;\
-			float r=length(uv)/scale;\
-			uv=vec2(cos(th)*r,sin(th)*r);\
-			uv+=.5;\
-			float cr=0.;\
-			if(effpointer==1){\
-				float r=cursor.z*0.08+0.01;\
-				float dist=min(1.0,length(cursor.xy-uv));\
-				float th=atan((cursor.y-uv.y)/(cursor.x-uv.x));\
-				float fac=pow(1.02-(dist-r),20.0);\
-				cr=fac*pow(abs(sin(th*4.0+time/100.0)),2.0*dist/r);\
-			}\
-			if(effpointer==2){\
-				float difx=abs(uv.x-cursor.x);\
-				float dify=abs(uv.y-cursor.y);\
-				float difxold=abs(uv.x-cursorold.x);\
-				float difyold=abs(uv.y-cursorold.y);\
-				cr=max(0.,1.0-abs(sin(sin(time*.00113)/(.1+difx))*difx-(uv.y-cursor.y)));\
-				cr=max(cr,1.0-abs(sin(sin(time*.00081)/(.1+difxold))*difxold-(uv.y-cursor.y)));\
-				cr=max(cr,1.0-abs(sin(sin(time*.00098)/(.1+difyold))*difyold-(uv.x-cursor.x)));\
-				cr=max(cr,1.0-abs(sin(sin(time*.000121)/(.1+difyold))*difyold-(uv.x-cursorold.x)));\
-				cr=pow(cr,136.);\
-			}\
-			if(effpointer==3){\
-				float r=cursor.z*0.05;\
-				float fac=1.00002;\
-				float dist=1.;\
-				for(int i=0;i<8;++i){\
-					vec2 pos=cursor.xy;\
-					float fi=sin(float(i)*8.2);\
-					float fi2=cos(float(i)*3.3);\
-					float t=time*(0.005+fi*0.001)+fi;\
-					pos.x+=tan(fi)*sin(t)*0.11*(sin(fi))*cursor.z*2.;\
-					pos.y+=tan(fi2)*cos(t)*0.132*(sin(fi))*cursor.z*2.;\
-					dist=min(dist,1.);\
-					dist=min(dist,length(pos-uv));\
-				}\
-				fac-=(dist);\
-				cr=pow(fac,30.);\
-			}\
-			float mos=resolution.x/(effmosaic*64.0+1.0);\
-			uv=vec2(1.0)-uv;\
-			if(effkaleido>=1) {\
-				if(uv.x>0.5)\
-					uv.x=1.0-uv.x;\
-				if(effkaleido>=2) {\
-					if(uv.y>0.5)\
-						uv.y=1.0-uv.y;\
-					if(effkaleido>=3)\
-						if(uv.y>uv.x) {\
-							float t=uv.x;\
-							uv.x=uv.y;\
-							uv.y=t;\
-						}\
-				}\
-			}\
-			uv.x+=sin(uv.y*50.0+time*.005)*effwave*0.05;\
-			uv=fract(uv*floor(1.5+effdiv));\
-			vec2 uv2=uv=floor(uv*mos)/mos;\
-			float n1=max(0.,smoothrand(uv*12.+sin(floor(time*.024))*1231.21)-.95)*50.;\
-			float n2=pow(smoothrand(uv.xx*42.+floor(time*.01)*12.),20.);\
-			uv=uv+(vec2(smoothrand(uv*20.-time*.0011),smoothrand(uv*21.+time*.001))-vec2(.5))*effmelt*.1;\
-			uv.y=mod(uv.y+(time/6000.)*effunsync,1.1);\
-			vec4 colCur,colDiff;\
-			if(uv.y>=1.0){\
-				colCur=colDiff=vec4(0.);\
-			}\
-			else{\
-				colCur=texture2D(textureCur,uv);\
-				colDiff=texture2D(textureDiff,uv);\
-			}\
-			float v=colDiff.x;\
-			colCur*=(sin(uv.y*525.)*effscan+1.);\
-			vec3 hsv=rgb2hsv(colCur.xyz);\
-			hsv.z-=(n1+n2)*efffilm;\
-			hsv.x+=effhue;\
-			hsv.y*=effsat;\
-			hsv.z=(hsv.z-.5)*(effcont+1.)+.5;\
-			colCur=vec4(hsv2rgb(hsv),colCur.w);\
-			float poststep=max(2.,12.-effposter*10.);\
-			if(effposter<=0.01) poststep=256.;\
-			colCur=floor(colCur*poststep)/poststep;\
-			if(v>0.75) {\
-				colCur.x+=(1.0-colCur.x)*effmotion;\
-				colCur.y+=(1.0-colCur.y)*effmotion;\
-				colCur.z+=(1.0-colCur.z)*(v-0.75)*4.0*effmotion;\
-			}\
-			else if(v>0.5) {\
-				colCur.x+=(1.0-colCur.x)*effmotion;\
-				colCur.y+=(1.0-colCur.y)*(v-0.5)*4.0*effmotion;\
-			}\
-			else if(v>0.25) {\
-				colCur.x+=(1.0-colCur.x)*(v-0.25)*4.0*effmotion;\
-			}\
-			gl_FragColor=vec4(colCur.x+cr,colCur.y+cr,colCur.z+pow(cr,.5),1.0)*alpha;\
-		}";
+	var vj_video_vs=`
+		attribute vec3 position;
+		void main(void){
+			gl_Position = vec4(position, 1.0);
+		}`;
+	var vj_video_fsdiff=`
+		precision mediump float;
+		uniform vec2 resolution;
+		uniform sampler2D textureCur;
+		uniform sampler2D texturePre;
+		uniform sampler2D textureDiff;
+		void main(void){
+			vec2 uv=gl_FragCoord.xy/resolution.xy;
+			vec4 cur=texture2D(textureCur,uv);
+			vec4 pre=texture2D(texturePre,uv);
+			vec4 diff=texture2D(textureDiff,uv);
+			vec4 d=abs(cur-pre);
+			float v=max(d.x+d.y+d.z,diff.x*0.9);
+			float sumx=0.0;
+			float sumy=0.0;
+			if(uv.y>0.99) {
+				for(int i=0;i<20;++i) {
+					float py=float(i)/20.0;
+					vec2 p=vec2(uv.x,py);
+					sumx+=texture2D(textureDiff,p).x;
+				}
+				sumx=sumx*0.05;
+			}
+			if(uv.x>0.99) {
+				for(int i=0;i<20;++i) {
+					float px=float(i)/20.0;
+					vec2 p=vec2(px,uv.y);
+					sumy+=texture2D(textureDiff,p).x;
+				}
+				sumy=sumy*0.05;
+			}
+			gl_FragColor=vec4(v,sumx,sumy,0);
+		}`;
+	var vj_video_fsscr=`
+		precision mediump float;
+		uniform float time;
+		uniform vec2 resolution;
+		uniform vec3 cursor;
+		uniform vec3 cursorold;
+		uniform sampler2D textureCur;
+		uniform sampler2D textureDiff;
+		uniform float rot;
+		uniform float alpha;
+		uniform float scale;
+		uniform float effposter;
+		uniform float effmotion;
+		uniform int effkaleido;
+		uniform float effmosaic;
+		uniform float effwave;
+		uniform float effdiv;
+		uniform float effhue;
+		uniform float effsat;
+		uniform float effcont;
+		uniform int effpointer;
+		uniform float effmelt;
+		uniform float efffilm;
+		uniform float effunsync;
+		uniform float effscan;
+		float rand(vec2 p){
+			return fract(sin(dot(p ,vec2(12.9898,78.233))) * 43758.5453);
+		}
+		float smooth(float a, float b, float x){
+			float f=(1.-cos(x*3.14159))*.5;
+			return a+(b-a)*f;
+		}
+		float smoothrand(vec2 p){
+			vec2 i = floor(p);
+			vec2 f = fract(p);
+			vec4 v = vec4(rand(i),rand(vec2(i.x+1., i.y)),rand(vec2(i.x,i.y+1.)),rand(vec2(i.x+1.,i.y+1.)));
+			return smooth(smooth(v.x, v.y, f.x), smooth(v.z, v.w, f.x), f.y);
+		}
+		vec3 rgb2hsv(vec3 c){
+			vec4 K = vec4(0., -1./3., 2./3., -1.0);
+			vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+			vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+			float d = q.x - min(q.w, q.y);
+			float e = 1.0e-10;
+			return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+		}
+		vec3 hsv2rgb(vec3 c){
+			vec4 K = vec4(1., 2./3., 1./3., 3.);
+			vec3 p = abs(fract(c.xxx + K.xyz) * 6. - K.www);
+			return c.z * mix(K.xxx, clamp(p - K.xxx, 0., 1.), c.y);
+		}
+		vec2 trans(vec2 p){
+			float t=atan(p.y, p.x)+time*0.0001;
+			float r=length(p);
+			return vec2(t,r);
+		}
+		vec2 melt(vec2 p){
+			return p+(vec2(smoothrand(p*30.),smoothrand(p*31.))-vec2(.5))*effmelt;
+		}
+		void main() {
+			vec2 uv=(gl_FragCoord.xy/resolution.xy-.5);
+			float th=atan(uv.y,uv.x)+rot*3.14159/180.0;
+			float r=length(uv)/scale;
+			uv=vec2(cos(th)*r,sin(th)*r);
+			uv+=.5;
+			float cr=0.;
+			if(effpointer==1){
+				float r=cursor.z*0.08+0.01;
+				float dist=min(1.0,length(cursor.xy-uv));
+				float th=atan((cursor.y-uv.y)/(cursor.x-uv.x));
+				float fac=pow(1.02-(dist-r),20.0);
+				cr=fac*pow(abs(sin(th*4.0+time/100.0)),2.0*dist/r);
+			}
+			if(effpointer==2){
+				float difx=abs(uv.x-cursor.x);
+				float dify=abs(uv.y-cursor.y);
+				float difxold=abs(uv.x-cursorold.x);
+				float difyold=abs(uv.y-cursorold.y);
+				cr=max(0.,1.0-abs(sin(sin(time*.00113)/(.1+difx))*difx-(uv.y-cursor.y)));
+				cr=max(cr,1.0-abs(sin(sin(time*.00081)/(.1+difxold))*difxold-(uv.y-cursor.y)));
+				cr=max(cr,1.0-abs(sin(sin(time*.00098)/(.1+difyold))*difyold-(uv.x-cursor.x)));
+				cr=max(cr,1.0-abs(sin(sin(time*.000121)/(.1+difyold))*difyold-(uv.x-cursorold.x)));
+				cr=pow(cr,136.);
+			}
+			if(effpointer==3){
+				float r=cursor.z*0.05;
+				float fac=1.00002;
+				float dist=1.;
+				for(int i=0;i<8;++i){
+					vec2 pos=cursor.xy;
+					float fi=sin(float(i)*8.2);
+					float fi2=cos(float(i)*3.3);
+					float t=time*(0.005+fi*0.001)+fi;
+					pos.x+=tan(fi)*sin(t)*0.11*(sin(fi))*cursor.z*2.;
+					pos.y+=tan(fi2)*cos(t)*0.132*(sin(fi))*cursor.z*2.;
+					dist=min(dist,1.);
+					dist=min(dist,length(pos-uv));
+				}
+				fac-=(dist);
+				cr=pow(fac,30.);
+			}
+			float mos=resolution.x/(effmosaic*64.0+1.0);
+			uv=vec2(1.0)-uv;
+			if(effkaleido>=1) {
+				if(uv.x>0.5)
+					uv.x=1.0-uv.x;
+				if(effkaleido>=2) {
+					if(uv.y>0.5)
+						uv.y=1.0-uv.y;
+					if(effkaleido>=3)
+						if(uv.y>uv.x) {
+							float t=uv.x;
+							uv.x=uv.y;
+							uv.y=t;
+						}
+				}
+			}
+			uv.x+=sin(uv.y*50.0+time*.005)*effwave*0.05;
+			uv=fract(uv*floor(1.5+effdiv));
+			vec2 uv2=uv=floor(uv*mos)/mos;
+			float n1=max(0.,smoothrand(uv*12.+sin(floor(time*.024))*1231.21)-.95)*50.;
+			float n2=pow(smoothrand(uv.xx*42.+floor(time*.01)*12.),20.);
+			uv=uv+(vec2(smoothrand(uv*20.-time*.0011),smoothrand(uv*21.+time*.001))-vec2(.5))*effmelt*.1;
+			uv.y=mod(uv.y+(time/6000.)*effunsync,1.1);
+			vec4 colCur,colDiff;
+			if(uv.y>=1.0){
+				colCur=colDiff=vec4(0.);
+			}
+			else{
+				colCur=texture2D(textureCur,uv);
+				colDiff=texture2D(textureDiff,uv);
+			}
+			float v=colDiff.x;
+			colCur*=(sin(uv.y*525.)*effscan+1.);
+			vec3 hsv=rgb2hsv(colCur.xyz);
+			hsv.z-=(n1+n2)*efffilm;
+			hsv.x+=effhue;
+			hsv.y*=effsat;
+			hsv.z=(hsv.z-.5)*(effcont+1.)+.5;
+			colCur=vec4(hsv2rgb(hsv),colCur.w);
+			float poststep=max(2.,12.-effposter*10.);
+			if(effposter<=0.01) poststep=256.;
+			colCur=floor(colCur*poststep)/poststep;
+			if(v>0.75) {
+				colCur.x+=(1.0-colCur.x)*effmotion;
+				colCur.y+=(1.0-colCur.y)*effmotion;
+				colCur.z+=(1.0-colCur.z)*(v-0.75)*4.0*effmotion;
+			}
+			else if(v>0.5) {
+				colCur.x+=(1.0-colCur.x)*effmotion;
+				colCur.y+=(1.0-colCur.y)*(v-0.5)*4.0*effmotion;
+			}
+			else if(v>0.25) {
+				colCur.x+=(1.0-colCur.x)*(v-0.25)*4.0*effmotion;
+			}
+			gl_FragColor=vec4(colCur.x+cr,colCur.y+cr,colCur.z+pow(cr,.5),1.0)*alpha;
+		}`;
 	this.createVideoTexture=function(video) {
 		var tex=gl.createTexture();
 		gl.bindTexture(gl.TEXTURE_2D,tex);
@@ -335,9 +335,11 @@ vj_camformantgl = function(param){
 		return tex;
 	};
 	this.updateTexture=function(video) {
-		if(!video.src){
+		console.log("updatetex1")
+		if(!video.srcObject){
 			return;
 		}
+		console.log("updatetex2")
 		var t=this.texturePre;
 		this.texturePre=this.textureCur;
 		this.textureCur=t;

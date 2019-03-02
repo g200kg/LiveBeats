@@ -48,7 +48,7 @@ vj_matrix=function(param) {
 	this.mry=this.h/48;
 	this.lasttime=0;
 	this.anim=function(timestamp) {
-		console.log(this.param.a.value,this.elem.style.opacity);
+//		console.log(this.param.a.value,this.elem.style.opacity);
 		this.elem.style.opacity=this.param.a.value;
 		if(this.param.a.value==0)
 			return;
