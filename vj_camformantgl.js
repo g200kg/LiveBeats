@@ -335,11 +335,9 @@ vj_camformantgl = function(param){
 		return tex;
 	};
 	this.updateTexture=function(video) {
-		console.log("updatetex1")
 		if(!video.srcObject){
 			return;
 		}
-		console.log("updatetex2")
 		var t=this.texturePre;
 		this.texturePre=this.textureCur;
 		this.textureCur=t;
