@@ -1890,7 +1890,7 @@ function Master() {
 function Speech(){
 	this.utter=new SpeechSynthesisUtterance();
 	this.loop=16;
-	this.lang="en-US";
+	this.lang="en";
 	this.pitch="1";
 	this.rate="1";
 	this.vol="1";
@@ -1939,7 +1939,6 @@ function Speech(){
 			}
 		}
 	};
-	this.setLang("en");
 }
 function Delay() {
 	this.Dly=audioctx.createDelay();
