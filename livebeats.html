@@ -2102,6 +2102,7 @@ function Video() {
 		cmds.message("video is not available.");
 	}
 	function success(stream) {
+		console.log("stream:"+stream);
 		this.video.srcObject = stream;
 		this.video.width=320;
 		this.video.height=240;
@@ -2110,7 +2111,7 @@ function Video() {
 	}
 	this.cam=[];
 	if(nocam!=1){
-		navigator.mediaDevices.enumerateDevices().then(
+		navigator.mediaDevices.enumerateDevices({video:true}).then(
 			function(devices){
 				for(var i=0,j=0,len=devices.length;i<len;++i){
 					var device=devices[i];
@@ -2120,18 +2121,21 @@ function Video() {
 						++j;
 					}
 				}
+				this.Switch(0);
 			}.bind(this)
 		);
 	}
 	this.Switch=function(n){
 		if(n<0||n>=this.cam.length)
 			return;
-		navigator.getUserMedia({video:{optional:[{sourceId:this.cam[n]}]},audio:false},success.bind(this),err);
+		console.log("video switch:"+this.cam[n]);
+		
+		if(this.video.srcObject){
+			const trk=this.video.srcObject.getTracks();
+			trk.forEach(function(track){track.stop();});
+		}
+		navigator.mediaDevices.getUserMedia({video:{deviceId:this.cam[n]},audio:false}).then(success.bind(this),err);
 	};
-	navigator.getUserMedia=navigator.getUserMedia||navigator.webkitGetUserMedia||navigator.mozGetUserMedia;
-	if(nocam!=1 && typeof(navigator.getUserMedia)=="function") {
-		navigator.getUserMedia( {video: true},success.bind(this),err);
-	}
 }
 function Start(){
 	audioctx.resume();
